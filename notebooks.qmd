@@ -1,0 +1,16 @@
+---
+title: "Notebooks"
+---
+
+Companion notebooks are linked from the schedule on the [Home page](index.qmd) and from each [tutorial](tutorials/index.qmd). Conventions:
+
+- `notebooks/lecNN-*.ipynb` — lecture companions (run the lecture's numbers yourself)
+- `notebooks/tutNN-*.ipynb` — the coding half of each tutorial
+
+Available so far:
+
+| Notebook | Goes with |
+|----------|-----------|
+| [tut01-floating-point](notebooks/tut01-floating-point.ipynb) | T1 · L2 (floating point) |
+
+All notebooks are NumPy/Matplotlib first; PyTorch appears from the autodiff module onward. Each runs top-to-bottom in a fresh kernel.

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="944.39952pt" height="325.19952pt" viewBox="0 0 944.39952 325.19952" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-07-08T15:37:40.350600</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.10.8, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 325.19952 
+L 944.39952 325.19952 
+L 944.39952 0 
+L 0 0 
+z
+" style="fill: #f7f3e9"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 31.673672 189.625805 
+L 185.508179 189.625805 
+Q 189.004417 189.625805 189.004417 186.24755 
+L 189.004417 122.060692 
+Q 189.004417 118.682437 185.508179 118.682437 
+L 31.673672 118.682437 
+Q 28.177433 118.682437 28.177433 122.060692 
+L 28.177433 186.24755 
+Q 28.177433 189.625805 31.673672 189.625805 
+z
+" clip-path="url(#p5fe10bf00b)" style="fill: #efeada; stroke: #37535f; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 213.478089 189.625805 
+L 367.312596 189.625805 
+Q 370.808835 189.625805 370.808835 186.24755 
+L 370.808835 122.060692 
+Q 370.808835 118.682437 367.312596 118.682437 
+L 213.478089 118.682437 
+Q 209.98185 118.682437 209.98185 122.060692 
+L 209.98185 186.24755 
+Q 209.98185 189.625805 213.478089 189.625805 
+z
+" clip-path="url(#p5fe10bf00b)" style="fill: #efeada; stroke: #37535f; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 395.282506 189.625805 
+L 549.117014 189.625805 
+Q 552.613252 189.625805 552.613252 186.24755 
+L 552.613252 122.060692 
+Q 552.613252 118.682437 549.117014 118.682437 
+L 395.282506 118.682437 
+Q 391.786268 118.682437 391.786268 122.060692 
+L 391.786268 186.24755 
+Q 391.786268 189.625805 395.282506 189.625805 
+z
+" clip-path="url(#p5fe10bf00b)" style="fill: #efeada; stroke: #37535f; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 577.086924 189.625805 
+L 730.921431 189.625805 
+Q 734.41767 189.625805 734.41767 186.24755 
+L 734.41767 122.060692 
+Q 734.41767 118.682437 730.921431 118.682437 
+L 577.086924 118.682437 
+Q 573.590685 118.682437 573.590685 122.060692 
+L 573.590685 186.24755 
+Q 573.590685 189.625805 577.086924 189.625805 
+z
+" clip-path="url(#p5fe10bf00b)" style="fill: #efeada; stroke: #37535f; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 758.891341 189.625805 
+L 912.725848 189.625805 
+Q 916.222087 189.625805 916.222087 186.24755 
+L 916.222087 122.060692 
+Q 916.222087 118.682437 912.725848 118.682437 
+L 758.891341 118.682437 
+Q 755.395103 118.682437 755.395103 122.060692 
+L 755.395103 186.24755 
+Q 755.395103 189.625805 758.891341 189.625805 
+z
+" clip-path="url(#p5fe10bf00b)" style="fill: #efeada; stroke: #37535f; stroke-width: 1.6; stroke-linejoin: miter"/>
+   </g>
+   <g id="text_1">
+    <text style="font-style: italic; font-size: 12px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #8e2a3b" x="472.19976" y="28.820836" transform="rotate(-0 472.19976 28.820836)">what breaks without the math</text>
+   </g>
+   <g id="text_2">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #37535f" x="108.590925" y="157.859264" transform="rotate(-0 108.590925 157.859264)">DATA</text>
+   </g>
+   <g id="text_3">
+    <text style="font-size: 11.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #161513" x="108.590925" y="218.400158" transform="rotate(-0 108.590925 218.400158)">vectors · matrices</text>
+   </g>
+   <g id="text_4">
+    <text style="font-style: italic; font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #b85a3e" x="108.590925" y="245.156672" transform="rotate(-0 108.590925 245.156672)">Module 1 · L3–L6</text>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; fill: #8e2a3b" transform="translate(80.559206 70.342889)">“features on</text>
+    <text style="font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; fill: #8e2a3b" transform="translate(76.936706 82.144889)">wrong scales”</text>
+   </g>
+   <g id="text_6">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #37535f" x="290.395343" y="157.859264" transform="rotate(-0 290.395343 157.859264)">MODEL</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 11.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #161513" x="290.395343" y="218.400158" transform="rotate(-0 290.395343 218.400158)">linear maps · distributions</text>
+   </g>
+   <g id="text_8">
+    <text style="font-style: italic; font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #b85a3e" x="290.395343" y="245.156672" transform="rotate(-0 290.395343 245.156672)">Modules 1 &amp; 3</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; fill: #8e2a3b" transform="translate(269.342022 70.342889)">“singular</text>
+    <text style="font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; fill: #8e2a3b" transform="translate(272.820147 82.144889)">matrix”</text>
+   </g>
+   <g id="text_10">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #37535f" x="472.19976" y="157.859264" transform="rotate(-0 472.19976 157.859264)">LOSS</text>
+   </g>
+   <g id="text_11">
+    <text style="font-size: 11.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #161513" x="472.19976" y="218.400158" transform="rotate(-0 472.19976 218.400158)">likelihood · cross-entropy</text>
+   </g>
+   <g id="text_12">
+    <text style="font-style: italic; font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #b85a3e" x="472.19976" y="245.156672" transform="rotate(-0 472.19976 245.156672)">L14 · L22–L24</text>
+   </g>
+   <g id="text_13">
+    <text style="font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #8e2a3b" x="472.19976" y="76.243889" transform="rotate(-0 472.19976 76.243889)">“loss = nan”</text>
+   </g>
+   <g id="text_14">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #37535f" x="654.004177" y="157.859264" transform="rotate(-0 654.004177 157.859264)">OPTIMIZER</text>
+   </g>
+   <g id="text_15">
+    <text style="font-size: 11.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #161513" x="654.004177" y="218.400158" transform="rotate(-0 654.004177 218.400158)">gradients · convexity</text>
+   </g>
+   <g id="text_16">
+    <text style="font-style: italic; font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #b85a3e" x="654.004177" y="245.156672" transform="rotate(-0 654.004177 245.156672)">Modules 2 &amp; 4</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #8e2a3b" x="654.004177" y="76.243889" transform="rotate(-0 654.004177 76.243889)">“divergence”</text>
+   </g>
+   <g id="text_18">
+    <text style="font-weight: 700; font-size: 15px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #37535f" x="835.808595" y="157.859264" transform="rotate(-0 835.808595 157.859264)">DEPLOYMENT</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 11.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #161513" x="835.808595" y="218.402853" transform="rotate(-0 835.808595 218.402853)">floating point · compression</text>
+   </g>
+   <g id="text_20">
+    <text style="font-style: italic; font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #b85a3e" x="835.808595" y="245.156672" transform="rotate(-0 835.808595 245.156672)">L2 · L23</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; fill: #8e2a3b" transform="translate(817.931525 70.342889)">“float16</text>
+    <text style="font-size: 10.5px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; fill: #8e2a3b" transform="translate(813.619142 82.144889)">overflow”</text>
+   </g>
+   <g id="patch_7">
+    <path d="M 194.498019 153.816295 
+Q 199.492362 153.816295 202.697849 153.816295 
+" style="fill: none; stroke: #5f5c54; stroke-width: 1.6; stroke-linecap: round"/>
+    <path d="M 196.697849 150.816295 
+L 202.697849 153.816295 
+L 196.697849 156.816295 
+z
+" style="fill: #5f5c54; stroke: #5f5c54; stroke-width: 1.6; stroke-linecap: round"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 376.302437 153.816295 
+Q 381.296779 153.816295 384.502267 153.816295 
+" style="fill: none; stroke: #5f5c54; stroke-width: 1.6; stroke-linecap: round"/>
+    <path d="M 378.502267 150.816295 
+L 384.502267 153.816295 
+L 378.502267 156.816295 
+z
+" style="fill: #5f5c54; stroke: #5f5c54; stroke-width: 1.6; stroke-linecap: round"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 558.106854 153.816295 
+Q 563.101196 153.816295 566.306684 153.816295 
+" style="fill: none; stroke: #5f5c54; stroke-width: 1.6; stroke-linecap: round"/>
+    <path d="M 560.306684 150.816295 
+L 566.306684 153.816295 
+L 560.306684 156.816295 
+z
+" style="fill: #5f5c54; stroke: #5f5c54; stroke-width: 1.6; stroke-linecap: round"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 739.911272 153.816295 
+Q 744.905614 153.816295 748.111102 153.816295 
+" style="fill: none; stroke: #5f5c54; stroke-width: 1.6; stroke-linecap: round"/>
+    <path d="M 742.111102 150.816295 
+L 748.111102 153.816295 
+L 742.111102 156.816295 
+z
+" style="fill: #5f5c54; stroke: #5f5c54; stroke-width: 1.6; stroke-linecap: round"/>
+   </g>
+   <g id="text_22">
+    <text style="font-style: italic; font-size: 12px; font-family: 'EB Garamond', 'Georgia', 'DejaVu Serif', serif; text-anchor: middle; fill: #5f5c54" x="472.19976" y="294.35173" transform="rotate(-0 472.19976 294.35173)">the math each stage runs on — and the lectures that deliver it</text>
+   </g>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p5fe10bf00b">
+   <rect x="7.2" y="7.2" width="929.99952" height="310.79952"/>
+  </clipPath>
+ </defs>
+</svg>

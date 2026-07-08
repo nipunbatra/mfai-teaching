@@ -1,0 +1,32 @@
+---
+title: "Tutorials"
+subtitle: "13 sessions · 80 minutes · worksheet + notebook"
+---
+
+Every tutorial is **hybrid**: roughly 40 minutes of pen-and-paper worksheet (the fluency you need in quizzes and exams) followed by 40 minutes of Jupyter notebook (the same idea, computationally). Bring a laptop. Tutorials are formative — effort, not marks.
+
+| # | After | Topic | Worksheet | Notebook |
+|:---:|:---:|-------|:---------:|:--------:|
+| T1 | L2 | Floating Point & Machine Numbers | [worksheet](tut01-floating-point.qmd) | [notebook](../notebooks/tut01-floating-point.ipynb) |
+| T2 | L4 | Vectors & Matrices | *soon* | *soon* |
+| T3 | L6 | Eigen, SVD & PCA | *soon* | *soon* |
+| T4 | L8 | Derivatives, Gradients & Contours | *soon* | *soon* |
+| T5 | L11 | Backprop by Hand + micrograd | *soon* | *soon* |
+| T6 | L13 | Densities & Gaussians | *soon* | *soon* |
+| T7 | L15 | MLE, MAP & Bayesian Updating | *soon* | *soon* |
+| T8 | L17 | Gradient Descent & Conditioning | *soon* | *soon* |
+| T9 | L18 | Newton & Curve Fitting | *soon* | *soon* |
+| T10 | L20 | Lagrange & KKT | *soon* | *soon* |
+| T11 | L21 | LP/QP with CVXPY | *soon* | *soon* |
+| T12 | L24 | Entropy, Huffman & KL | *soon* | *soon* |
+| T13 | L26 | Markov Chains & the n-gram LM | *soon* | *soon* |
+
+## Assignments
+
+Three take-home assignments grow out of the tutorials:
+
+| # | Out after | Built from | One line |
+|---|:---:|-----------|----------|
+| A1 | L11 | T5 | Extend micrograd; verify against PyTorch; differentiate something fun |
+| A2 | L21 | T10–T11 | Model and solve three real problems with CVXPY; certify optimality via KKT |
+| A3 | L24 | T12–T13 | Build a Huffman compressor and an n-gram language model; compare bits/char against entropy and cross-entropy |

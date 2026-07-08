@@ -1,0 +1,43 @@
+project:
+  type: website
+  output-dir: .
+  render:
+    - "*.qmd"
+    - "tutorials/*.qmd"
+    - "tutorials/*.ipynb"
+    - "notebooks/*.ipynb"
+    - "!slides/"
+
+website:
+  title: "Mathematical Foundations for AI"
+  navbar:
+    title: "Math for AI"
+    left:
+      - text: "Home"
+        href: index.qmd
+      - text: "Syllabus"
+        href: syllabus.qmd
+      - text: "Slides"
+        href: slides.qmd
+      - text: "Notebooks"
+        href: notebooks.qmd
+      - text: "Tutorials"
+        href: tutorials/index.qmd
+      - text: "Resources"
+        href: resources.qmd
+      - text: "Interactives"
+        href: https://nipunbatra.github.io/interactive-articles/
+      - text: "MML Book"
+        href: https://mml-book.github.io/
+  page-footer:
+    left: "Course materials by Prof. Nipun Batra, IIT Gandhinagar"
+    right:
+      - icon: github
+        href: https://github.com/nipunbatra/mfai-teaching
+
+format:
+  html:
+    # Single light theme only — dark themes render notebook output
+    # (plots, code cells) poorly, so we pin light mode site-wide.
+    theme: [cosmo, custom.scss]
+    toc: false

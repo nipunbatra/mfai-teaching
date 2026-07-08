@@ -1,0 +1,443 @@
+/* @theme mfai
+ *
+ * MFAI course Marp theme (Anthropic-inspired): cream paper, rust accent, serif headlines,
+ * minimal chrome. Mirrors the look of github.com/nipunbatra/caqm.
+ *
+ * Preserves all class selectors used in the existing `dl-theme` so
+ * lectures switch with a single front-matter edit:
+ *     theme: dl-theme        ->  theme: anthropic
+ *
+ * Classes supported:
+ *   title-slide · section-divider · summary-slide
+ *   code-heavy · compact · math-heavy
+ */
+
+@import 'default';
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --paper:       #F7F3E9;     /* slightly whiter, warmer parchment */
+  --paper-alt:   #EFEADA;
+  --ink:         #161513;     /* darker ink — prints sharper */
+  --muted:       #5F5C54;     /* slightly cooler muted */
+  --rule:        #B5AE9B;     /* firmer rule */
+  --accent:      #B85A3E;     /* deeper academic rust (less orange) */
+  --accent-soft: #E5D2C6;
+  --sage:        #5F8573;     /* slightly deeper forest green */
+  --slate:       #37535F;     /* deeper navy-slate */
+  --wine:        #8E2A3B;     /* sober burgundy */
+  --ochre:       #B5945A;
+  --code-bg:     #EDE8D8;
+  --code-ink:    #1F1C17;
+}
+
+/* ----- base ---------------------------------------------------------- */
+section {
+  font-family: 'Inter', -apple-system, 'Helvetica Neue', sans-serif;
+  font-size: 22px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--paper);
+  padding: 48px 56px 56px 56px;
+  letter-spacing: 0.005em;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* top-right attribution on every slide (except title/section) */
+section::before {
+  content: 'Mathematical Foundations for AI · Nipun Batra · IIT Gandhinagar';
+  position: absolute;
+  top: 14px;
+  right: 28px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+section.title-slide::before, section.section-divider::before { content: ''; }
+
+/* paginate / footer */
+section::after {
+  color: var(--muted);
+  font-size: 12px;
+  right: 24px;
+  bottom: 12px;
+}
+
+/* ----- typography ---------------------------------------------------- */
+h1, h2, h3, h4 {
+  font-family: 'EB Garamond', 'Iowan Old Style', Georgia, serif;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  line-height: 1.18;
+}
+section h1 {
+  font-size: 36px;
+  margin: 0 0 4px 0;
+  padding: 0 0 8px 0;
+  background: none;
+  color: var(--ink);
+  text-shadow: none;
+  border-bottom: 1px solid var(--rule);
+}
+section h1::after {
+  content: '';
+  display: block;
+  width: 72px;
+  height: 2px;
+  background: var(--accent);
+  margin-top: -1.5px;
+  margin-bottom: -1px;
+  border-radius: 0;
+}
+section h2 {
+  font-size: 22px;
+  margin: 4px 0 12px 0;
+  padding: 0;
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 400;
+  background: none;
+}
+section h3 {
+  font-size: 19px;
+  color: var(--ink);
+  margin: 14px 0 6px;
+  padding: 0;
+  font-weight: 600;
+}
+section h4 {
+  font-size: 16px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 12px 0 4px;
+  font-weight: 500;
+}
+
+p, li, td, th { color: var(--ink); }
+strong { color: var(--ink); font-weight: 600; }
+em { color: var(--muted); font-style: italic; }
+
+section > *:not(h1):not(h2):not(h3):not(h4) { padding-left: 0; padding-right: 0; }
+section > p:first-of-type, section > ul:first-of-type,
+section > ol:first-of-type, section > div:first-of-type { margin-top: 10px; }
+
+/* lists ---------------------------------------------------------------- */
+ul, ol { margin: 0; padding-left: 1.15em; }
+li { margin: 4px 0; line-height: 1.4; }
+li::marker { color: var(--accent); }
+
+/* links ---------------------------------------------------------------- */
+a, a:visited {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px dotted var(--accent);
+}
+
+/* code ----------------------------------------------------------------- */
+code {
+  font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  font-size: 0.88em;
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--rule);
+}
+pre {
+  background: var(--code-bg);
+  color: var(--code-ink);
+  padding: 14px 18px;
+  border-radius: 6px;
+  border: 1px solid var(--rule);
+  overflow-x: auto;
+  margin: 10px 0;
+  box-shadow: none;
+}
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.78em;
+  line-height: 1.45;
+  color: var(--code-ink);
+}
+
+/* tables --------------------------------------------------------------- */
+table {
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 18px;
+  width: 100%;
+}
+th, td {
+  border-bottom: 1px solid var(--rule);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+th {
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  background: none;
+  border-bottom: 1.5px solid var(--ink);
+}
+
+/* blockquote ----------------------------------------------------------- */
+blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 2px 0 2px 14px;
+  margin: 10px 0;
+  color: var(--muted);
+  font-style: italic;
+  background: none;
+}
+
+/* images --------------------------------------------------------------- */
+img { display: block; margin: 8px auto; max-height: 58vh; }
+
+/* ----- title-slide --------------------------------------------------- */
+section.title-slide {
+  background: var(--paper);
+  padding: 72px 72px 56px 72px;
+  justify-content: center;
+}
+section.title-slide h1 {
+  font-size: 58px;
+  color: var(--ink);
+  line-height: 1.05;
+  margin: 0;
+  padding: 0 0 14px 0;
+  border-bottom: 1.5px solid var(--ink);
+  letter-spacing: -0.01em;
+}
+section.title-slide h1::after {
+  width: 120px;
+  height: 3px;
+  margin-top: -2px;
+  margin-bottom: -1.5px;
+  background: var(--accent);
+}
+section.title-slide h2 {
+  font-size: 26px;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 10px;
+  padding: 0;
+}
+section.title-slide p {
+  color: var(--muted);
+  font-size: 19px;
+  margin: 10px 0 0;
+}
+section.title-slide strong {
+  font-family: 'EB Garamond', Georgia, serif;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 24px;
+}
+section.title-slide em { color: var(--accent); font-style: normal; font-weight: 500; }
+
+/* ----- section-divider ---------------------------------------------- */
+section.section-divider {
+  background: var(--paper-alt);
+  justify-content: center;
+  padding: 72px;
+}
+section.section-divider h1 {
+  font-size: 44px;
+  color: var(--accent);
+  padding: 0;
+  margin: 0;
+}
+section.section-divider h1::after { display: none; }
+section.section-divider h2 {
+  font-size: 22px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-style: italic;
+}
+section.section-divider h3 {
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+section.section-divider p, section.section-divider strong {
+  font-size: 19px;
+  color: var(--ink);
+}
+
+/* ----- summary-slide ------------------------------------------------- */
+section.summary-slide {
+  background: var(--paper);
+}
+section.summary-slide h1 {
+  color: var(--ink);
+  font-size: 30px;
+}
+section.summary-slide h1::before {
+  content: 'Summary · ';
+  color: var(--accent);
+  font-style: italic;
+}
+
+/* ----- code-heavy / compact ----------------------------------------- */
+section.code-heavy {
+  font-size: 19px;
+}
+section.code-heavy pre {
+  font-size: 15px;
+  margin: 6px 0;
+  padding: 12px 16px;
+}
+section.code-heavy pre code { font-size: 0.85em; line-height: 1.35; }
+section.code-heavy p, section.code-heavy li { margin: 2px 0; }
+section.code-heavy ul, section.code-heavy ol { margin: 4px 0; }
+
+section.compact {
+  font-size: 18px;
+}
+section.compact li { margin: 2px 0; }
+section.compact pre { font-size: 14px; padding: 10px 14px; }
+section.compact p, section.compact li { line-height: 1.3; }
+section.compact table { font-size: 15px; }
+section.compact table th, section.compact table td { padding: 3px 8px; }
+
+/* ----- math-heavy ---------------------------------------------------- */
+section.math-heavy { font-size: 22px; }
+section.math-heavy .MathJax { color: var(--ink); }
+.MathJax_Display, mjx-container { color: var(--ink) !important; }
+mjx-container[display="true"] { margin: 10px 0 !important; }
+
+/* ----- utilities ----------------------------------------------------- */
+.pill {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8em;
+  font-weight: 500;
+}
+.callout {
+  background: var(--paper-alt);
+  border-left: 3px solid var(--accent);
+  padding: 10px 14px;
+  margin: 10px 0;
+  border-radius: 2px;
+}
+
+/* ----- columns ------------------------------------------------------- */
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin: 10px 0;
+}
+.columns3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+  margin: 10px 0;
+}
+.columns > div, .columns3 > div {
+  min-width: 0;
+}
+
+/* ----- tagged callouts ---------------------------------------------- */
+.keypoint, .math-box, .insight, .warning, .paper, .notebook,
+.popquiz, .realworld {
+  margin: 10px 0;
+  padding: 10px 14px;
+  border-radius: 3px;
+  background: var(--paper-alt);
+  border-left: 3px solid var(--accent);
+  position: relative;
+}
+.keypoint::before, .math-box::before, .insight::before,
+.warning::before, .paper::before, .notebook::before,
+.popquiz::before, .realworld::before {
+  display: block;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.keypoint::before   { content: 'Key idea'; }
+.math-box::before   { content: 'Derivation'; color: var(--slate); }
+.insight::before    { content: 'Intuition'; color: var(--sage); }
+.warning::before    { content: 'Watch out'; color: var(--wine); }
+.paper::before      { content: 'Reference'; color: var(--muted); }
+.notebook::before   { content: 'Notebook'; color: var(--slate); }
+.popquiz::before    { content: 'Pop quiz'; color: var(--wine); }
+.realworld::before  { content: 'In practice'; color: var(--sage); }
+
+.math-box   { border-left-color: var(--slate); }
+.insight    { border-left-color: var(--sage); }
+.warning    { border-left-color: var(--wine); }
+.paper      { border-left-color: var(--muted); background: transparent; }
+.notebook   { border-left-color: var(--slate); }
+.popquiz    { border-left-color: var(--wine); background: var(--accent-soft); }
+.realworld  { border-left-color: var(--sage); }
+
+.keypoint p:last-child, .math-box p:last-child, .insight p:last-child,
+.warning p:last-child, .paper p:last-child, .notebook p:last-child,
+.popquiz p:last-child, .realworld p:last-child {
+  margin-bottom: 0;
+}
+
+/* inline "build it" style hint for Karpathy-esque code callouts */
+.build-it {
+  border-left: 3px solid var(--ochre);
+  background: #F6F0DF;
+  padding: 10px 14px;
+  margin: 10px 0;
+  border-radius: 3px;
+}
+.build-it::before {
+  content: 'Let\'s build it';
+  display: block;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ochre);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+/* 2-column that prefers narrow-left, wide-right (code + notes) */
+.code-note {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
+  margin: 10px 0;
+}
+
+/* Tiny chip labels for inline tags (e.g., "Ng", "Karpathy") */
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--rule);
+  padding: 1px 8px;
+  border-radius: 999px;
+  margin-right: 4px;
+  vertical-align: middle;
+}

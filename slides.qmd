@@ -1,0 +1,12 @@
+---
+title: "Slides"
+---
+
+The full schedule with per-lecture slide links lives on the [Home page](index.qmd). Decks built so far:
+
+| # | Lecture | HTML | PDF |
+|:---:|---------|:----:|:---:|
+| 1 | Why Math for AI + Course Map | [HTML](html/lec01-why-math-for-ai-lecture.html) | [PDF](pdf/lec01-why-math-for-ai-lecture.pdf) |
+| 2 | Floating Point: How Machines See Numbers | [HTML](html/lec02-floating-point-lecture.html) | [PDF](pdf/lec02-floating-point-lecture.pdf) |
+
+Slides are Marp Markdown, built with `make lecNN` (see the [repo README](https://github.com/nipunbatra/mfai-teaching)).

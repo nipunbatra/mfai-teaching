@@ -1,0 +1,171 @@
+---
+title: "Tutorial 1 · Floating Point & Machine Numbers"
+subtitle: "After Lecture 2 · 80 minutes"
+---
+
+::: {.callout-tip}
+## How tutorials work (read once — this note appears only in Tutorial 1)
+
+Every tutorial is 80 minutes, split in half:
+
+- **Part A (~40 min): pen and paper.** Exam-style fluency. Put the laptop away; the point is to be able to do this on a quiz page with no interpreter to lean on.
+- **Part B (~40 min): Jupyter notebook.** The same ideas, computationally — you predict, then run, then explain the gap between the two.
+
+Tutorials are **formative**: attendance/effort credit only, nothing here is directly graded. Attempt every problem before opening the solutions. **Bring a laptop** (one per pair is fine) with Python + NumPy working.
+:::
+
+In Lecture 2 you watched a training loss go `NaN` and traced it back to how machines store numbers. This tutorial makes you fluent in that story: converting to binary by hand, encoding into an IEEE-754-style format, predicting exactly when arithmetic silently loses digits — and then confirming every prediction in code.
+
+Remember the one-line takeaway: *computers don't do real numbers — they do ~4 billion of them, unevenly spaced.*
+
+---
+
+## Part A · Worksheet (~40 min, pen and paper)
+
+Throughout, subscripts denote the base: $1101.011_2$ is binary, $13.375_{10}$ is decimal.
+
+### Problem 1 — Decimal to binary ⭐
+
+**(a)** Convert $13.375_{10}$ to binary. (Integer part by repeated division by 2; fractional part by repeated multiplication by 2.)
+
+**(b)** Convert $0.1_{10}$ to binary. Carry the fractional algorithm far enough to spot the repeating pattern, then write the answer with a repeating-block notation. What does this immediately tell you about storing `0.1` in *any* binary format with finitely many bits?
+
+### Problem 2 — A toy 8-bit float ⭐
+
+Define **float8**, a miniature IEEE-754-style format:
+
+| sign | exponent | mantissa (fraction) |
+|:---:|:---:|:---:|
+| 1 bit | 4 bits, bias 7 | 3 bits |
+
+A normal number decodes as $(-1)^s \times 1.m_1m_2m_3{}_2 \times 2^{E - 7}$, where $E$ is the exponent field read as an unsigned integer. As in real IEEE-754, the exponent fields $0000$ (subnormals/zero) and $1111$ (infinity/NaN) are reserved.
+
+**(a)** Encode $5.5_{10}$ as a float8 bit pattern.
+
+**(b)** Decode the bit pattern `0 1011 010` back to a decimal number.
+
+**(c)** What are the largest and smallest *positive normal* numbers in float8? Give both the bit patterns and the decimal values.
+
+### Problem 3 — The gaps between floats ⭐⭐
+
+Still in float8:
+
+**(a)** What is the gap between consecutive floats just above $1$? (This gap is the format's **machine epsilon**.)
+
+**(b)** What is the gap between consecutive floats just above $8$?
+
+**(c)** Give the general rule: for a number with exponent $e$ (i.e., in $[2^e, 2^{e+1})$), what is the gap? Why does calling machine epsilon "the smallest number the computer can represent" get this completely wrong?
+
+### Problem 4 — Why `0.1 + 0.2 != 0.3` ⭐⭐
+
+In float64:
+
+**(a)** Explain, using Problem 1(b), why `0.1 + 0.2 == 0.3` evaluates to `False`. Your explanation should identify *three separate roundings* and say why they need not cancel.
+
+**(b)** Explain why `0.5 + 0.25 == 0.75` evaluates to `True` — not approximately, *exactly*. What is special about these three numbers?
+
+### Problem 5 — Predict the precision loss ⭐⭐
+
+For each expression below (evaluated in float64), predict the computed result, state whether precision is lost, and explain why. Useful fact: the gap between consecutive float64 values near $10^{16}$ is $2$.
+
+**(a)** `(1e16 + 1) - 1e16`
+
+**(b)** `(1e16 - 1e16) + 1`
+
+**(c)** `sqrt(x + 1) - sqrt(x)` for $x = 10^{12}$. Roughly how many significant digits survive? Then find an algebraically equivalent **stable rewrite** that loses (almost) nothing.
+
+### Problem 6 — Log-sum-exp by hand ⭐⭐
+
+The quantity $\operatorname{LSE}(x_1,\dots,x_n) = \log \sum_i e^{x_i}$ appears in every softmax and every language-model loss.
+
+**(a)** Why does computing $\operatorname{LSE}(1000, 1000, 1000)$ naively fail in float32 *and* float64? (The overflow thresholds of $e^x$ are $x \approx 88.7$ for float32 and $x \approx 709.8$ for float64.)
+
+**(b)** Use the **max trick**, $\operatorname{LSE}(\mathbf{x}) = m + \log \sum_i e^{x_i - m}$ with $m = \max_i x_i$, to compute $\operatorname{LSE}(1000, 1000, 1000)$ *exactly* by hand (leave $\log$s symbolic, then give a decimal to 4 places; $\ln 3 \approx 1.0986$).
+
+**(c)** In one sentence: why can the shifted sum $\sum_i e^{x_i - m}$ never overflow, and why is it (essentially) safe from underflow ruining the answer?
+
+### Problem 7 — Bounding the rounding error ⭐⭐⭐ (challenge)
+
+**(a)** Show that when any real number $x$ in float8's normal range is rounded to the nearest float8 value $\operatorname{fl}(x)$, the **relative error** is bounded:
+$$\frac{|\operatorname{fl}(x) - x|}{|x|} \;\le\; 2^{-4}.$$
+(Hint: write $x = m \cdot 2^{e}$ with $1 \le m < 2$, use Problem 3(c) for the spacing, and remember round-to-nearest errs by at most half a gap.)
+
+**(b)** Generalize: for a format with $p$ mantissa (fraction) bits, the bound is $2^{-(p+1)}$. Conclude that float32 ($p = 23$) guarantees relative error $\le 2^{-24} \approx 6 \times 10^{-8}$ on every single rounding. This number $u = 2^{-(p+1)}$ is the **unit roundoff** — the "grain size" of all floating-point arithmetic.
+
+---
+
+::: {.callout-note collapse="true"}
+## Solutions — open only after attempting everything
+
+### Problem 1
+
+**(a)** Integer part: $13 = 8 + 4 + 1 = 1101_2$. Fractional part: $0.375 = 0.25 + 0.125 = 0.011_2$. So
+$$13.375_{10} = 1101.011_2.$$
+Check: $8 + 4 + 1 + \tfrac14 + \tfrac18 = 13.375$. ✓
+
+**(b)** Multiply-by-2 algorithm on $0.1$: the integer bits produced are $0, 0, 0, 1, 1$, and then the state returns to $0.2$ — so the block $0011$ repeats forever:
+$$0.1_{10} = 0.0\overline{0011}_2 = 0.000110011001100\ldots_2$$
+Since the expansion is infinite, **no** binary format with finitely many mantissa bits can store $0.1$ exactly — float64's `0.1` is already a rounded impostor before you do any arithmetic with it.
+
+### Problem 2
+
+**(a)** $5.5 = 101.1_2 = 1.011_2 \times 2^2$. Sign $0$; exponent field $E = 2 + 7 = 9 = 1001_2$; mantissa $011$.
+$$5.5 \;\to\; \texttt{0 1001 011}$$
+
+**(b)** Sign $0$; $E = 1011_2 = 11$, so exponent $= 11 - 7 = 4$; mantissa $010$ gives significand $1.010_2 = 1.25$.
+$$1.25 \times 2^4 = \mathbf{20}.$$
+
+**(c)** Largest normal: biggest non-reserved exponent field $1110_2 = 14$ (exponent $7$), all-ones mantissa ($1.111_2 = 1.875$):
+$$\texttt{0 1110 111} = 1.875 \times 2^7 = \mathbf{240}.$$
+Smallest positive normal: smallest non-reserved exponent field $0001_2$ (exponent $-6$), zero mantissa:
+$$\texttt{0 0001 000} = 1.0 \times 2^{-6} = \tfrac{1}{64} = \mathbf{0.015625}.$$
+
+### Problem 3
+
+**(a)** Numbers in $[1, 2)$ have exponent $0$ and 3 mantissa bits, so consecutive values differ in the last mantissa bit: gap $= 2^{-3} = \mathbf{0.125}$. That is float8's machine epsilon.
+
+**(b)** Numbers in $[8, 16)$ have exponent $3$; the same last-bit step is now scaled by $2^3$: gap $= 2^{3-3} = \mathbf{1}$. In float8, the next number after $8$ is $9$ — there is no $8.5$.
+
+**(c)** Gap $= 2^{e-3}$ for numbers in $[2^e, 2^{e+1})$ — the gaps *grow with the number*, which is exactly what "unevenly spaced" means. Machine epsilon is not the smallest representable number (that's $2^{-6}$ here, and subnormals go smaller); it is the *relative* grain size — the gap **at 1**. Absolute gaps range from tiny (near 0) to huge (near the top of the range).
+
+### Problem 4
+
+**(a)** Three roundings: (1) `0.1` is stored as the nearest float64, which is slightly **above** $0.1$; (2) `0.2` is stored slightly **above** $0.2$; (3) their sum is computed exactly and then rounded again to the nearest float64. The result of (3) lands on $0.30000000000000004\ldots$, while the literal `0.3` is stored (rounding **down**) as $0.29999999999999998\ldots$ — two *different* members of the float64 grid. Three independent roundings have no reason to cancel.
+
+**(b)** $0.5 = 2^{-1}$, $0.25 = 2^{-2}$, and $0.75 = 0.11_2$ are all *exactly* representable (finite binary expansions, well within 52 mantissa bits), and their sum is also exactly representable — so every step is exact and the equality holds by construction. Sums of powers of two are floating point's home turf.
+
+### Problem 5
+
+**(a)** Near $10^{16}$ the float64 grid steps by $2$, so $10^{16} + 1$ falls exactly halfway between two floats; round-half-to-even sends it back down to $10^{16}$. Result: $(10^{16} + 1) - 10^{16} = \mathbf{0.0}$. The $1$ was absorbed — complete loss.
+
+**(b)** $10^{16} - 10^{16} = 0$ exactly, then $0 + 1 = \mathbf{1.0}$ exactly. No loss. Same three numbers, different order — **floating-point addition is not associative**, and the order of operations decides whether you keep the $1$.
+
+**(c)** $\sqrt{10^{12}} = 10^6$ and $\sqrt{10^{12} + 1} \approx 10^6 + 5 \times 10^{-7}$: two numbers agreeing to about 13 significant digits. Subtracting cancels those 13 digits, leaving only $\sim$3–4 trustworthy digits (each square root carries rounding error $\sim 6\times10^{-11}$, which is $\sim 10^{-4}$ *relative to the tiny difference* $5\times10^{-7}$). This is **catastrophic cancellation**. Stable rewrite — multiply by the conjugate:
+$$\sqrt{x+1} - \sqrt{x} = \frac{1}{\sqrt{x+1} + \sqrt{x}},$$
+which *adds* two well-known quantities instead of subtracting them: full precision, $\approx 4.9999999999987\ldots \times 10^{-7}$.
+
+### Problem 6
+
+**(a)** Naively you must compute $e^{1000}$, and $1000$ is far past both overflow thresholds ($\approx 88.7$ for float32, $\approx 709.8$ for float64) — so $e^{1000} = \texttt{inf}$, the sum is `inf`, and $\log(\texttt{inf}) = \texttt{inf}$ (and related expressions like `inf - inf` or `inf/inf` produce `nan`). The true answer is a perfectly ordinary number; only the *intermediate* blows up.
+
+**(b)** With $m = 1000$:
+$$\operatorname{LSE} = 1000 + \log\!\left(e^{0} + e^{0} + e^{0}\right) = 1000 + \log 3 \approx \mathbf{1001.0986}.$$
+
+**(c)** Every shifted exponent satisfies $x_i - m \le 0$, so every $e^{x_i - m} \le 1$ (no overflow possible); and the largest term is *exactly* $e^0 = 1$, so the sum is at least $1$ and the log is computed on a healthy number — terms that underflow to $0$ were negligible compared to $1$ anyway.
+
+### Problem 7
+
+**(a)** Write $x = m \cdot 2^e$ with $1 \le m < 2$, $e$ in the normal range. By Problem 3(c), float8 values with exponent $e$ are spaced $2^{e-3}$ apart, and $x$ lies in that range. Rounding to the *nearest* grid point errs by at most half a gap:
+$$|\operatorname{fl}(x) - x| \;\le\; \tfrac12 \cdot 2^{e-3} = 2^{e-4}.$$
+Divide by $|x| = m \cdot 2^e \ge 2^e$:
+$$\frac{|\operatorname{fl}(x) - x|}{|x|} \;\le\; \frac{2^{e-4}}{2^{e}} = 2^{-4}. \qquad \blacksquare$$
+(The bound is tight-ish near $m = 1$ and twice as good near $m = 2$.)
+
+**(b)** Identical argument with $p$ mantissa bits: spacing $2^{e-p}$, half-gap $2^{e-(p+1)}$, relative error $\le 2^{-(p+1)}$. For float32, $p = 23$ gives $u = 2^{-24} \approx 5.96 \times 10^{-8}$ — about 7 decimal digits. Every basic operation (`+ − × ÷`, `sqrt`) in IEEE-754 returns the exactly-rounded result, so *each* operation is accurate to relative error $u$. Numerical disasters (Problems 5–6) are never one bad rounding — they are correct roundings *arranged badly*.
+:::
+
+---
+
+## Part B · Notebook (~40 min, laptop)
+
+Open [`../notebooks/tut01-floating-point.ipynb`](../notebooks/tut01-floating-point.ipynb): every prediction you just made on paper — `0.1 + 0.2`, machine epsilon, the uneven number line, catastrophic cancellation, overflowing softmax, float16 vs bfloat16 — run live in NumPy, ending with why modern AI trains in bfloat16 and computes in log-space.
