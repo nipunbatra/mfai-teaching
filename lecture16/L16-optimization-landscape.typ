@@ -560,7 +560,7 @@ $ f(underbrace(t x_1 + (1-t) x_2, "mix the inputs")) <= underbrace(t f(x_1) + (1
 #pause
 #result[Convex: *the graph hangs below its chords.* (Domain must be a convex set — now you know why sets came first.)]
 
-== Reading the inequality with honest numbers
+== Reading the inequality with numbers
 
 $f(x) = x^2$, endpoints $x_1 = -1$, $x_2 = 3$. Mixed input: $t x_1 + (1-t) x_2 = 3 - 4t$.
 
@@ -635,12 +635,12 @@ $ abs(t x_1 + (1-t) x_2) <= abs(t x_1) + abs((1-t) x_2) = t abs(x_1) + (1-t) abs
 #pause
 - "Is $f$ convex?" is ill-posed until you say *on which (convex) set* — same lesson the optimizers will learn about where they are allowed to search
 
-== Concave: the same story upside-down
+== Concave functions reverse the inequality
 
 $f$ is *concave* $arrow.l.r.double$ $-f$ is convex $arrow.l.r.double$ chords hang *below* the graph.
 
 #pause
-Why we care — Module 3 was secretly a concavity story:
+Module 3 already used concavity:
 
 $ underbrace(max_theta thin ell(theta), "maximize log-likelihood (L14)") quad = quad underbrace(min_theta thin "NLL"(theta), "minimize a" #h(3pt) bold("convex") #h(3pt) "loss — often") $
 
@@ -650,7 +650,7 @@ $ underbrace(max_theta thin ell(theta), "maximize log-likelihood (L14)") quad = 
 - Gaussian $ell(mu)$: a downward parabola in $mu$ (L14 showed it) — concave; MSE convex
 
 #pause
-#result[Maximizing a concave likelihood *is* minimizing a convex loss. Module 3's climbs were secretly walks in a bowl.]
+#result[Maximizing a concave likelihood is equivalent to minimizing its convex negative log-likelihood.]
 
 == One idea, two costumes: the epigraph
 
@@ -688,9 +688,9 @@ The two halves of today are the same object. The *epigraph* of $f$ is everything
 
 == Chords are the definition — calculus is the shortcut
 
-Checking chords for every pair is honest but slow. For twice-differentiable $f$, curvature settles it:
+Checking chords for every pair is direct but slow. For a twice-differentiable function on an open interval, curvature settles it:
 
-$ f "convex on an interval" quad arrow.l.r.double quad f''(x) >= 0 "everywhere on it" $
+$ f "convex" quad arrow.l.r.double quad f''(x) >= 0 "everywhere on the interval" $
 
 #pause
 The gallery, re-certified in one line each:
@@ -709,7 +709,7 @@ The gallery, re-certified in one line each:
 
 == In $d$ dimensions: the Hessian test
 
-$ f "convex" quad arrow.l.r.double quad H(theta) succ.eq 0 quad "(PSD)" "for" bold("every") theta quad quad #text(size: 17pt, fill: MUTED)[L9's "official words", now a tool] $
+$ f "convex on" C quad arrow.l.r.double quad H(theta) succ.eq 0 quad "for every" theta in C $
 
 #pause
 Worked: $f(theta_1, theta_2) = theta_1^2 + theta_2^2$.
@@ -720,7 +720,7 @@ $ H = mat(2, 0; 0, 2) quad "everywhere" quad arrow.r.double quad lambda = 2, 2 >
 And the whole quadratic family at once: $q(theta) = 1/2 theta^top A theta$ has $H = A$ everywhere (L9's ⭐) — so *$q$ convex $arrow.l.r.double$ $A succ.eq 0$*: bowls and troughs yes, saddles and domes no. The shape gallery was a convexity gallery all along.
 
 #pause
-#alertbox[The test demands PSD at *every* point of a convex domain — one PD Hessian at one point proves nothing ($x^3$ at $x = 1$, again).]
+#alertbox[Assumptions: $C$ is open and convex and $f$ is twice continuously differentiable on $C$. One PD Hessian at one point proves nothing ($x^3$ at $x = 1$, again).]
 
 == The composition rules: convexity is stackable
 
@@ -738,7 +738,7 @@ Convex pieces snap together — for $f, g$ convex:
 )
 
 #pause
-#alertbox[What the table does *not* say: products and general compositions break it. Star witness: $(x-1)^2 dot (x+1)^2 = (x^2 - 1)^2$ — two convex parabolas multiply into *our double-well mascot*. Non-convexity is what multiplication (and layer-stacking!) does.]
+#alertbox[Products and general compositions do not preserve convexity. For example, $(x-1)^2 dot (x+1)^2 = (x^2 - 1)^2$: two convex parabolas multiply to form a non-convex double well.]
 
 == Assemble the objectives you'll actually meet
 
@@ -755,7 +755,7 @@ Convex pieces snap together — for $f, g$ convex:
 )
 
 #pause
-Regularizing *cannot break* convexity — L15's "every regularizer is a prior" now has an optimization corollary: priors are free, geometrically.
+Adding a *convex* penalty with a nonnegative coefficient preserves convexity. A non-convex regularizer can destroy it.
 
 #pause
 #result[You will almost never chord-check a real objective. You will *assemble* it from certified parts — this table is how convexity scales.]
@@ -859,7 +859,7 @@ Take any direction $bold(v) in RR^d$ and test the quadratic form (L9's definitio
 $ bold(v)^top (X^top X) thin bold(v) = (X bold(v))^top (X bold(v)) = norm(X bold(v))^2 >= 0 quad checkmark $
 
 #pause
-#result[A squared length cannot be negative — *that is the entire proof*. $H = 2 X^top X succ.eq 0$ for any data, so least squares is convex: its stationary point is *the* global minimum.]
+#result[A squared length cannot be negative. Hence $H = 2 X^top X succ.eq 0$ for any data, so least squares is convex; every stationary point, when one exists, is a global minimizer.]
 
 #pause
 On our tiny dataset $x = (0, 1, 2)$, $y = (1, 2, 4)$ — everything below computed live in-slide:
@@ -867,7 +867,7 @@ On our tiny dataset $x = (0, 1, 2)$, $y = (1, 2, 4)$ — everything below comput
 $ X^top X = #m2(XtX, d: 0), quad lambda = #fmt(lamLS.at(0), d: 2), #fmt(lamLS.at(1), d: 2) > 0, quad nabla f = bold(0) arrow.r.double theta^star = #v2(THS, d: 2) $
 
 #pause
-Both eigenvalues strictly positive $arrow.r$ strictly convex $arrow.r$ that $theta^star$ ($hat(y) = #fmt(THS.at(1), d: 1) x + #fmt(THS.at(0), d: 2)$) is *the unique best line in the universe* for this data. Certified.
+Both eigenvalues are strictly positive, so this objective is strictly convex and $theta^star$ ($hat(y) = #fmt(THS.at(1), d: 1) x + #fmt(THS.at(0), d: 2)$) is its unique minimizer.
 
 == The certified bowl, seen from above #V
 
@@ -892,14 +892,14 @@ $f(b, w) = sum_i (b + w x_i - y_i)^2$ over the whole parameter plane — one bas
 *Why does the linear model "just work"?*
 
 #pause
-- Least squares (and ridge, lasso, logistic regression — today's toolkit) are *convex*: one basin, local = global, any reasonable walker succeeds — no seeds, no warmup, no babysitting
+- Least squares, ridge, lasso, and logistic regression have convex objectives under their usual formulations: local minima are global. An algorithm still needs suitable step sizes or other convergence conditions.
 #pause
 - A deep network is *compositions of compositions* — the one operation the rule table refuses to bless. Its landscape genuinely holds valleys, ridges, saddles, plateaus
 #pause
-- So deep learning's "tricks" are not superstition — they are *navigation gear for non-convex terrain*
+- Deep-network training therefore lacks the same global certificate and is more sensitive to initialization and optimization choices.
 
 #pause
-#result[Convexity is not a luxury; it is the boundary between "guaranteed" and "we'll see". Know which side your problem lives on.]
+#result[Convexity gives a global guarantee from local optimality. Non-convex objectives do not provide that guarantee.]
 
 // ═══════════════════════════ 8 · non-convex reality ═══════════════════════════
 = Non-convex objectives
@@ -926,9 +926,9 @@ Our mascot's 2-D sibling, $R(x, y) = (x^2 - 1)^2 + x\/2 + 1.2 y^2$ — all three
 #pause
 - Two basins, one ridge between: where you land is decided by where you start
 
-== In high dimensions, saddles are the rule
+== A counting heuristic for curvature signs
 
-Heuristic: at a random stationary point, each eigenvalue's sign is roughly a coin flip. All $d$ positive at once?
+Toy model only: suppose the $d$ Hessian eigenvalue signs were independent fair coin flips. Then the chance of all-positive curvature would be $2^(-d)$:
 
 #table(
   columns: (auto, auto, 1fr),
@@ -937,13 +937,13 @@ Heuristic: at a random stationary point, each eigenvalue's sign is roughly a coi
   table.header([*$d$*], [*$P("all" lambda > 0) approx 2^(-d)$*], [*meaning*]),
   [$2$], [$0.25$], [minima common in toy problems],
   [$20$], [$approx 10^(-6)$], [minima already rare],
-  [$10^6$ (a small net)], [$approx 10^(-301030)$], [a random flat spot is a saddle, *essentially always*],
+  [$10^6$], [$approx 10^(-301030)$], [all-positive is negligible under this toy model],
 )
 
 #pause
 - A saddle has a $lambda < 0$ eigen-direction that provides a local descent direction; saddles often slow first-order methods without being local minima
 #pause
-- The heuristic is honest hand-waving; random-matrix theory makes it rigorous (Dauphin et al., 2014 — DL course territory)
+- Real Hessian eigenvalues are neither independent nor fair coin flips, so this table is not a probability model for neural-network stationary points. It only illustrates why mixed signs have many combinatorial patterns in high dimension.
 
 == Plateaus: small gradients away from an optimum
 
@@ -957,10 +957,10 @@ Heuristic: at a random stationary point, each eigenvalue's sign is roughly a coi
 #pause
 - On a *plateau*, $nabla f approx bold(0)$ with no minimum anywhere near: steps shrink to a crawl — the failure mode behind "training is stuck" (and behind saturated activations, as the DL course will show)
 #pause
-- Yet deep learning works. Empirically: with enough parameters, most local minima are *nearly as good as the global one*, and modern initialization/normalization smooth the terrain. Facts used daily, proved nowhere near this course — honest IOU to ES 667
+- Neural-network training can nevertheless find useful parameters. Explaining when and why requires assumptions beyond this lecture; initialization, normalization, and architecture all affect the landscape and optimization dynamics.
 
 #pause
-#notebox[Perspective: convexity is the *theory* of trustworthy landscapes; deep learning is the *engineering* of livable non-convex ones. You now own the vocabulary both sides negotiate in.]
+#notebox[Convex objectives support global optimality certificates. For non-convex objectives, local derivative tests remain local.]
 
 == Lecture 16 — summary
 
@@ -970,7 +970,7 @@ Heuristic: at a random stationary point, each eigenvalue's sign is roughly a coi
 - *Certify fast*: $f'' >= 0$ / $H succ.eq 0$ everywhere; or assemble from rules — scale, sum, affine composition, max; log-sum-exp is convex (a variance says so).
 - ⭐ *Convex $arrow.r.double$ local = global* — the four-line chord contradiction.
 - ⭐ *Least squares is convex*: $H = 2 X^top X$ and $bold(v)^top X^top X bold(v) = norm(X bold(v))^2 >= 0$ — for any data.
-- *Without convexity*: saddles rule high dimensions, plateaus stall walkers — deep learning's daily weather, managed by tricks, not theorems.
+- *Without convexity*: saddle points and plateaus can occur, and local optimality need not imply global optimality.
 
 #pause
 #notebox[*Read before L17* — MML §7.3 to 7.3.1 (convexity, ~4 pages, our notation) · Boyd & Vandenberghe, _Convex Optimization_ (free PDF): *skim* §2.1–2.3 for set pictures and §3.1.1–3.1.5 + 3.2 for the function tests and operation rules — read figures and boxed statements, skip proofs on a first pass. The Distill momentum article waits for L17.]

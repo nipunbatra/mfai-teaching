@@ -43,4 +43,4 @@ Derive the $O(h^2)$ central-difference formula and explain why very small $h$ ev
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut04-gradients-contours.ipynb`](../notebooks/tut04-gradients-contours.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut04-gradients-contours.ipynb). Predict each result, run the cell, and explain any disagreement.

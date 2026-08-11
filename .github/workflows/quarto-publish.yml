@@ -32,6 +32,9 @@ jobs:
       - name: Render Quarto site
         run: quarto render
 
+      - name: Check internal links and assets
+        run: python3 scripts/check_site_links.py _site
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
         with:

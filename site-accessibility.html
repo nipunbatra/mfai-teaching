@@ -1,0 +1,40 @@
+<script>
+(() => {
+  const labelSearch = () => {
+    const button = document.querySelector("#quarto-search button.aa-DetachedSearchButton");
+    if (!button) return false;
+    if (!button.hasAttribute("aria-label")) button.setAttribute("aria-label", "Search this course");
+    return true;
+  };
+
+  const labelTables = () => {
+    const headings = [...document.querySelectorAll("main h2, main h3, main h4")];
+    document.querySelectorAll("main table").forEach((table) => {
+      table.querySelectorAll("thead th").forEach((cell) => cell.setAttribute("scope", "col"));
+      table.querySelectorAll("tbody th").forEach((cell) => cell.setAttribute("scope", "row"));
+
+      if (table.querySelector("caption") || table.hasAttribute("aria-label")) return;
+      const heading = headings.filter((item) =>
+        item.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).at(-1);
+      const context = heading?.textContent?.trim() || document.querySelector("h1")?.textContent?.trim();
+      if (context) table.setAttribute("aria-label", `${context} table`);
+    });
+  };
+
+  const initialize = () => {
+    labelTables();
+    if (labelSearch()) return;
+    const observer = new MutationObserver(() => {
+      if (labelSearch()) observer.disconnect();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initialize, { once: true });
+  } else {
+    initialize();
+  }
+})();
+</script>

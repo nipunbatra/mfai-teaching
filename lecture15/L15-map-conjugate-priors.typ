@@ -52,14 +52,14 @@ $ hat(theta)_"MLE" = amax_theta P(D | theta) $
 #pause
 - The coin: $n_H$ heads in $n$ flips $arrow.r.double hat(theta)_"MLE" = n_H \/ n$ — count and divide.
 #pause
-- The keystone: least squares _is_ Gaussian MLE — *MSE = Gaussian NLL*.
+- With fixed-variance Gaussian observation noise, least squares and maximum likelihood have the same minimizer.
 #pause
-- The insight line: _every loss function is a negative log-likelihood in disguise._
+- Several common supervised losses are negative log-likelihoods for explicit observation models.
 
 #pause
-#notebox[Today we break this beautiful machine — with a dataset of size *three*.]
+#notebox[With only three observations, the Bernoulli MLE can lie on the boundary and report a zero probability for an unobserved outcome.]
 
-== The cliffhanger: three flips, three heads #V
+== Three flips, three heads #V
 
 You flip a coin from your pocket three times. Heads, heads, heads. MLE does what it always does:
 
@@ -71,23 +71,23 @@ $ hat(theta)_"MLE" = n_H / n = 3 / 3 = 1.0 $
   vlines: ((1.0, text(size: 12pt)[$hat(theta)_"MLE" = 1$], RED),)))
 
 #pause
-The estimate is not "heads-ish". It is $theta = 1$: *this coin can never land tails.*
+The plug-in model at $hat(theta) = 1$ assigns probability zero to every future tail.
 
-== Would you take the bet?
+== Consequence of the boundary estimate
 
 $hat(theta) = 1$ is a checkable claim: it prices "at least one tail in the next 100 flips" at *exactly zero*.
 
 #pause
-- Your gut refuses the bet. Pocket coins are almost always near-fair.
+- Background knowledge about ordinary coins makes this plug-in prediction implausible.
 #pause
 - The three flips are real evidence — but they are *three flips*.
 #pause
-- And your gut isn't cheating: it carries *years of previous coins*. That knowledge is data too — it just arrived before today.
+- A Bayesian model represents such pre-data information with a prior distribution.
 
 #pause
 #result[MLE has no slot for what you knew before the data. Today we build that slot: the *prior*.]
 
-== The same bug ships in real AI
+== Zero-count estimates in simple models
 
 #table(
   columns: (auto, 1fr),
@@ -100,7 +100,7 @@ $hat(theta) = 1$ is a checkable claim: it prices "at least one tail in the next 
 )
 
 #pause
-#notebox[*Plant for L26:* we will build exactly that character language model — and rescue it with _Dirichlet smoothing_, which is today's mathematics wearing a bigger alphabet.]
+#notebox[L26 applies the corresponding Dirichlet update to character counts, so unseen transitions receive nonzero posterior-predictive probability.]
 
 == What would a fix even look like?
 
@@ -108,12 +108,12 @@ Three demands, straight from your intuition:
 
 + Tiny datasets must *not* produce absolute certainty.
 #pause
-+ Enough data must be able to *overrule* any hunch.
++ For a fixed prior that assigns positive density near the data-generating parameter, its influence should diminish as evidence accumulates.
 #pause
 + The hunch itself must be *adjustable* — a fairness zealot and a con-artist-spotter should be able to encode different starting beliefs.
 
 #pause
-Today's route: *Bayes' rule* (the legal merge of belief and evidence) → *MAP* (MLE with the prior voting) → *conjugacy* (the trick that makes the update one line).
+Today's route: Bayes' rule defines the posterior; MAP extracts its mode; conjugacy gives closed-form posterior updates.
 
 == Learning outcomes
 
@@ -125,7 +125,7 @@ By the end of this lecture you will be able to:
 + Derive ⭐ the *Beta–Bernoulli conjugate update*, Beta$(alpha + n_H, beta + n_T)$.
 + Update *sequentially* as data streams in — and explain why order can't matter.
 + State the *Gaussian–Gaussian* posterior as a precision-weighted average.
-+ Unmask *L2 regularization* as a Gaussian prior (and L1 as a Laplace prior).
++ Interpret *L2 regularization* as Gaussian-prior MAP (and L1 as Laplace-prior MAP).
 
 // ═══════════════════════════ 2 · Bayes rule ═══════════════════════════
 = Bayes' rule: the belief-update machine
@@ -134,7 +134,7 @@ By the end of this lecture you will be able to:
 
 One rule merges what you believed with what you saw:
 
-$ #text(fill: ACC)[$P(theta | D)$] = (#text(fill: GREEN)[$P(D | theta)$] dot #text(fill: TEAL)[$P(theta)$]) / #text(fill: MUTED)[$P(D)$] $
+$ #text(fill: ACC)[$p(theta | D)$] = (#text(fill: GREEN)[$P(D | theta)$] dot #text(fill: TEAL)[$p(theta)$]) / #text(fill: MUTED)[$P(D)$] $
 
 #pause
 #table(
@@ -142,9 +142,9 @@ $ #text(fill: ACC)[$P(theta | D)$] = (#text(fill: GREEN)[$P(D | theta)$] dot #te
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
   table.header([*Factor*], [*Name*], [*Its job*]),
-  [#text(fill: ACC)[$P(theta | D)$]], [#text(fill: ACC, weight: 700)[posterior]], [belief about $theta$ _after_ the data — the answer],
+  [#text(fill: ACC)[$p(theta | D)$]], [#text(fill: ACC, weight: 700)[posterior]], [density of $theta$ _after_ the data],
   [#text(fill: GREEN)[$P(D | theta)$]], [#text(fill: GREEN, weight: 700)[likelihood]], [how loudly the data argues for each $theta$ — L14's object],
-  [#text(fill: TEAL)[$P(theta)$]], [#text(fill: TEAL, weight: 700)[prior]], [belief about $theta$ _before_ the data — new today],
+  [#text(fill: TEAL)[$p(theta)$]], [#text(fill: TEAL, weight: 700)[prior]], [density of $theta$ _before_ the data],
   [#text(fill: MUTED)[$P(D)$]], [#text(fill: MUTED, weight: 700)[evidence]], [one number that makes the left side a distribution],
 )
 
@@ -165,7 +165,7 @@ Two hypotheses → Bayes' rule is a two-row table:
 )
 
 #pause
-Three heads moved "rigged" from *10% to 39%* — suspicion, not a conviction. No factor of the update is mysterious: multiply, then rescale the two numbers to sum to 1.
+Three heads moved the posterior probability of "rigged" from *10% to 39%*. The update multiplies prior by likelihood and rescales the two numbers to sum to 1.
 
 == The update, drawn — and coded #V
 
@@ -185,46 +185,46 @@ post /= post.sum()                    # ...normalize -> [0.607, 0.393]
 ```]
 
 #pause
-Every Bayesian computation you will ever run is these four lines, scaled up.
+This finite-hypothesis example implements Bayes' rule by multiplication and normalization.
 
 == The evidence is bookkeeping
 
-The denominator $P(D) = sum_h P(D | h) thin P(h)$ adds over *hypotheses* — no $theta$ survives inside it. It rescales the curve; it cannot move the peak.
+For discrete hypotheses, $P(D) = sum_h P(D | h)P(h)$. For a continuous parameter, $P(D) = integral P(D | theta)p(theta) dif theta$. In either case it is constant with respect to $theta$ and cannot move the posterior mode.
 
 #pause
-$ #text(fill: ACC)[$P(theta | D)$] prop #text(fill: GREEN)[$P(D | theta)$] dot #text(fill: TEAL)[$P(theta)$] $
+$ #text(fill: ACC)[$p(theta | D)$] prop #text(fill: GREEN)[$P(D | theta)$] dot #text(fill: TEAL)[$p(theta)$] $
 
 #pause
 #result[*Posterior $prop$ likelihood $times$ prior.* The evidence is the normalization constant that makes the posterior integrate to one.]
 
 #pause
-That $prop$ sign is about to do a lot of honest work — hold on to it.
+The proportional form is sufficient whenever only the posterior shape or mode is needed.
 
-== MAP: let the prior vote
+== MAP: maximize the posterior density
 
 Same recipe as MLE — but climb the *posterior* instead of the likelihood:
 
-$ theta_"MLE" = amax_theta #text(fill: GREEN)[$P(D | theta)$] quad quad quad theta_"MAP" = amax_theta #text(fill: GREEN)[$P(D | theta)$] dot #text(fill: TEAL)[$P(theta)$] $
+$ theta_"MLE" = amax_theta #text(fill: GREEN)[$P(D | theta)$] quad quad quad theta_"MAP" = amax_theta #text(fill: GREEN)[$P(D | theta)$] dot #text(fill: TEAL)[$p(theta)$] $
 
 #pause
 In log-space (products → sums — L2's rule, as always):
 
-$ theta_"MAP" = amax_theta [ underbrace(log P(D | theta), "data's vote") + underbrace(log P(theta), "prior's vote") ] $
+$ theta_"MAP" = amax_theta [ underbrace(log P(D | theta), "log-likelihood") + underbrace(log p(theta), "log-prior density") ] $
 
 #pause
-*MAP = maximum a posteriori.* The prior enters as one additive vote on the log scale — it bends the landscape before the climb starts.
+*MAP = maximum a posteriori.* On the log scale, MAP maximizes the sum of log-likelihood and log-prior density.
 
 == A flat prior changes nothing
 
-Take $P(theta) = 1$ on $[0, 1]$ — every bias equally believable. Then $log P(theta) = 0$:
+Take $p(theta) = 1$ on $[0, 1]$. Then $log p(theta) = 0$:
 
 $ theta_"MAP" = amax_theta [ log P(D | theta) + 0 ] = theta_"MLE" $
 
 #pause
-#result[MLE *is* MAP with a flat prior. MLE was never "assumption-free" — its assumption was _flatness_.]
+#result[In this bounded parameterization, a uniform prior makes the MAP and MLE optimizers coincide. This does not mean that MLE assumes a prior: MLE and MAP are distinct procedures, and a density uniform in one parameterization need not be uniform after reparameterization.]
 
 #pause
-So the real question is never "prior or no prior?" — it is *which* prior. It matters most when data is scarce, skewed, or expensive; it stops mattering when data is plentiful (proof by formula, later today).
+A prior changes the posterior and MAP estimate most visibly in small samples. For fixed regular priors with support near the data-generating parameter, its influence on the MAP estimate typically diminishes as $n$ grows.
 
 // ═══════════════════════════ 3 · the coin, worked ═══════════════════════════
 = The coin gets a prior
@@ -247,7 +247,7 @@ The hill is $p(theta) prop theta (1 - theta)$ — zero at the impossible extreme
 
 Multiply the likelihood of three heads by the flat prior:
 
-$ P(theta | D) prop underbrace(theta^3, "likelihood") dot underbrace(1, "prior") = theta^3 $
+$ p(theta | D) prop underbrace(theta^3, "likelihood") dot underbrace(1, "prior") = theta^3 $
 
 #pause
 Climbing $theta^3$ on $[0,1]$ ends at the right wall:
@@ -255,13 +255,13 @@ Climbing $theta^3$ on $[0,1]$ ends at the right wall:
 $ theta_"MAP" = 1.0 = theta_"MLE" $
 
 #pause
-The absurd bet survives a flat prior — flatness has no opinion to add. To fix the pathology we must actually *hold* a belief.
+The boundary estimate survives a flat prior. Moving it requires an informative prior.
 
 == Worked: the hill prior, by hand
 
 Same three heads, hill prior $p(theta) prop theta(1 - theta)$:
 
-$ P(theta | D) prop theta^3 dot theta (1 - theta) = theta^4 (1 - theta) $
+$ p(theta | D) prop theta^3 dot theta (1 - theta) = theta^4 (1 - theta) $
 
 #pause
 Maximize with one derivative (drop constants; they can't move a peak):
@@ -287,7 +287,7 @@ $ arrow.r.double quad theta_"MAP" = 4 / 5 = 0.8 $
 #align(center, text(size: 16pt, fill: MUTED)[Likelihood rescaled to area 1 so the three shapes share one axis.])
 
 #pause
-The posterior sits *between* the prior's peak ($0.5$) and the likelihood's peak ($1.0$) — a negotiated settlement, weighted by how insistent each side is.
+The posterior mode lies between the prior mode ($0.5$) and likelihood maximum ($1.0$), with the relative concentration of the two factors determining its position.
 
 == Check it by computer
 
@@ -332,7 +332,7 @@ $ "Beta"(theta; alpha, beta) = (theta^(alpha - 1) (1 - theta)^(beta - 1)) / (B(a
 #pause
 - $Gamma(k) = (k - 1)!$ for positive integers, and the gamma function extends this definition so $alpha$ and $beta$ need not be integers.
 #pause
-- Our hill $prop theta(1 - theta)$ is $"Beta"(2, 2)$; the flat prior is $"Beta"(1, 1)$. (L12's zoo listed Beta as "the star of L15" — here it is.)
+- Our hill $prop theta(1 - theta)$ is $"Beta"(2, 2)$; the flat prior is $"Beta"(1, 1)$.
 
 #pause
 #notebox[$B(alpha, beta)$ exists so the area is 1. We will *never* integrate it in this lecture — inspection will hand it to us for free.]
@@ -359,7 +359,7 @@ All dials from ${0.5, 1, 2, 5}$ — one family, five personalities:
 #pause
 One knob pair covers superstition, indifference, hunches, conviction, and lopsided suspicion.
 
-== Read $alpha, beta$ as pseudo-counts
+== A mode-based pseudo-count mnemonic
 
 For $alpha, beta > 1$ the peak sits at $"mode" = (alpha - 1) \/ (alpha + beta - 2)$ — exactly the MLE of a record with $alpha - 1$ heads and $beta - 1$ tails.
 
@@ -376,9 +376,9 @@ For $alpha, beta > 1$ the peak sits at $"mode" = (alpha - 1) \/ (alpha + beta - 
 )
 
 #pause
-#result[A prior is a *memory of flips you never made* — $alpha - 1$ imaginary heads, $beta - 1$ imaginary tails.]
+#result[For MAP, $alpha - 1$ and $beta - 1$ act like added head and tail counts. This is a mode mnemonic; the posterior update itself adds observations directly to $alpha$ and $beta$.]
 
-== How sure? $alpha + beta$ is the stake
+== Concentration is controlled by $alpha + beta$
 
 Same center, different bankroll: mean $= alpha \/ (alpha + beta)$ fixes _where_; the total $alpha + beta$ fixes _how firmly_.
 
@@ -386,11 +386,11 @@ Same center, different bankroll: mean $= alpha \/ (alpha + beta)$ fixes _where_;
   fn: (beta-pdf(2, 2), beta-pdf(50, 50)),
   domain: (0, 1), markers: false, samples: 140,
   colors: (TEAL, BLUE),
-  title: [#text(fill: TEAL)[Beta(2, 2) — 2 pseudo-flips] #h(14pt) #text(fill: BLUE)[Beta(50, 50) — 98 pseudo-flips]],
+  title: [#text(fill: TEAL)[Beta(2, 2) — low concentration] #h(14pt) #text(fill: BLUE)[Beta(50, 50) — high concentration]],
   size: (100mm, 38mm), x-label: $theta$))
 
 #pause
-Real flips will have to *out-vote the imaginary ones* — a Beta$(50,50)$ believer needs far more evidence to move. That's the whole coming fight, stated in advance.
+A Beta$(50,50)$ prior is much more concentrated than Beta$(2,2)$, so the same dataset moves it less.
 
 == Play the update before we derive it #I
 
@@ -409,7 +409,7 @@ Both toys are running one identity — the one we now derive by hand.
 
 Data: $n_H$ heads, $n_T$ tails ($n = n_H + n_T$). L14's likelihood, and a Beta$(alpha, beta)$ prior — constants dropped, shapes kept ($prop$ absorbs $1\/B$):
 
-$ #text(fill: ACC)[$P(theta | D)$] prop underbrace(#text(fill: GREEN)[$theta^(n_H) (1 - theta)^(n_T)$], "likelihood: real flips") dot underbrace(#text(fill: TEAL)[$theta^(alpha - 1) (1 - theta)^(beta - 1)$], "prior: imaginary flips") $
+$ #text(fill: ACC)[$p(theta | D)$] prop underbrace(#text(fill: GREEN)[$theta^(n_H) (1 - theta)^(n_T)$], "likelihood") dot underbrace(#text(fill: TEAL)[$theta^(alpha - 1) (1 - theta)^(beta - 1)$], "prior density") $
 
 #pause
 Both factors speak the *same language*: powers of $theta$ and powers of $(1 - theta)$. That coincidence is about to do all the work.
@@ -418,7 +418,7 @@ Both factors speak the *same language*: powers of $theta$ and powers of $(1 - th
 
 Same base, so multiplication is addition upstairs:
 
-$ P(theta | D) prop theta^(n_H + alpha - 1) thin (1 - theta)^(n_T + beta - 1) $
+$ p(theta | D) prop theta^(n_H + alpha - 1) thin (1 - theta)^(n_T + beta - 1) $
 
 #pause
 Stare at it: this is *the Beta shape again*, with new dials
@@ -426,7 +426,7 @@ Stare at it: this is *the Beta shape again*, with new dials
 $ alpha' = alpha + n_H, quad quad beta' = beta + n_T $
 
 #pause
-Real heads landed on the imaginary-heads pile; real tails on the imaginary-tails pile. The data didn't change the _kind_ of belief — only its _counts_.
+The head and tail counts add to the two exponents. The data do not change the family, only its parameters.
 
 == Normalize by inspection #D
 
@@ -438,7 +438,7 @@ So the constant is forced, no integral computed:
 #result[$ "Beta"(alpha, beta) "prior" + n_H "heads", n_T "tails" quad arrow.r.double quad "posterior" = "Beta"(alpha + n_H, thin beta + n_T) $]
 
 #pause
-#notebox[Honesty note: "by inspection" means we recognized a member of a family whose normalizer Euler already paid for. The integral happened once, centuries ago — never again at update time.]
+#notebox["By inspection" means recognizing the Beta kernel and using its known normalizing constant.]
 
 == Conjugacy, named
 
@@ -449,7 +449,7 @@ So the constant is forced, no integral computed:
 #pause
 - The entire update is *two integer additions*: $alpha arrow.l alpha + n_H$, $beta arrow.l beta + n_T$. No integral, no grid, no optimizer.
 #pause
-- Our worked example, re-told: Beta$(2,2)$ + 3 heads → Beta$(5, 2)$ — a pseudo-record of 4 H, 1 T, peak at $4\/5$. The posterior *is* a merged memory of real and imaginary flips.
+- Our worked example: Beta$(2,2)$ + 3 heads → Beta$(5, 2)$, whose mode is $4\/5$.
 
 == The MAP formula drops out
 
@@ -463,7 +463,7 @@ $ theta_"MAP" = (n_H + alpha - 1) / (n + alpha + beta - 2) $
 - Check: flat prior $alpha = beta = 1$: $theta_"MAP" = n_H \/ n = theta_"MLE"$. ✓
 
 #pause
-#result[Read it aloud: *real heads + imaginary heads, over real flips + imaginary flips.*]
+#result[The MAP estimate is the empirical count formula with the mode offsets $alpha - 1$ and $beta - 1$.]
 
 == Stress test: 9 heads, 1 tail
 
@@ -484,7 +484,7 @@ Same data, three defensible answers — the prior is a *published, criticizable 
 
 == The conjugate catalog
 
-The same one-line-update miracle exists beyond coins:
+The same algebra appears beyond coins:
 
 #table(
   columns: (auto, auto, 1fr),
@@ -560,7 +560,7 @@ Flip H then T, starting from Beta$(alpha, beta)$: $(alpha + 1, beta)$, then $(al
 #pause
 No accident: the posterior is a *product* of per-flip factors, and multiplication commutes —
 
-$ P(theta | D) prop P(theta) product_(i = 1)^n P(y_i | theta) $
+$ p(theta | D) prop p(theta) product_(i = 1)^n P(y_i | theta) $
 
 #pause
 #result[Stream the data or dump it in one batch, in any order — *exactly* the same posterior.]
@@ -572,7 +572,7 @@ An optimist, a skeptic, and an agnostic watch the same coin ($theta = 0.7$):
 #fig("/lecture15/figures/prior_washout.svg", w: 100%)
 
 #pause
-Ten flips in (5 H, 5 T): they still disagree — the ambiguous data lets each prior shine through. A thousand flips in: three posteriors, one needle. *They argued; the coin adjudicated.*
+Ten flips in (5 H, 5 T), the posteriors still differ. After a thousand flips they are nearly indistinguishable.
 
 == When the prior washes out
 
@@ -583,10 +583,10 @@ $ theta_"MAP" = (n_H + alpha - 1) / (n + alpha + beta - 2) arrow.r n_H / n = the
 #pause
 - The prior is a *fixed* number of pseudo-votes in a growing electorate: decisive at $n = 3$, a rounding error at $n = 10^6$.
 #pause
-- Scarce data → the prior carries you. Abundant data → MLE and MAP agree and the argument dissolves.
+- With a fixed regular prior and a growing i.i.d. sample, MLE and MAP typically converge to the same value.
 
 #pause
-#result[Priors are training wheels that *remove themselves* — at a $1\/n$ rate you can compute.]
+#result[For this fixed Beta prior, the difference between MAP and MLE is of order $1\/n$. Priors with zero support near the truth or priors that change with $n$ need not wash out this way.]
 
 == Posterior inference for the opening coin example
 
@@ -601,19 +601,19 @@ Three heads in three flips, Beta$(2,2)$ prior → posterior Beta$(5,2)$:
 #pause
 - The MAP estimate is $theta_"MAP" = 0.8$, while the posterior still assigns about $11%$ probability to $theta < 0.5$.
 #pause
-- Three flips buy you suspicion, never certainty — and never, ever "tails is impossible". The absurd bet is off.
+- After three flips, the posterior remains uncertain and assigns nonzero probability to future tails.
 
 == Slide the prior yourself #I
 
 #interbox(link-to: IA + "mle-map-coin")[A coin you control: set the true bias, choose $alpha, beta$, and flip. Watch $theta_"MAP"$ glide from the prior's peak toward $theta_"MLE"$ as the pseudo-counts get out-voted.]
 
 #pause
-Try the failure modes: a strong wrong prior (how much data undoes it?), and $n = 3$ with a flat prior (the absurd bet, live).
+Try a strong prior far from the data, then compare it with a flat prior at $n = 3$.
 
 // ═══════════════════════════ 7 · Gaussian meets Gaussian ═══════════════════════════
 = Gaussian meets Gaussian
 
-== Same movie, continuous star
+== A continuous analogue
 
 New estimation problem: a sensor reads a true value $mu$ through Gaussian noise (L13):
 
@@ -632,7 +632,7 @@ Beta was the prior for a *probability*; the Gaussian is the prior for a *locatio
 Multiply the two bells and complete the square (algebra in T7 and MML 8.3.2 — today, the shape of the answer). Call $1\/"variance"$ *precision* — confidence, as a number: prior precision $tau_0 = 1\/sigma_0^2$, data precision $tau_D = n\/sigma^2$.
 
 #pause
-$ P(mu | D) = cal(N)(mu_n, sigma_n^2), quad quad 1 / sigma_n^2 = tau_0 + tau_D $
+$ p(mu | D) = cal(N)(mu_n, sigma_n^2), quad quad 1 / sigma_n^2 = tau_0 + tau_D $
 
 #pause
 $ mu_n = (tau_0 thin mu_0 + tau_D thin macron(x)) / (tau_0 + tau_D) $
@@ -665,31 +665,31 @@ The posterior is *narrower than both parents* — two independent confidences st
 #pause
 - The prior behaves like $sigma^2 \/ sigma_0^2$ *virtual observations* pinned at $mu_0$ — pseudo-counts again, in continuous clothing.
 #pause
-- As $n$ grows, data precision $n\/sigma^2 arrow.r infinity$: the hunch washes out — the same story the coin just told.
+- As $n$ grows, data precision $n\/sigma^2 arrow.r infinity$, so a fixed finite prior precision has diminishing influence.
 
 #pause
 #result[Conjugate updating is an *average where precision is the currency*: pseudo-flips for coins, virtual readings for means.]
 
 // ═══════════════════════════ 8 · regularization = prior ═══════════════════════════
-= Every regularizer is a prior
+= MAP interpretations of common penalties
 
-== L14's keystone, one more time
+== Recall the Gaussian-noise result from L14
 
 Linear regression, Gaussian noise: $y_i = bold(w)^top bold(x)_i + epsilon_i$, $epsilon_i tilde cal(N)(0, sigma^2)$. L14 showed:
 
 $ "NLL"(bold(w)) = 1 / (2 sigma^2) norm(bold(y) - X bold(w))^2 + "const" $
 
 #pause
-Minimizing NLL *is* least squares — *MSE = Gaussian NLL*. That was keystone #1 of this module.
+Under independent Gaussian observation noise with fixed variance, minimizing NLL is equivalent to least squares.
 
 #pause
-So far, pure MLE: the weights $bold(w)$ enjoy a flat prior nobody admitted to. Time to admit a real one.
+To form a MAP estimator, place an explicit prior on the weights.
 
 == Give the weights a prior
 
 Belief: weights shouldn't be huge — a model that needs $w = 10^6$ is probably memorizing noise. Encode it:
 
-$ bold(w) tilde cal(N)(bold(0), sigma_0^2 I) quad arrow.r.double quad -log P(bold(w)) = 1 / (2 sigma_0^2) norm(bold(w))^2 + "const" $
+$ bold(w) tilde cal(N)(bold(0), sigma_0^2 I) quad arrow.r.double quad -log p(bold(w)) = 1 / (2 sigma_0^2) norm(bold(w))^2 + "const" $
 
 #pause
 MAP swaps argmax-posterior for argmin of the negative log-posterior:
@@ -703,21 +703,21 @@ nlp  = (w**2).sum() / (2 * sig0_2)             # -log N(0, sig0^2) prior
 loss = nll + nlp                               # MAP objective
 ```]
 
-== You have seen this loss before — or you will
+== MAP with a Gaussian prior is ridge regression
 
 Multiply through by $2 sigma^2$ (argmins don't care):
 
 $ bold(w)_"MAP" = amin_(bold(w)) thin norm(bold(y) - X bold(w))^2 + lambda norm(bold(w))^2, quad quad lambda = sigma^2 / sigma_0^2 $
 
 #pause
-#result[*Ridge regression is MAP with a Gaussian prior on the weights.* The penalty knob $lambda$ is the noise-to-prior-confidence ratio — keystone #2.]
+#result[*Ridge regression is MAP with a Gaussian prior on the weights.* The coefficient $lambda$ is the noise-to-prior-variance ratio.]
 
 #pause
-#notebox[Promissory note: your ML course will hand you "ridge" and "weight decay" as recipes, and tune $lambda$ by validation. You now hold the receipt: cranking $lambda$ *is* shrinking $sigma_0$ — declaring harder that big weights are unbelievable.]
+#notebox[A later ML course may introduce ridge regression or weight decay as regularization, with $lambda$ tuned by validation. In this probabilistic model, increasing $lambda$ corresponds to decreasing the prior variance $sigma_0^2$ and concentrating more prior mass near zero.]
 
-== Bell to bowl #V
+== Negative log-prior to penalty #V
 
-$-log$ turns a belief into a penalty — every prior shape mints a regularizer:
+A prior density contributes its negative logarithm to the MAP objective:
 
 #two(
   lines(
@@ -730,7 +730,7 @@ $-log$ turns a belief into a penalty — every prior shape mints a regularizer:
     fn: (x => x * x / 2.0, x => calc.abs(x)),
     domain: (-3, 3), markers: false, samples: 130,
     colors: (TEAL, BLUE), labels: ([$w^2 \/ 2$], [$abs(w)$]),
-    size: (58mm, 34mm), x-label: $w$, title: [the penalty $-log P(w)$]),
+    size: (58mm, 34mm), x-label: $w$, title: [the penalty $-log p(w)$]),
 )
 
 #pause
@@ -749,20 +749,20 @@ Gaussian prior → quadratic penalty → *L2 / ridge*. Laplace prior → $abs(w)
 )
 
 #pause
-Choosing a regularizer *is* choosing a prior. There is no prior-free learning — only unexamined priors.
+If $exp(-R(bold(w)))$ is integrable, a penalty $R$ can be interpreted as a negative log-prior in MAP estimation. Some training regularizers and constraints do not admit this simple interpretation.
 
 // ═══════════════════════════ 9 · wrap ═══════════════════════════
-= What to take home
+= Summary
 
 == Lecture 15 — summary
 
 - *Bayes*: posterior $prop$ likelihood $times$ prior — the evidence only normalizes.
 - *MAP* climbs log-likelihood $+$ log-prior; flat prior $arrow.r.double$ MAP $=$ MLE.
-- *Beta$(alpha, beta)$*: $alpha - 1$ imaginary heads, $beta - 1$ imaginary tails; $alpha + beta$ is the stake.
+- *Beta$(alpha, beta)$*: the MAP mode has offsets $alpha - 1$, $beta - 1$; $alpha + beta$ controls concentration.
 - *Conjugacy* ⭐: Beta prior $+$ coin data $arrow.r$ Beta$(alpha + n_H, beta + n_T)$ — two additions.
 - *Sequential $=$ batch*, any order; width $tilde 1\/sqrt(n)$; data swamps the prior.
 - *Gaussians*: precisions add; posterior mean $=$ precision-weighted average.
-- *Regularizers are priors*: Gaussian → ridge, Laplace → lasso, counts → smoothing.
+- *MAP penalty interpretations*: Gaussian → ridge, Laplace → lasso, Beta/Dirichlet → smoothing.
 
 #pause
 #notebox[*Read before L16* — MML 6.6.1 & 8.3.2 · MacKay Ch. 3. *T7* pairs with this lecture (grid-check every derivation); *Quiz 3 / midsem* covers Module 3.]
@@ -776,7 +776,7 @@ Try on paper; verify with the T7 notebook's grid trick.
 + Show that Beta$(1, 1)$ makes $theta_"MAP" = theta_"MLE"$ for *every* possible dataset.
 + How many *consecutive heads* push $theta_"MAP"$ above $0.99$ under a Beta$(2, 2)$ prior? (Solve $(n + 1)\/(n + 2) > 0.99$.)
 + Sensor: prior $cal(N)(0, 1)$; data $n = 9$, $macron(x) = 3$, $sigma^2 = 9$. Posterior mean and variance?
-+ A colleague doubles ridge's $lambda$. What just happened to $sigma_0^2$ in the prior story — and which prior would have produced an L1 penalty instead?
++ A colleague doubles ridge's $lambda$. What happens to $sigma_0^2$ in the MAP interpretation, and which prior would produce an L1 penalty instead?
 
 == ⭐⭐⭐ MAP keeps the peak, throws the width #OPT
 
@@ -802,7 +802,7 @@ Flat prior $+$ posterior mean $arrow.r$ $P("next H") = (n_H + 1)/(n + 2)$ — "a
 #notebox[250 years old, still shipping in production systems. Priors age well.]
 
 #focus-slide[
-  Every regularizer is a prior in disguise.
+  L2 and L1 penalties are negative log-priors in MAP estimation.
   #v(12pt)
   #set text(size: 22pt)
   Next: *Module 4 — The Optimization Landscape*. We now know _what_ to minimize; L16 begins the story of _how_.

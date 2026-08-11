@@ -22,9 +22,9 @@
 #fig("/lecture1/figures/nan_loss.svg", w: 68%)
 
 #pause
-Today we solve it — and learn the fix used inside *every* ML framework you will ever touch.
+Today we solve it — and derive the stable log-softmax computation used by major ML frameworks.
 
-== Exhibit B · a one-line scandal
+== A decimal calculation worth checking
 
 First, type this into any Python prompt:
 
@@ -46,13 +46,13 @@ Not a Python bug. The same happens in C, Java, Rust, JavaScript, Excel, your cal
 
 By the end of this lecture you will be able to:
 
-+ Explain why fixed-size *integers and fixed point* can't serve ML — and what dynamic range is.
++ Explain why one fixed-point scale cannot cover a training run's full *dynamic range*, and how quantized ML works around that limit.
 + Decode and encode *IEEE-754 float32* by hand (sign / exponent / mantissa).
 + Reason about the *unevenly spaced* float number line: machine epsilon, `x + 1 == x`.
 + Predict *overflow / underflow*: why `exp(89)` breaks float32.
 + Spot *catastrophic cancellation* and rewrite formulas to dodge it.
 + Derive and apply the *log-sum-exp trick* and the numerically stable softmax.
-+ Choose between *float32 / float16 / bfloat16* — and say why DL picked bfloat16.
++ Choose between *float32 / float16 / bfloat16* and explain why many accelerators favour bfloat16 or mixed precision.
 
 = Before floats: integers and fixed point
 
@@ -68,7 +68,7 @@ A 32-bit integer stores any whole number in $[-2^31, 2^31 - 1] approx plus.minus
 #pause
 - Arithmetic on integers is _perfect_: no rounding, ever.
 #pause
-- But there are no fractions — and beyond the box, classic C/NumPy `int32` *wraps around* to negative numbers.
+- But there are no fractions — and beyond the box, NumPy `int32` wraps modulo $2^32$. Languages differ: signed overflow in C is undefined, so never rely on wrapping unless the type specifies it.
 
 #pause
 *Q.* So how do we get decimals? First idea: just _fix_ where the point goes.
@@ -84,7 +84,7 @@ Split 32 bits: 16 for the whole part, 16 for the fraction ("16.16"):
 #pause
 Simple, fast, and used in DSP chips and retro game consoles. *But look at that range*: nothing above 33k, nothing (nonzero) below 0.000015 — and both limits are hard walls.
 
-== Why ML kills fixed point · dynamic range
+== Why one fixed-point scale is not enough
 
 One training run of one neural network routinely contains, *simultaneously*:
 
@@ -101,7 +101,18 @@ One training run of one neural network routinely contains, *simultaneously*:
 )
 
 #pause
-#result[That's *40+ orders of magnitude* in one program. A fixed decimal point serves \~9 of them. We need a number format where the point *floats*.]
+#result[That's *40+ orders of magnitude* in one program. One 32-bit fixed-point scale covers only a small window, so general-purpose training needs a format whose scale can move.]
+
+== Quantized ML uses many local scales
+
+Fixed point remains useful when the program does *not* rely on one global scale:
+
+- assign a scale and zero-point to each tensor or channel,
+- perform fast integer matrix products,
+- rescale between layers using calibration data or learned quantization parameters.
+
+#pause
+#result[Quantized inference works around fixed point's narrow range by using many locally chosen scales. General training still usually relies on floating point or mixed precision.]
 
 == The rescue idea is 400 years old · scientific notation
 
@@ -201,7 +212,7 @@ What float64 _actually stores_ (every digit below is exact):
 The two calculations produce different adjacent floating-point values, so `==` returns `False`.
 
 #pause
-#alertbox[Never compare floats with `==`. Use `np.isclose(a, b)` / `math.isclose(a, b)` — every test suite you write in this course will.]
+#alertbox[Do not use `==` when you mean "equal up to rounding" — for example, after inexact decimal arithmetic. Use `np.isclose(a, b)` / `math.isclose(a, b)`. Exact binary values, integer-valued floats, and sentinels can still be compared exactly.]
 
 = The float number line
 
@@ -250,6 +261,8 @@ Each arithmetic result is computed exactly, then *rounded* to the nearest float:
 
 $ "fl"(a compose b) = (a compose b)(1 + delta), quad abs(delta) <= epsilon / 2 $
 
+This standard relative-error model applies when the exact result is a finite normal number; underflow, overflow, and subnormals need separate treatment.
+
 #pause
 - Default mode: *round to nearest, ties to even* — ties go to the even last bit, so up/down rounds don't accumulate a bias
 #pause
@@ -267,15 +280,15 @@ IEEE-754 doesn't crash on impossible arithmetic — it returns special values:
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
   table.header([*Expression (NumPy)*], [*Result*], [*Meaning*]),
-  [`1.0 / 0.0`], [`inf`], [overflow / true limit],
-  [`-1.0 / 0.0`], [`-inf`], [],
-  [`0.0 / 0.0`], [`nan`], ["not a number" — no defensible value],
+  [`np.float64(1.0) / 0.0`], [`inf`], [division by zero / limiting value],
+  [`np.float64(-1.0) / 0.0`], [`-inf`], [],
+  [`np.float64(0.0) / 0.0`], [`nan`], ["not a number" — no defensible value],
   [`inf - inf`, `inf / inf`], [`nan`], [],
   [`np.log(-1.0)`, `np.sqrt(-1.0)`], [`nan`], [],
 )
 
 #pause
-#alertbox[*NaN is contagious*: any operation touching `nan` returns `nan`. And `nan == nan` is `False` — the only value not equal to itself (`x != x` is the classic NaN test; prefer `np.isnan`). One NaN at step 618 → _every_ weight is NaN by step 619.]
+#alertbox[Most arithmetic with `nan` produces `nan`, so one invalid value can spread quickly through a computation graph. Comparisons are different: `nan == nan` is `False` (`x != x` is the classic test; prefer `np.isnan`).]
 
 == Overflow arrives shockingly early
 
@@ -368,7 +381,7 @@ $ P("text") = product_(i=1)^1000 p_i approx 0.03^1000 approx 10^(-1523) arrow.r.
 $ log P("text") = sum_(i=1)^1000 log p_i approx 1000 times (-3.51) = -3507 quad #text(fill: GREEN)[✓ a boring, safe float] $
 
 #pause
-#result[Multiply probabilities → *add log-probabilities*. Every loss you will ever meet is a _log_-likelihood — floating point demands it (L14 shows the deeper reason).]
+#result[Multiply probabilities → *add log-probabilities*. Many probabilistic objectives are negative log-likelihoods (L14); other losses need not be.]
 
 == Fix 2 · log-sum-exp, derived in three lines #D
 
@@ -465,13 +478,13 @@ What actually happened at step 618:
 )
 
 #pause
-Halving the bits doubles the training throughput and halves the memory — modern GPUs are _built_ around 16-bit math. But look at float16's max value…
+Halving storage cuts tensor memory and bandwidth; suitable accelerators can also execute 16-bit matrix operations much faster than float32. The exact speedup depends on hardware and workload. But look at float16's max value…
 
 == Range vs precision · the 16-bit dilemma #V
 
 #fig("/lecture2/figures/fp_formats.svg", w: 84%)
 
-== Why deep learning picked bfloat16
+== Why many accelerators use bfloat16
 
 float16 spent its bits on precision and starved the exponent — `exp(12)` already overflows its 65,504 ceiling. *bfloat16 keeps float32's 8 exponent bits* and pays with mantissa:
 
@@ -485,8 +498,16 @@ float16 spent its bits on precision and starved the exponent — `exp(12)` alrea
   [digits of precision], [3.3], [2.4],
 )
 
+== Mixed precision keeps critical work in float32
+
+Low-precision training is not "make every number bfloat16":
+
+- multiply large tensors in float16 or bfloat16 for speed,
+- accumulate dot products and keep selected state in float32,
+- use loss scaling when float16 gradients risk underflow.
+
 #pause
-#result[DL chose *range over precision*: overflow makes NaNs (fatal), while low-precision noise mostly averages out across millions of SGD updates. Losing digits is survivable. Losing the exponent is not.]
+#result[bfloat16 keeps float32's range; float16 keeps more fraction bits. Mixed precision chooses where each trade-off is acceptable.]
 
 == Checkpoint: you are now floating-point literate #Q
 
@@ -540,8 +561,12 @@ for x in xs:
     s = t
 ```]
 
+== What compensated summation guarantees
+
+Kahan's variable `c` carries low-order bits that the running sum lost. This greatly reduces first-order accumulation error, especially when many same-sign terms are added.
+
 #pause
-Kahan's compensated sum tracks the rounding error in `c` and repays it — error stays \~$epsilon$ *independent of n*. (`np.sum` fights the same war with pairwise summation.)
+The error still depends on the conditioning of the sum and on higher-order terms; it is not literally independent of $n$. NumPy commonly reduces error with a different method, *pairwise summation*.
 
 == ⭐⭐⭐ Subnormals: the fine print near zero #OPT
 
@@ -563,8 +588,11 @@ The smallest _normal_ float32 is $2^(-126) approx 1.18 times 10^(-38)$. Without 
 - *The ML fixes*: log-space probabilities, log-sum-exp, subtract-the-max softmax.
 - *bfloat16* = float32's range at half the bits: DL trades precision for range.
 
-#pause
-#notebox[*Read before L3* — Goldberg (1991), §1–2 · Solomon, _Numerical Algorithms_, Ch. 1–2 (free PDF). *Tutorial 1* this week: IEEE-754 by hand, then break `0.1 + 0.2`, cancellation, and softmax yourself in NumPy — and fix them.]
+== Before L3 and Tutorial 1
+
+- *Reading*: Goldberg (1991), §1–2; Solomon, _Numerical Algorithms_, Ch. 1–2.
+- *Worksheet*: decode IEEE-754 values by hand.
+- *Notebook*: reproduce decimal error, cancellation, and softmax overflow in NumPy, then implement the stable versions.
 
 #focus-slide[
   Computers don't do real numbers — they do \~4 billion of them, unevenly spaced.

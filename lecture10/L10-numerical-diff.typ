@@ -8,7 +8,7 @@
 #import "../common/mldiag.typ": *
 #show: metropolis-deck.with(
   title: [Differentiation on a Computer I],
-  subtitle: [From wobbly secants to exact derivatives],
+  subtitle: [Finite differences and forward-mode automatic differentiation],
 )
 
 #let IA = "https://nipunbatra.github.io/interactive-articles/"
@@ -88,9 +88,9 @@ Get it slightly wrong, and *nothing crashes*:
 - the model trains, ships… and is quietly worse than it should be
 #pause
 
-#alertbox[A wrong gradient is the nastiest bug class in ML: no exception, no NaN, no stack trace — just a model that underperforms for a reason you can't see.]
+#alertbox[A wrong gradient may produce no exception or NaN. A numerical gradient check gives an independent comparison before the operation is used in training.]
 
-== The referee: `torch.autograd.gradcheck`
+== A numerical check: `torch.autograd.gradcheck`
 
 Every serious framework ships a gradient checker. PyTorch's:
 
@@ -106,49 +106,49 @@ print(gradcheck(my_op, (x,)))     # True — backward() is correct
 ```]
 
 #pause
-And what does the referee compare `backward()` against? *This*:
+And what does it compare `backward()` against? *This*:
 
 $ f'(x) approx (f(x + h) - f(x - h)) / (2h) quad quad "— a slope, measured with a tiny nudge" $
 
-== Three puzzles hiding in that one call
+== Three design questions in that one call
 
 PyTorch compares analytical gradients with finite-difference secants. Three implementation choices need explanation:
 
 #pause
-+ *Trust* — the referee is an _approximation_. How wrong is it? Can it even be trusted to judge?
++ *Accuracy* — the numerical comparison is an approximation. How large can its error be?
 #pause
-+ *Numerical choices* — `gradcheck` refuses float32, defaults to `eps = 1e-6`, and uses the symmetric formula. We will derive why.
++ *Numerical choices* — the default tolerances are designed for float64, `eps = 1e-6`, and the formula is symmetric. We will derive why.
 #pause
-+ *The scandal* — if nudging is good enough to referee, why doesn't PyTorch simply _use_ it to train?
++ *Cost* — if nudging is useful for checking, why is it not used to train?
 
 #pause
 #notebox[All three fall out of one lecture. The answers involve L2's machine epsilon, L7's Taylor remainder — and a number system where $epsilon^2 = 0$.]
 
-== Today's one idea
+== Two ways to compute a derivative
 
-#result[On a computer you can *approximate* a derivative — and fight floating point — or compute it *exactly*, by making every number carry its own derivative.]
+#result[Finite differences approximate a derivative and incur truncation and rounding error. Automatic differentiation applies the chain rule to the executed program, without choosing a step size.]
 
 #pause
-Two acts:
+Two parts:
 
-- *Act I — the war*: nudge-and-divide fights truncation on one front, rounding on the other. We map the battlefield (a U-shaped curve) and find the least-bad step size ⭐.
+- *Finite differences*: truncation decreases with $h$, while rounding error increases. Their sum produces a U-shaped error curve and an optimal scale for $h$ ⭐.
 #pause
-- *Act II — the escape*: dual numbers make the error _algebraically zero_. Forward-mode autodiff is that trick, industrialized.
+- *Forward-mode AD*: dual numbers propagate a value and tangent through each primitive, so there is no finite-difference truncation or cancellation.
 
 == Learning outcomes
 
 By the end of this lecture you will be able to:
 
 + Estimate derivatives with *forward and central differences* and predict their error orders.
-+ Explain the *two-front war* — truncation vs rounding — and read an error-vs-$h$ *U-curve*.
++ Explain the tradeoff between *truncation and rounding error*, and read an error-vs-$h$ *U-curve*.
 + Derive the *optimal step* $h^* approx sqrt(epsilon)$ and the "half your digits" floor. ⭐
 + Explain why finite differences *cannot scale* to $10^6$ parameters.
-+ Compute with *dual numbers* $a + b epsilon$, $epsilon^2 = 0$ — and show they differentiate exactly.
++ Compute with *dual numbers* $a + b epsilon$, $epsilon^2 = 0$ — and show that they apply derivative rules exactly to the represented program (up to ordinary floating-point rounding).
 + Run *forward-mode autodiff* by hand: a (value, tangent) trace, one pass per input.
 
-= Three roads to a derivative
+= Three approaches to a derivative
 
-== You have $f$. You want $f'$. Pick a road. #V
+== Symbolic, numerical, and automatic differentiation #V
 
 #trichotomy
 
@@ -159,7 +159,7 @@ This trichotomy — *symbolic / numeric / automatic* — organizes everything ab
 #pause
 The first two methods follow directly from calculus. Automatic differentiation will be derived from computation graphs in L11.
 
-== Road 1 · symbolic: do the algebra
+== Symbolic differentiation: do the algebra
 
 What you did in L7, mechanized (SymPy, Mathematica): apply the rules, output a *formula*.
 
@@ -193,7 +193,7 @@ $ #text(size: 16pt)[$dif ell_4 \/ dif x = -131072 x^7 + 458752 x^6 - 638976 x^5 
 #pause
 #result[*Expression swell*: each level of composition multiplies the derivative's size. A 100-layer network's symbolic gradient would be astronomical.]
 
-== Road 2 · numeric: just measure the slope
+== Numerical differentiation: measure a secant slope
 
 No algebra at all — *nudge and divide*:
 
@@ -205,29 +205,29 @@ def derivative(f, x, h=1e-8):
 #pause
 - Three lines. No formula needed — loops, branches, whole programs welcome.
 #pause
-- The catch is one word: $approx$. It's an *approximation* — and "how wrong?" turns out to be a genuinely great question.
+- The result is approximate. Its error depends on both $h$ and the floating-point format.
 
 #pause
-#notebox[That innocuous default `h=1e-8` is hiding a war story. By the ⭐ derivation you will know exactly where it comes from.]
+#notebox[The default `h=1e-8` is not universally optimal. The ⭐ derivation will show how a useful scale follows from curvature and machine precision.]
 
-== Road 3 · automatic: the one we're building toward
+== Automatic differentiation: propagate derivatives
 
 *Automatic differentiation (AD)*: run the *program* of $f$, but on values that carry their own derivatives — every `+` and `*` updates both.
 
 #pause
-- *Exact* like symbolic — no $h$, no approximation, to the last bit
+- No finite-difference approximation: it differentiates the sequence of implemented primitives; floating-point evaluation still rounds normally
 #pause
 - *Formula-free* like numeric — works on code, never builds an expression
 #pause
 - Cost: a small constant times the cost of running $f$ itself
 
 #pause
-Sounds too good to exist. It exists — `torch.autograd` _is_ one. Today we build its *forward mode* by hand; L11 reverses it into backprop.
+PyTorch's `autograd` is one implementation. Today we build forward mode by hand; L11 develops reverse mode and backpropagation.
 
 #pause
-But first, road 2 deserves a fair trial. It loses beautifully.
+First we quantify the error and cost of finite differences.
 
-= The forward difference: a war on two fronts
+= Forward differences: two sources of error
 
 == L7's limit, with the limit amputated #V
 
@@ -282,7 +282,7 @@ $ D_h f(x) = f'(x) + underbrace(h / 2 f''(xi), #text(fill: TEAL)[truncation erro
 #pause
 So drive $h arrow.r 10^(-16)$ and collect 16 digits… right? You spent L2 learning why not.
 
-== Front 2 · the subtraction shreds digits
+== Subtraction cancels leading digits
 
 *L2 callback: catastrophic cancellation* — subtracting near-equals promotes rounding garbage to the front. And $f(x + h) - f(x)$ is a subtraction of near-equals *by design*.
 
@@ -303,7 +303,7 @@ Both inputs carried \~16 good digits. Their difference carries *\~8* — then `/
 #pause
 #result[Started with 16 digits. Kept 8. The estimate: $0.99999999#text(fill: RED)[39…]$ — noise wearing a derivative costume.]
 
-== Front 2 · the model: rounding error grows as $epsilon\/h$
+== A rounding-error model grows as $epsilon\/h$
 
 L2's rounding rule: each stored value is off by a relative $delta$, $|delta| lt.eq epsilon$ — recall $epsilon_64 approx 2.2 times 10^(-16)$, $epsilon_32 approx 1.2 times 10^(-7)$.
 
@@ -313,12 +313,12 @@ So each evaluation of $f$ is really $f dot (1 + delta)$ — wrong by up to $epsi
 $ "rounding error of " D_h f quad approx quad (2 epsilon |f(x)|) / h quad #text(fill: RED)[— grows as $h$ shrinks!] $
 
 #pause
-- Truncation shrinks with $h$; rounding *explodes* with $1\/h$. Two enemies, opposite fronts.
+- Truncation shrinks with $h$; rounding error grows with $1\/h$.
 #pause
 
-#result[Big $h$: truncation wins. Tiny $h$: rounding wins. Somewhere between: the least-bad $h$.]
+#result[For large $h$, truncation dominates. For small $h$, rounding dominates. Between them is a minimum-error scale.]
 
-== The war, live: every $h$ loses somewhere
+== Measured error across step sizes
 
 $f = e^x$, $x = 0$, float64 — every digit below is real:
 
@@ -341,7 +341,7 @@ $f = e^x$, $x = 0$, float64 — every digit below is real:
 
 #fig("/lecture10/figures/l10_ucurve.svg", w: 84%)
 
-#align(center, text(size: 16pt, fill: MUTED)[The whole war on one log–log plot: error vs $h$ for $D_h e^x$ at $x = 0$, float64.])
+#align(center, text(size: 16pt, fill: MUTED)[Error vs $h$ for $D_h e^x$ at $x = 0$ in float64: truncation dominates on the right and rounding on the left.])
 
 == How to read a U-curve
 
@@ -355,11 +355,11 @@ $f = e^x$, $x = 0$, float64 — every digit below is real:
 #result[There is no winning $h$ — only a least-bad one. Every finite-difference scheme has a floor it cannot go below.]
 
 #pause
-Where exactly is the floor, and the sweet spot under it? That deserves a real derivation — the lecture's ⭐.
+We now derive the location and scale of the minimum.
 
 = ⭐ The best possible step
 
-== ⭐ Step 1: write the enemy down #D
+== ⭐ Step 1: model the total error #D
 
 Total error = truncation + rounding. Bound $|f''| lt.eq M$ near $x$ (curvature scale, L7), take $|f(x)| approx 1$ for clean bookkeeping (our $e^0$ case exactly):
 
@@ -380,7 +380,7 @@ Set the derivative of the error (the derivative of the error of a derivative!) t
 $ E'(h) = M / 2 - (2 epsilon) / h^2 = 0 quad arrow.r.double quad h^* = 2 sqrt(epsilon / M) $
 
 #pause
-At the optimum, plug $h^*$ back in — each enemy contributes *exactly half*:
+At the optimum, plug $h^*$ back in — the two modeled contributions are equal:
 
 $ E(h^*) = sqrt(epsilon M) + sqrt(epsilon M) = 2 sqrt(epsilon M) $
 
@@ -397,9 +397,9 @@ Zoom into the U-curve's valley and lay the model on top of the measurement:
 #fig("/lecture10/figures/l10_ucurve_zoom.svg", w: 67%)
 
 #pause
-Walls cross at $h^* approx 3 times 10^(-8)$ ✓ — predicted floor $3 times 10^(-8)$ vs measured best $6 times 10^(-9)$ (worst-case bound, dead-on ballpark) ✓ — slopes $plus.minus 1$ ✓. The two-term model _is_ the whole story.
+The terms cross near $h^* approx 3 times 10^(-8)$. The predicted worst-case floor is $3 times 10^(-8)$, the measured best error is $6 times 10^(-9)$, and the two asymptotic slopes are $plus.minus 1$.
 
-== The floor is the headline: half your digits
+== The precision floor: roughly half the digits
 
 Relative error $sqrt(epsilon)$ means: *of the digits your float carries, forward differences keep half.*
 
@@ -414,7 +414,7 @@ Relative error $sqrt(epsilon)$ means: *of the digits your float carries, forward
 )
 
 #pause
-A float32 gradient check can't distinguish "correct" from "off by 0.1%". *That is why `gradcheck` refuses to run in float32* — puzzle 2, first half, solved.
+With default settings, a float32 numerical check may not distinguish a correct gradient from an error around $10^(-3)$. Gradient-checking tools therefore recommend double precision and warn that lower-precision inputs may fail their default tolerances.
 
 #pause
 #notebox[Rule of thumb worth memorizing: finite differences cost you *half your precision*. Exactness isn't on the menu — at any $h$.]
@@ -424,7 +424,7 @@ A float32 gradient check can't distinguish "correct" from "off by 0.1%". *That i
 #fig("/lecture10/figures/l10_fp32_fp64.svg", w: 72%)
 
 #pause
-Same $f$, same code — float32's floor sits *ten thousand times higher*, and below $h = 10^(-8)$ its estimate is exactly $0$: L2's `1.0 + 1e-8 == 1.0` demo, now with casualties.
+Same $f$, same code — float32's floor sits roughly *ten thousand times higher*, and below $h = 10^(-8)$ its estimate is exactly $0$ because `1.0 + 1e-8 == 1.0` in float32.
 
 = Central differences: a better secant
 
@@ -462,7 +462,7 @@ Halve $h$ → *quarter* the truncation error. At $h = 10^(-2)$: forward is off b
 #pause
 #result[Same two evaluations as forward (reused smartly), *one order better*. This is why every serious gradient checker is central.]
 
-== Better trenches, same war #V
+== Central differences: the same tradeoff at lower error #V
 
 #fig("/lecture10/figures/l10_fwd_central.svg", w: 63%)
 
@@ -472,7 +472,7 @@ Halve $h$ → *quarter* the truncation error. At $h = 10^(-2)$: forward is off b
 #pause
 #result[For float64 central differences, the balance between truncation and rounding error places the optimal $h$ near $10^(-6)$.]
 
-== Checkpoint: the step-size war #Q
+== Checkpoint: choosing the step size #Q
 
 #mcq([Central differences, float64, well-behaved $f$. You shrink $h$ from $10^(-5)$ to $10^(-7)$ and the error gets *worse*. What happened?],
   [Truncation error grew — $h$ is still too big],
@@ -481,7 +481,7 @@ Halve $h$ → *quarter* the truncation error. At $h = 10^(-2)$: forward is off b
   [The function must not be differentiable at $x$],
 )
 
-== Answer: the step-size war #A
+== Answer: choosing the step size #A
 
 #mcq-answer([B], [past $h^*$, rounding dominates],
   [For float64 central differences, $h^* approx 6 times 10^(-6)$. Below it, truncation continues to shrink as $h^2$, but cancellation error grows as $epsilon\/h$. Therefore smaller $h$ is not always more accurate.])
@@ -535,9 +535,9 @@ One forward pass of a big model ≈ 60 ms. One finite-difference gradient:
 #alertbox[Training needs *millions* of gradient steps. Finite differences don't need a better $h$ — they need a different job.]
 
 #pause
-Puzzle 3 solved: FD referees (one check, small tensors, run once) but can never play (every step, $10^11$ parameters).
+Finite differences are suitable for occasional checks on small tensors, but not for every training step of a large model.
 
-== Scoreboard after two roads
+== Comparison after two approaches
 
 #table(
   columns: (auto, 1fr, 1fr),
@@ -550,11 +550,11 @@ Puzzle 3 solved: FD referees (one check, small tensors, run once) but can never 
 )
 
 #pause
-The "wanted" row looks greedy. The rest of the lecture collects it — starting from an idea that sounds like cheating: *invent a number*.
+The remaining goal is a formula-free derivative at roughly the cost of evaluating $f$. Dual numbers provide the construction.
 
 = Dual numbers: an infinitesimal you can compute with
 
-== The wish: an $h$ too small to square
+== Remove the quadratic term algebraically
 
 Stare at why truncation existed at all:
 
@@ -564,10 +564,10 @@ $ f(x + h) = f(x) + h f'(x) + underbrace(h^2 / 2 f'' + dots, "everything we DON'
 The unwanted terms all carry $h^2$ or higher. Finite differences make $h^2$ _small_ and pay $sqrt(epsilon)$ for it.
 
 #pause
-The wish: an $h$ with $h^2$ *exactly zero* — yet $h eq.not 0$ so slopes survive. No real number obeys that ($h^2 = 0 arrow.r.double h = 0$).
+We introduce a formal unit with $epsilon^2 = 0$ but $epsilon eq.not 0$. No real number has this property; it defines a different algebra.
 
 #pause
-#result[When reality lacks a number, mathematics invents one. $sqrt(-1)$ scandalized algebra and gave us $i$. Today we decree a new one: $epsilon$, with $epsilon^2 = 0$.]
+#result[Dual numbers extend real arithmetic with a formal unit $epsilon$ satisfying $epsilon^2 = 0$.]
 
 == Meet the dual numbers: decree $epsilon^2 = 0$
 
@@ -588,7 +588,7 @@ Look hard at the product's $epsilon$-part: $a d + b c$ — if $b, d$ were "deriv
 #pause
 #notebox[Two epsilons in this lecture, by historical accident: *machine epsilon* $epsilon_64$ (a float's gap, L2) and this *dual unit* $epsilon$ (an algebraic symbol). Unrelated beasts. From here on, $epsilon$ means the dual unit.]
 
-== First blood: $(3 + epsilon)^2$
+== Example: $(3 + epsilon)^2$
 
 Feed $x = 3 + epsilon$ — "3, plus a formal nudge" — through plain squaring:
 
@@ -601,7 +601,7 @@ Read the pair: value $9 = 3^2$ ✓ #h(6pt) and $epsilon$-coefficient $6 = 2 dot 
 Once more: $(3 + epsilon)^3 = 27 + 27 epsilon$ — and indeed $(x^3)' = 3 x^2 = 27$ at $x = 3$. ✓
 
 #pause
-#result[Push $x + epsilon$ through the arithmetic; the derivative *falls out of the $epsilon$-slot*. No $h$. No limit. No subtraction of near-equals. Exact.]
+#result[Push $x + epsilon$ through the arithmetic and read the derivative from the $epsilon$-coefficient. There is no finite step or subtraction of nearby values.]
 
 == Why the $epsilon$-slot always holds the derivative
 
@@ -616,7 +616,7 @@ Every term we fought as "truncation error" contains $epsilon^2$ — and $epsilon
 #result[Finite differences make the Taylor tail *small* and pay $sqrt(epsilon_64)$. Dual numbers make it *zero* — by decree.]
 
 #pause
-Both fronts of the war just surrendered: no truncation (exact by algebra), no cancellation (no near-equal subtraction anywhere).
+Thus the finite-difference error sources are absent: there is no truncated finite step and no subtraction of nearby values.
 
 == Every primitive learns one dual rule
 
@@ -655,7 +655,7 @@ print((x * x * x).d)        # 27.0  — exact d/dx x³ at 3
 ```]
 
 #pause
-Every `*` quietly applies the product rule. The "war" section of this lecture is simply _absent_ from this code.
+Every `*` applies the product rule to the tangent component. No step size is present in this code.
 
 = Forward mode: derivatives that ride along
 
@@ -675,7 +675,7 @@ Every `*` quietly applies the product rule. The "war" section of this lecture is
   uncover("3-")[$f = a dot b$], uncover("3-")[$36$], uncover("3-")[$dot(f) = dot(a) b + a dot(b)$], uncover("3-")[$9 + 24 = bold(33)$],
 )
 
-#uncover("3-")[#result[$f = 36$, #h(6pt) $partial f \/ partial x = 33$ — *exact*, one sweep, two columns.]]
+#uncover("3-")[#result[$f = 36$, #h(6pt) $partial f \/ partial x = 33$ — one sweep, carrying value and tangent.]]
 
 == Tangents ride the same arrows #V
 
@@ -718,7 +718,7 @@ $dot(f)$ answered *one* question: sensitivity to $x$. For $partial f \/ partial 
 )
 
 #pause
-#result[$nabla f(3, 1) = (33, 9)$ — exact to the last bit, in *two* passes: one per input.]
+#result[$nabla f(3, 1) = (33, 9)$ in *two* passes: one seed direction per input.]
 
 #pause
 Keep $(33, 9)$ warm — L11 re-derives this exact pair by a very different route.
@@ -739,7 +739,7 @@ print(f(Dual(3.0, 0.0), Dual(1.0, 1.0)).d)   # 9.0    ∂f/∂y  (seed y)
 No `h` anywhere in this program — so nothing to tune, no U-curve, no floor. The trichotomy's third road is *real*.
 
 #pause
-#notebox[Compare the referee: central differences at the best possible $h$ would return $32.99999999dots$-ish. `Dual` returns the float nearest to *exactly 33*.]
+#notebox[For comparison, central differences at a near-optimal $h$ return approximately $32.99999999$. `Dual` returns the floating-point result of the derivative arithmetic, nearest to $33$ in this example.]
 
 == Forward mode in the wild
 
@@ -758,7 +758,7 @@ val, dfdx = jax.jvp(f, (3.0, 1.0), (1.0, 0.0))   # value 36.0, tangent 33.0
 
 == Forward mode requires one pass per input direction
 
-Exactness: won. Now recount the cost for ML's shape of function:
+The finite-difference approximation is gone. Now count passes for the function shape used in ML:
 
 #table(
   columns: (1fr, auto, auto),
@@ -770,10 +770,10 @@ Exactness: won. Now recount the cost for ML's shape of function:
 )
 
 #pause
-One seed vector per pass, seeds live at the *inputs* — dual numbers made each pass exact, but the *count* didn't move.
+One seed vector is propagated per pass. Computing every coordinate of a scalar-output gradient still requires $n$ forward-mode passes.
 
 #pause
-#alertbox[Forward mode wins the accuracy war and *still* loses the scaling war — for the one function shape deep learning cares about.]
+#alertbox[Forward mode avoids finite-difference error, but a full gradient of $f: RR^n arrow.r RR$ still needs one pass per input direction.]
 
 == Checkpoint: dual arithmetic #Q
 
@@ -789,12 +789,12 @@ One seed vector per pass, seeds live at the *inputs* — dual numbers made each 
 #mcq-answer([C], [$8 + 12 epsilon$],
   [$(2 + epsilon)^2 = 4 + 4 epsilon$; then $(4 + 4 epsilon)(2 + epsilon) = 8 + 4 epsilon + 8 epsilon = 8 + 12 epsilon$. The $epsilon$-slot holds $12 = 3 dot 2^2$ — exactly $(x^3)'$ at $x = 2$. Option D forgot the decree: any $epsilon^2$ term is *already* zero, not "small".])
 
-= The cliffhanger
+= From forward mode to reverse mode
 
 == `gradcheck`, re-read with today's eyes
 
 #codebox[```python
-gradcheck(my_op, (x,))    # x MUST be float64; default eps=1e-6; central formula
+gradcheck(my_op, (x,))    # float64 recommended; default eps=1e-6; central formula
 ```]
 
 #table(
@@ -803,15 +803,15 @@ gradcheck(my_op, (x,))    # x MUST be float64; default eps=1e-6; central formula
   inset: 7.5pt,
   table.header([*Design choice*], [*Which is exactly…*]),
   [central, not forward], [$O(h^2)$ truncation — one order better, same evaluations],
-  [float64 only], [float32's $sqrt(epsilon_32)$ floor ($tilde 10^(-3.5)$) can't clear the test's tolerances],
+  [float64 recommended], [float32's finite-difference floor is often too high for the default tolerances],
   [eps = 1e-6], [central's float64 sweet spot $h^* tilde epsilon_64^(1\/3)$ — the U-curve's flat bottom],
-  [tests, not training], [$2n$ evaluations: affordable once on a tiny op, absurd per step],
+  [tests, not training], [$2n$ evaluations: affordable once on a tiny operation, too costly for each training step],
 )
 
 #pause
-#result[Gradient checking pairs the two roads: the *approximate* method referees the *exact* one. Puzzles 1–3, closed.]
+#result[Gradient checking compares an analytical/autodiff gradient with an independent finite-difference approximation.]
 
-== The scoreboard, complete
+== Method comparison
 
 #table(
   columns: (auto, 1fr, 1fr),
@@ -820,12 +820,12 @@ gradcheck(my_op, (x,))    # x MUST be float64; default eps=1e-6; central formula
   table.header([*Method*], [*Assessment*], [*Cost for $nabla f$, $f: RR^n arrow.r RR$*]),
   [symbolic], [exact, but expressions explode], [—],
   [finite differences], [truncation vs rounding — both lose], [$n$ evals, *approximate*],
-  [forward-mode AD], [#text(fill: GREEN)[*exact!* carries (value, derivative) pairs]], [#text(fill: RED)[$n$ *passes* — one per input]],
+  [forward-mode AD], [#text(fill: GREEN)[no finite-difference approximation; carries (value, derivative) pairs]], [#text(fill: RED)[$n$ *passes* — one per input]],
   [#text(fill: MUTED)[reverse-mode AD]], [#text(fill: MUTED)[L11]], [#text(fill: MUTED)[?]],
 )
 
 #pause
-Undefeated on accuracy, disqualified on cost. The last row is one lecture away — and its cost column is the reason deep learning exists.
+Forward mode is efficient for few-input, many-output functions. For a many-input, scalar loss, reverse mode has the favorable pass count.
 
 == Look at the shape of ML's function
 
@@ -837,12 +837,12 @@ Undefeated on accuracy, disqualified on cost. The last row is one lecture away �
 - But the narrow end has exactly *one* node — the loss…
 #pause
 
-#result[Teaser: seed the *output* once, and let derivatives flow *backward* through the same graph — one pass, *all* $10^9$ partials. L11 builds it.]
+#result[Reverse mode seeds the scalar output and propagates adjoints backward through the graph, producing all input partial derivatives in one reverse sweep. L11 derives it.]
 
 == Interactive: three roads on one screen #I
 
 #interbox(link-to: IA + "autograd")[
-  The *autograd* article puts symbolic, finite-difference and autodiff side by side on a live computation graph. Rebuild today's $f = (x + y) dot x^2$, drag $h$ and watch the U-curve war happen; then flip to the exact graph walk and see $33$ and $9$ appear — no $h$ slider in sight.
+  The *autograd* article puts symbolic, finite-difference and autodiff methods side by side on a live computation graph. Rebuild today's $f = (x + y) dot x^2$, vary $h$ to see the U-curve, then switch to the graph walk and recover $33$ and $9$ without an $h$ parameter.
 ]
 
 #pause
@@ -861,7 +861,7 @@ Try on paper; verify in the T5 notebook (it pairs with L10–L11).
 
 == ⭐⭐⭐ Complex-step differentiation #OPT
 
-A ghost of dual numbers hides inside ordinary complex arithmetic. Step *sideways*, off the real line:
+Complex-step differentiation provides a related way to avoid subtractive cancellation:
 
 $ f(x + i h) = f(x) + i h f'(x) - h^2 / 2 f''(x) - i h^3 / 6 f''' + dots quad arrow.r.double quad f'(x) = ("Im" f(x + i h)) / h + O(h^2) $
 
@@ -878,17 +878,17 @@ $i^2 = -1$ only leaks into the *real* part at $O(h^2)$ — harmless. Dual number
 
 == Lecture 10 — summary
 
-- *Three roads*: symbolic (swells) · numeric (approximate) · automatic (exact + formula-free).
-- *The war*: truncation $M h\/2$ (L7) vs rounding $2 epsilon\/h$ (L2) — the U-curve and its floor.
+- *Three approaches*: symbolic (may swell) · numerical (approximate) · automatic (chain rule on code).
+- *Finite-difference error*: truncation $M h\/2$ (L7) vs rounding $2 epsilon\/h$ (L2) — the U-curve and its floor.
 - ⭐ $h^* approx sqrt(epsilon)$, best error $approx sqrt(epsilon)$ — *half your digits*; central improves to $epsilon^(2\/3)$. Hence `gradcheck`: float64 · central · `eps = 1e-6`.
 - *The wall*: one nudge per input → $n + 1$ evals per gradient — \~330 years/step for GPT-3.
-- *The escape*: $epsilon^2 = 0$ → $f(a + b epsilon) = f(a) + f'(a) b epsilon$, exact by algebra; forward mode sweeps (value, tangent) once per *input* seed — $nabla f(3, 1) = (33, 9)$ in two passes.
+- *Forward mode*: $epsilon^2 = 0$ → $f(a + b epsilon) = f(a) + f'(a) b epsilon$ for the lifted primitives; sweep (value, tangent) once per *input* seed — $nabla f(3, 1) = (33, 9)$ in two passes.
 
 #pause
 #notebox[*Read before L11* — MML §5.6 (start); Baydin et al., _AD in ML: a Survey_, §2–3 (skim — today's trichotomy is their map). *T5* drills the dual trace, then L11's backward walk on the *same* graph.]
 
 #focus-slide[
-  Finite differences fight floating point — and both lose.
+  Finite differences balance truncation against floating-point rounding.
   #v(12pt)
   #set text(size: 22pt)
   Next: *Reverse Mode & Backprop* — reverse the arrows: one pass for *all* inputs.

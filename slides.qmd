@@ -50,20 +50,20 @@ One PDF per lecture, one page per slide (handout build). The full schedule with 
 | 20 | Duality & KKT | [PDF](slides-pdf/L20.pdf) |
 | 21 | Linear & Quadratic Programming | [PDF](slides-pdf/L21.pdf) |
 
-## Module 5 · Information Theory ↔ Machine Learning
+## Module 5 · Information Theory and Machine Learning
 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
 | 22 | Surprise & Entropy | [PDF](slides-pdf/L22.pdf) |
 | 23 | Compression & Optimal Codes | [PDF](slides-pdf/L23.pdf) |
-| 24 | KL Divergence & the Grand Unification | [PDF](slides-pdf/L24.pdf) |
+| 24 | Cross-Entropy and KL Divergence | [PDF](slides-pdf/L24.pdf) |
 
-## Module 6 · Markov Chains & the Payoff
+## Module 6 · Markov Chains and Sequence Models
 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
 | 25 | Markov Chains | [PDF](slides-pdf/L25.pdf) |
-| 26 | Learning Sequences + Course Finale | [PDF](slides-pdf/L26.pdf) |
+| 26 | Learning Sequence Models | [PDF](slides-pdf/L26.pdf) |
 
 ---
 

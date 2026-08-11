@@ -8,7 +8,7 @@
 #import "../common/mldiag.typ": *
 #show: metropolis-deck.with(
   title: [Why Math for AI],
-  subtitle: [Three mysteries, one destination, and the course map],
+  subtitle: [Three examples, one destination, and the course map],
 )
 
 #title-slide()
@@ -43,7 +43,7 @@ $e^1000$ is larger than *any number this machine can store* — so it gives up.
 
 == Example 2: one learning rate, two outcomes #V
 
-Gradient descent is the workhorse of all machine learning. Same code, same learning rate $eta = 0.8$ — on two different problems:
+Gradient-based methods train many machine-learning models. Same update rule, same learning rate $eta = 0.8$ — on two different problems:
 
 #fig("/lecture1/figures/lr_two_problems.svg", w: 80%)
 
@@ -52,7 +52,7 @@ It crawls on one and explodes on the other. *Why?* Resolved in *L17* (conditioni
 
 == Example 3: arithmetic with word embeddings #V
 
-Modern AI stores every word as a list of \~300 numbers (an *embedding*). And then this works:
+A word-embedding model stores each vocabulary item as a vector of learned numbers. In one such space, this approximate relation appears:
 
 $ "king" - "man" + "woman" approx "queen" $
 
@@ -62,7 +62,7 @@ $ "king" - "man" + "woman" approx "queen" $
 #pause
 How can *subtracting lists of numbers* capture _gender_? Resolved in *L3* (vectors).
 
-== Three mysteries, three lectures
+== Three examples, three mathematical explanations
 
 #table(
   columns: (1fr, auto, auto),
@@ -75,11 +75,11 @@ How can *subtracting lists of numbers* capture _gender_? Resolved in *L3* (vecto
 )
 
 #pause
-#result[Every lecture opens with a real AI failure or capability — and closes by explaining it. The math is never decoration; it *is* the explanation.]
+#result[Each example points to a mathematical question that the course will answer. The mathematics is the explanation, not decoration.]
 
 = The AI stack
 
-== Every AI system is the same five boxes #V
+== A useful five-stage view of an AI system #V
 
 #fig("/lecture1/figures/ai_stack.svg", w: 96%)
 
@@ -116,9 +116,9 @@ I shall be my lord the king of hearth.
 ```]
 
 #pause
-Not GPT — but the *same mathematical species*: a probability distribution over text, fit by maximum likelihood, scored by cross-entropy, trained with gradients, computed in floating point.
+This is much smaller than GPT. What the two share is precise: both assign probabilities to text, fit parameters from data, use a cross-entropy objective, and train with gradient-based computation in floating point.
 
-== Every module is a load-bearing wall
+== What each module contributes
 
 What that little language model needs from each module:
 
@@ -153,7 +153,7 @@ What that little language model needs from each module:
 )
 
 #pause
-#result[A course with a visible destination feels *designed, not assembled*.]
+#result[At each module boundary, we can point to one more part of the final model that you can already explain or implement.]
 
 = The teaching contract
 
@@ -295,7 +295,7 @@ Worksheets build pen-and-paper fluency (exam style); notebooks rebuild the _same
 
 #fig("/lecture1/figures/course_arc.svg", w: 96%)
 
-== The narrative arc
+== The course sequence
 
 #table(
   columns: (auto, auto, 1fr),
@@ -306,11 +306,11 @@ Worksheets build pen-and-paper fluency (exam style); notebooks rebuild the _same
   [L7–L11], [*change*], [how do we measure sensitivity — and automate it?],
   [L12–L15], [*uncertainty*], [how do we model data with distributions — and fit them?],
   [L16–L21], [*search*], [how do we find the best parameters, free and constrained?],
-  [L22–L26], [*communication*], [entropy, compression, sequences — and the finale],
+  [L22–L26], [*communication*], [entropy, compression, and sequence models],
 )
 
 #pause
-#result[The keystone arrives in *L14*: _every loss function is a negative log-likelihood in disguise_.]
+#result[In *L14*, negative log-likelihood explains an important family of losses, including cross-entropy. Other objectives, such as hinge loss and explicit regularizers, have different origins.]
 
 == Checkpoint: calibrate yourself #Q
 
@@ -348,7 +348,7 @@ No marks — just checking that the prerequisites are alive:
 #notebox[*Read before L2* — nothing required. If curious: Goldberg, _What Every Computer Scientist Should Know About Floating-Point Arithmetic_ (1991), §1.]
 
 #focus-slide[
-  Every AI system is a stack of math — by L26 you'll have built one from scratch.
+  An AI system combines several mathematical components — by L26 you'll have built a small one from scratch.
   #v(12pt)
   #set text(size: 22pt)
   Next: *floating point* — how machines store numbers, why $e^1000$ overflows, and how stable softmax avoids it.

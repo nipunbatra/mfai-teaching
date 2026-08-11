@@ -13,6 +13,11 @@ project:
 
 website:
   title: "Mathematical Foundations for AI"
+  site-url: "https://nipunbatra.github.io/mfai-teaching/"
+  repo-url: "https://github.com/nipunbatra/mfai-teaching"
+  repo-branch: master
+  repo-actions: [source, issue]
+  open-graph: true
   navbar:
     title: "Math for AI"
     left:
@@ -35,7 +40,7 @@ website:
   page-footer:
     left: "Course materials by Prof. Nipun Batra, IIT Gandhinagar"
     right:
-      - icon: github
+      - text: "GitHub repository"
         href: https://github.com/nipunbatra/mfai-teaching
 
 format:
@@ -43,4 +48,11 @@ format:
     # Single light theme only — dark themes render notebook output
     # (plots, code cells) poorly, so we pin light mode site-wide.
     theme: [cosmo, custom.scss]
-    toc: false
+    toc: true
+    toc-title: "On this page"
+    anchor-sections: true
+    code-copy: true
+    html-math-method: katex
+    include-after-body: site-accessibility.html
+
+lang: en

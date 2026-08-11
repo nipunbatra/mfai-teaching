@@ -23,10 +23,10 @@ Each tutorial has about 40 minutes of pen-and-paper work followed by 40 minutes 
 
 ## Assignments
 
-Three take-home assignments grow out of the tutorials:
+Three take-home assignments extend the tutorial work:
 
-| # | Out after | Built from | One line |
+| # | Out after | Built from | Deliverable |
 |---|:---:|-----------|----------|
-| A1 | L11 | T5 | Extend micrograd; verify against PyTorch; differentiate something fun |
+| A1 | L11 | T5 | Extend micrograd, verify gradients against PyTorch, and document gradient checks |
 | A2 | L21 | T10–T11 | Model and solve three real problems with CVXPY; certify optimality via KKT |
 | A3 | L24 | T12–T13 | Build a Huffman compressor and an n-gram language model; compare bits/char against entropy and cross-entropy |

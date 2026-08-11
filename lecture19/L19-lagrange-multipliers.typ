@@ -205,7 +205,9 @@ $ phi(x)=x(1-x)=x-x^2. $
 $ phi'(x)=1-2x=0 quad arrow.r.double quad x=1/2, quad y=1/2. $
 
 #pause
-$ phi''(x)=-2<0 $, so this candidate is a maximum.
+$ phi''(x)=-2<0. $
+
+Therefore this candidate is a maximum.
 
 #pause
 #notebox[Substitution is an excellent check. Lagrange multipliers become useful when there are many variables or several coupled constraints.]
@@ -503,12 +505,12 @@ Compare three distributions for $K=3$ (natural logarithm):
 $ max_bold(p) quad -sum_i p_i log p_i quad "subject to" quad sum_i p_i=1. $
 
 #pause
-For the moment assume $p_i>0$, so the optimum is inside the simplex. Define
+For the moment, look for an interior candidate with $p_i>0$. Define
 
 $ cal(L)(bold(p),lambda)=-sum_i p_i log p_i-lambda(sum_i p_i-1). $
 
 #pause
-The inequality $p_i>=0$ will be handled systematically by KKT conditions in L20.
+The inequality $p_i>=0$ will be handled systematically by KKT conditions in L20. L22 will verify that the interior candidate found here is the global maximum.
 
 == Differentiate one coordinate
 

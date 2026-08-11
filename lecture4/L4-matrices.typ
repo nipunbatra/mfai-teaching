@@ -19,23 +19,38 @@
 
 #fig("/lecture4/figures/image_transform.svg", w: 82%)
 
-#pause
-Rotating a photo touches a million pixels — yet the whole operation is *one $2 times 2$ matrix*, applied to every pixel's coordinates.
+== Coordinate map versus rendered image
+
+The geometric move starts with one $2 times 2$ matrix applied to pixel coordinates.
 
 #pause
-Change four numbers → rotate becomes shear, zoom, mirror. The *matrix is the move*.
+Producing a usable output image needs two additional numerical steps:
 
-== Inside every layer of every neural network
+- map each output pixel back to a source coordinate so there are no holes,
+- interpolate when that coordinate falls between source pixels.
 
-Every layer of every neural network computes the same thing: $bold(h) = phi(W bold(x) + bold(b))$.
+#pause
+Change four matrix entries and the coordinate move changes from rotation to shear, zoom, or reflection. Today we study that map; image resampling is a separate numerical problem.
+
+== Inside a dense neural-network layer
+
+A dense layer computes $bold(h) = phi(W bold(x) + bold(b))$. Attention, normalization, and residual connections add other operations, but matrix maps remain a central primitive.
 
 #mlp-diagram((3, 4, 4, 2), labels: ([$bold(x)$], [$W_1 bold(x) + bold(b)_1$], [$W_2 bold(h)_1 + bold(b)_2$], [output]))
 
 #pause
-The $+ bold(b)$ merely slides space; $phi$ bends it (a later course's story). The geometry — the part *training actually learns* — is $W bold(x)$: *a matrix moving space*.
+The learned affine map $W bold(x) + bold(b)$ moves and translates space; the fixed nonlinearity $phi$ bends it. Both $W$ and $bold(b)$ are trained. Today we isolate the matrix part: $W bold(x)$.
+
+== What a dense-layer picture leaves out
+
+A GPT-class model also uses:
+
+- attention to mix information across token positions,
+- normalization and residual additions to control signal flow,
+- nonlinearities and output-specific operations.
 
 #pause
-#notebox[A GPT-class model is thousands of matrices applied in sequence. To understand the machine, first understand what one matrix does to space. That is today.]
+All of these interact with large matrix products. Understanding a single matrix map is the linear-algebra starting point, not a description of every layer.
 
 == Learning outcomes
 
@@ -46,7 +61,7 @@ By the end of this lecture you will be able to:
 + Explain why matrix × matrix is *composition* of moves — and why $A B eq.not B A$.
 + Compute *rank* on small matrices and say what it means geometrically: how much of space survives.
 + Decide when a matrix is *invertible* — and recognize when information is destroyed for good.
-+ Solve $A bold(x) = bold(b)$ the professional way (`solve`, never `inv`), and set up *least squares* for tall systems.
++ Solve $A bold(x) = bold(b)$ numerically with `solve` rather than forming an explicit inverse, and set up *least squares* for tall systems.
 
 = A matrix is a function
 
@@ -65,28 +80,28 @@ That makes $A$ a *function*. Its input is every point of the plane; its output i
 #pause
 #notebox[Same numbers, two readings — the table stores measurements; the function *does* something. Keep both in your head: ML constantly switches between them mid-equation.]
 
-== Exhibit 1 · rotation #V
+== Example 1 · rotation #V
 
 #fig("/lecture4/figures/tf_rotate.svg", w: 71%)
 
 #pause
 $ R_(30 degree) = mat(cos 30 degree, -sin 30 degree; sin 30 degree, cos 30 degree) approx mat(0.87, -0.50; 0.50, 0.87) quad — "the whole plane turns; the house rides along" $
 
-== Exhibit 2 · stretch and squeeze #V
+== Example 2 · stretch and squeeze #V
 
 #fig("/lecture4/figures/tf_scale.svg", w: 71%)
 
 #pause
 $ D = mat(2, 0; 0, 1\/2) quad — "×2 along " x ", ×" 1\/2 " along " y "; the grid squares become bricks" $
 
-== Exhibit 3 · shear #V
+== Example 3 · shear #V
 
 #fig("/lecture4/figures/tf_shear.svg", w: 71%)
 
 #pause
 $ S = mat(1, 1; 0, 1) quad — "the ground floor holds still; every higher layer slides right" $
 
-== Exhibit 4 · reflection #V
+== Example 4 · reflection #V
 
 #fig("/lecture4/figures/tf_reflect.svg", w: 66%)
 
@@ -96,7 +111,7 @@ $ F = mat(0, 1; 1, 0) quad — "mirror across the line " y = x $
 #pause
 The chimney switched sides — no rotation can ever do that. Four matrices, four personalities.
 
-== What all four exhibits preserved
+== What all four examples preserved
 
 Look back at the after-grids. Every move kept three promises:
 
@@ -183,7 +198,7 @@ $ T(bold(u) + bold(v)) = T(bold(u)) + T(bold(v)), quad quad T(c bold(u)) = c thi
 #fig("/lecture4/figures/basis_tracking.svg", w: 74%)
 
 #pause
-You never need to track the whole plane — *two arrows carry the entire story*.
+You do not need to track the whole plane: the two basis-vector images determine the map.
 
 == The columns are the landed basis #D
 
@@ -266,7 +281,7 @@ $ P = mat(1, 0; 0, 0) $
 == Answer · read the columns #A
 
 #mcq-answer([B], [$M = mat(1, 0; 1, 1)$],
-  [Read the landings off the picture: $bold(e)_1$ landed at $(1, 1)$ — that must be column 1. $bold(e)_2$ stayed at $(0, 1)$ — that must be column 2. Only $mat(1, 0; 1, 1)$ has those columns. (Option A is the *horizontal* shear from Exhibit 3 — it would leave $bold(e)_1$ untouched instead.)])
+  [Read the landings off the picture: $bold(e)_1$ landed at $(1, 1)$ — that must be column 1. $bold(e)_2$ stayed at $(0, 1)$ — that must be column 2. Only $mat(1, 0; 1, 1)$ has those columns. (Option A is the *horizontal* shear from Example 3 — it would leave $bold(e)_1$ untouched instead.)])
 
 #pause
 Every "which matrix did this?" puzzle is solved the same way: *watch where the basis lands*.
@@ -366,10 +381,10 @@ $ bold(y) = W_2 (W_1 bold(x)) = (W_2 W_1) bold(x) = W_("eq") bold(x) $
 Composition collapses the stack: a 100-layer *linear* network is secretly *one matrix* — depth bought nothing.
 
 #pause
-#result[That is exactly why every real layer wraps $W bold(x) + bold(b)$ in a nonlinear $phi$: it blocks the collapse, forcing each matrix to contribute a genuinely new move.]
+#result[A stack containing only affine maps still collapses to one affine map. Inserting nonlinearities prevents that algebraic collapse and lets depth represent non-affine functions.]
 
 #pause
-Move of space → bend → move of space → bend… — that alternation *is* deep learning. The moves are today's math; the bends belong to ES 667.
+Move of space → bend → move of space → bend is the core pattern of a multilayer perceptron. Other architectures add further operations; the matrix maps are today's mathematics.
 
 = Rank: how much of space survives
 
@@ -516,7 +531,7 @@ $ A = sigma_1 bold(u)_1 bold(v)_1^top + sigma_2 bold(u)_2 bold(v)_2^top + dots.c
 #fig("/lecture4/figures/invert_or_not.svg", w: 79%)
 
 #pause
-The rotation is *reversible* — every landing point has exactly one origin story. The collapse is not: $bold(p)$ and $bold(q)$ land on the *same* output, and "which input was it?" has no answer.
+The rotation is *reversible* — every output point has exactly one input. The collapse is not: $bold(p)$ and $bold(q)$ land on the *same* output, so the input cannot be recovered uniquely.
 
 == The inverse · undo, in numbers
 
@@ -589,7 +604,7 @@ Solvable for every $bold(b)$, uniquely, exactly when $A$ is invertible — nothi
 #pause
 By hand for two unknowns; but one weather step or network layer has $n approx 10^6$. We need the machine — *carefully*.
 
-== On paper, $bold(x) = A^(-1) bold(b)$ · on silicon, never
+== On paper, $bold(x) = A^(-1) bold(b)$ · in code, use `solve`
 
 $bold(x) = A^(-1) bold(b)$ is a theorem, *not an algorithm*. Watch both routes on a notoriously nasty (but tiny!) matrix — the $12 times 12$ Hilbert matrix of simple fractions $H_(i j) = 1\/(i + j + 1)$, with true solution all-ones:
 
@@ -598,21 +613,22 @@ n = 12; i = np.arange(n)
 H = 1.0 / (i[:, None] + i[None, :] + 1)      # Hilbert matrix
 x_true = np.ones(n);  b = H @ x_true
 
-np.abs(np.linalg.inv(H) @ b - x_true).max()   # 8.66    ← inv route
-np.abs(np.linalg.solve(H, b) - x_true).max()  # 0.143   ← solve route
+err_inv = np.abs(np.linalg.inv(H) @ b - x_true).max()
+err_solve = np.abs(np.linalg.solve(H, b) - x_true).max()
+print(err_inv, err_solve)       # compare; values depend on NumPy/BLAS
 ```]
 
 #pause
-The true entries are all $1$. The `inv` route is off by *8.66* — a 60× larger error than `solve`, on a matrix that fits on this slide.
+The true entries are all $1$. Both routes struggle because $H$ is extremely ill-conditioned; on typical systems the explicit-inverse route also has larger forward error. The exact values vary across NumPy and BLAS versions, which is itself a useful numerical lesson.
 
 == Why `solve` wins
 
-- *Fewer operations* — `inv` secretly solves $n$ systems (one per column of $I$), then still multiplies: measured $approx 2.3 times$ slower at $n = 2000$, and every extra operation is an extra rounding.
+- *Fewer operations* — `inv` computes solutions for all $n$ columns of $I$, then still multiplies by $bold(b)$. If one only needs $A bold(x) = bold(b)$, that is unnecessary work.
 #pause
-- *One rounding cascade, not two* — L2 callback: each float op tells a tiny lie. `solve` factors $A$ once (LU factorization — L17 opens the box) and back-substitutes; `inv` commits its lies into an explicit $A^(-1)$, then compounds them in the multiply.
+- *Better numerical route* — `solve` factors $A$ and applies triangular solves directly. Forming an approximate $A^(-1)$ and multiplying introduces extra work and another source of rounding error.
 
 #pause
-#alertbox[Write `np.linalg.solve(A, b)`. An `inv(A) @ b` in numerical code is a code-review flag across the entire industry — same theorem, worse arithmetic.]
+#alertbox[When the task is to solve $A bold(x) = bold(b)$, write `np.linalg.solve(A, b)`. Explicit inverses have legitimate uses, but this is normally not one of them.]
 
 #pause
 #notebox[Honest footnote: $"cond"(H) approx 10^16$, so even `solve` sweated here (error 0.14). Why some matrices *amplify* rounding lies — the condition number — is Lecture 17's opening act.]
@@ -662,11 +678,14 @@ np.linalg.lstsq(A, b, rcond=None)[0]   # (7/6, 3/2): best line 7/6 + 1.5·t
 - *Multiplication is composition*: column $j$ of $A B$ is $A bold(b)_j$; order matters, grouping doesn't.
 - *Rank* = dimension of what survives; *null space* = what dies; $"rank" + dim "null" = n$; $bold(u) bold(v)^top$ = the rank-1 atom.
 - *Invertible $arrow.l.r.double$ full rank*: undo exists iff no information was destroyed.
-- *`solve`, never `inv`*, for $A bold(x) = bold(b)$ — fewer roundings, faster (conditioning: L17).
+- For $A bold(x) = bold(b)$, prefer *`solve` to `inv(A) @ b`* — less work and usually better numerical behaviour (conditioning: L17).
 - *Tall systems*: no exact solution — least squares projects $bold(b)$ onto $"col"(A)$ (L6, L14).
 
-#pause
-#notebox[*Read before L5* — MML Ch 2.5–2.8. *Tutorial 2* this week: the transformation gallery, rank experiments, and the Hilbert `solve`-vs-`inv` shoot-out, in NumPy.]
+== Before L5 and Tutorial 2
+
+- Read MML Ch. 2.5–2.8.
+- Revisit the transformation gallery and predict each matrix from its basis-vector images.
+- In NumPy, experiment with rank and compare `solve` with `inv(A) @ b` on the Hilbert system; expect platform-dependent errors.
 
 == Practice problems · I
 

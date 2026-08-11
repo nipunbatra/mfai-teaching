@@ -83,14 +83,25 @@ h2 {
 
 /* Hero section on index */
 .hero-section {
-  background: linear-gradient(135deg, #faf8f5 0%, #f0ebe5 100%);
+  background: #f7f5f1;
   border-left: 4px solid #c44536;
   padding: 1.75rem 2rem;
   margin: 1.5rem 0 2rem 0;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 1.05rem;
   line-height: 1.7;
   color: #2a2a3e;
+}
+
+.course-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: -0.5rem 0 1.25rem;
+}
+
+.course-actions p {
+  display: contents;
 }
 
 .quarto-dark .hero-section {
@@ -134,9 +145,9 @@ h2 {
 .table td:first-child {
   font-weight: 700;
   text-align: center;
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 1.1em;
-  color: #c44536;
+  font-family: "Work Sans", system-ui, sans-serif;
+  font-size: 1em;
+  color: #1a1a2e;
 }
 
 .quarto-dark .table td:first-child {
@@ -167,8 +178,41 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+:focus-visible {
+  outline: 3px solid rgba(196, 69, 54, 0.45);
+  outline-offset: 2px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+  .page-columns,
+  main.content,
+  #quarto-document-content {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  main.content {
+    overflow-x: hidden;
+  }
+
+  table.table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .hero-section {
+    padding: 1.25rem 1rem;
+  }
+
+  h1.title {
+    font-size: 2rem;
+    overflow-wrap: anywhere;
+  }
+
   .table {
     font-size: 0.85em;
   }

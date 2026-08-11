@@ -43,4 +43,4 @@ Compare solving $Ax=b$ when the columns of $A$ are orthogonal versus nearly para
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut02-vectors-matrices.ipynb`](../notebooks/tut02-vectors-matrices.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut02-vectors-matrices.ipynb). Predict each result, run the cell, and explain any disagreement.

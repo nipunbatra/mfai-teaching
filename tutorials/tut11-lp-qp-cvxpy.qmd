@@ -43,4 +43,4 @@ Explain what `infeasible`, `unbounded`, and `optimal_inaccurate` require you to 
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut11-lp-qp-cvxpy.ipynb`](../notebooks/tut11-lp-qp-cvxpy.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut11-lp-qp-cvxpy.ipynb). Predict each result, run the cell, and explain any disagreement.

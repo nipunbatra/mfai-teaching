@@ -43,4 +43,4 @@ Project $(3,1,.5)$ onto non-negative vectors summing to 2.5. Find the threshold 
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut10-lagrange-kkt.ipynb`](../notebooks/tut10-lagrange-kkt.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut10-lagrange-kkt.ipynb). Predict each result, run the cell, and explain any disagreement.

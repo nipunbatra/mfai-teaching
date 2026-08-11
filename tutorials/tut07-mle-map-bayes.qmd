@@ -43,4 +43,4 @@ Interpret Beta$(10,2)$ using pseudo-counts, and explain when data will dominate 
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut07-mle-map-bayes.ipynb`](../notebooks/tut07-mle-map-bayes.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut07-mle-map-bayes.ipynb). Predict each result, run the cell, and explain any disagreement.

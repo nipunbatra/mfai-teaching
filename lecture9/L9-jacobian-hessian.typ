@@ -111,7 +111,7 @@ One table to navigate the whole lecture. Two rows you own; two we fill today:
 #zoo(1)
 
 #pause
-Same idea every row: *the derivative is the best local linear story* — only its container grows.
+Same idea every row: the derivative supplies the coefficients of the best local linear approximation; its container changes with the function's input and output shapes.
 
 == Learning outcomes
 
@@ -121,7 +121,7 @@ By the end of this lecture you will be able to:
 + Assemble a *Hessian* and explain entry $(i, j)$ as "how slope $i$ responds to nudge $j$".
 + Classify $bold(x)^top A bold(x)$ as bowl / saddle / trough from *eigenvalue signs*, with 2×2 hand tests.
 + Derive ⭐ $nabla(bold(x)^top A bold(x)) = (A + A^top) bold(x)$.
-+ Write the *second-order Taylor expansion* — the formula every optimizer lives on.
++ Write the *second-order Taylor expansion* and identify the terms used by first- and second-order optimization methods.
 + Keep shapes straight: gradient-as-column, $J$ is $m times n$, chain rule = matrix product.
 
 // ═══════════════════ 2 · the Jacobian ═══════════════════
@@ -133,15 +133,16 @@ $Phi: RR^2 -> RR^2$ eats a point, returns a point. Feed it a whole grid and watc
 
 #fig("/lecture9/figures/warp_global.svg", w: 58%)
 
-#pause
-#align(center, text(size: 16pt, fill: MUTED)[$Phi(x, y) = (x + 0.6 sin 1.6y, #h(6pt) y + 0.6 sin 1.6x)$ — and every network layer is one of these (L4)])
+== Global map, local linear behaviour
+
+$Phi(x, y) = (x + 0.6 sin 1.6y, #h(6pt) y + 0.6 sin 1.6x)$ is globally curved: it bends the full grid.
 
 #pause
-Globally: curvy. But the little orange square just got *leaned and stretched*. Hold that thought.
+At sufficiently small scale, the orange square is only *leaned and stretched*. The Jacobian will be the matrix that describes that local move. Abstractly, any differentiable vector-valued layer has this input–output form.
 
 == The one case we already own: a linear map
 
-For a *linear* map (L4: "a matrix is a verb") the nudge story is exact, everywhere, with no zooming:
+For a *linear* map (L4: "a matrix is a verb") the nudge formula is exact, everywhere, with no zooming:
 
 $ F(bold(x)) = A bold(x) = mat(2, 1; 3, -2) bold(x) quad arrow.r.double quad F(bold(a) + bold(delta)) = F(bold(a)) + A bold(delta) $
 
@@ -283,7 +284,7 @@ One row left. It needs a different question: not "vector out?" but *"what happen
 
 == In one dimension, curvature was one number
 
-L7's second act: at a flat point, the sign of $f''$ told the whole story — smile $arrow.r$ minimum, frown $arrow.r$ maximum.
+L7's second act: at a flat point, a *nonzero* $f''$ settles the local classification — positive gives a minimum, negative a maximum. When $f''=0$, higher-order terms decide.
 
 #pause
 Now stand on a 2-D surface $f: RR^2 -> RR$ and walk in different directions:
@@ -328,7 +329,7 @@ $ H(bold(x)) = J_(nabla f)(bold(x)), quad quad H_(i j) = (partial^2 f)/(partial 
 For any twice-continuously-differentiable $f$, mixed partials agree: $H_(i j) = H_(j i)$ (Schwarz's theorem).
 
 #pause
-#result[The Hessian is *symmetric* — so the spectral theorem applies: real eigenvalues, perpendicular eigenvectors. L5's whole toolkit just walked in the door.]
+#result[If the second partial derivatives are continuous, the Hessian is *symmetric* (Clairaut's theorem). The spectral theorem then gives real eigenvalues and an orthonormal eigenbasis.]
 
 == Test drive: the curvature you feel along a street
 
@@ -414,7 +415,7 @@ For $A = mat(2, 1; 1, 2)$: $q = x^2 + x y + y^2$ — *our running $f$*. Claim (�
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[surfaces and their contour maps, computed live from $q(bold(x)) = 1/2 bold(x)^top A bold(x)$; eigenvalues by the in-slide solver — ellipses, hyperbolas, parallel lines])
 
-== Eigenvalues read the shape — L5, cashed in
+== Eigenvalues read the quadratic shape
 
 $A$ is symmetric, so L5 fires: $A = Q Lambda Q^top$ — "a perpendicular grid of dials". In eigen-coordinates $bold(t) = Q^top bold(x)$ the cross-term dies; the dials are *curvatures*:
 
@@ -425,15 +426,23 @@ $ q = 1/2 (lambda_1 t_1^2 + lambda_2 t_2^2 + dots.c + lambda_n t_n^2) quad "— 
   columns: (auto, auto, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 7pt,
-  table.header([*eigenvalue signs*], [*shape*], [*at a critical point this means*]),
+  table.header([*eigenvalue signs*], [*quadratic shape*], [*second-order model at a critical point*]),
   [all $lambda_i > 0$], [bowl], [strict local minimum — every street smiles],
-  [all $lambda_i >= 0$, some $= 0$], [trough], [a flat valley floor along the $lambda = 0$ directions],
+  [all $lambda_i >= 0$, some $= 0$], [trough], [flat in zero-curvature directions; higher-order terms decide the actual point],
   [mixed signs], [saddle], [up some streets, down others — not a min!],
   [all $lambda_i < 0$], [dome], [local maximum],
 )
 
+== Why a zero Hessian eigenvalue is inconclusive
+
+Along a zero-curvature direction, the quadratic term says nothing. Higher orders can differ:
+
+- $f(x,y)=x^2+y^4$ still has a minimum at the origin,
+- $f(x,y)=x^2-y^4$ has a saddle there,
+- both have Hessian $mat(2,0;0,0)$ at the origin.
+
 #pause
-#notebox[*Planted for L13:* the bowl's ellipse contours (axes = eigenvectors) are exactly a Gaussian's, with $A = Sigma^(-1)$.]
+#result[Positive definite and indefinite Hessians classify a critical point; a semidefinite Hessian with zeros requires more analysis.]
 
 == The official words: definiteness
 
@@ -513,7 +522,7 @@ for A in ([[2, 1], [1, 2]], [[1, 2], [2, 1]], [[1, 1], [1, 1]]):
 
 == Checkpoint: read the shape #Q
 
-#mcq([At a critical point ($nabla f = bold(0)$), the Hessian is $H = mat(4, -2; -2, 1)$. The surface there is a…],
+#mcq([At a critical point ($nabla f = bold(0)$), the Hessian is $H = mat(4, -2; -2, 1)$. Its *second-order Taylor model* is a…],
   [bowl — strict local minimum],
   [saddle],
   [trough — a flat direction],
@@ -522,8 +531,8 @@ for A in ([[2, 1], [1, 2]], [[1, 2], [2, 1]], [[1, 1], [1, 1]]):
 
 == Answer: read the shape #A
 
-#mcq-answer("C", [trough — a flat valley direction],
-  [$det H = 4 - 4 = 0$, so a $lambda$ is exactly $0$; $"tr" H = 5 > 0$ pins the other at $+5$ (indeed $lambda^2 - 5lambda + 0 = 0 arrow.r.double lambda = 5, 0$). Positive curvature along one eigen-street, *perfectly flat* along the other ($(1, 2)$, where $H bold(u) = bold(0)$) — a PSD trough, not a strict minimum. Beware option A: $det = 0$ is precisely where "bowl" claims go to die.])
+#mcq-answer("C", [trough — a flat direction in the quadratic model],
+  [$det H = 4 - 4 = 0$, so one $lambda$ is exactly $0$; $"tr" H = 5 > 0$ pins the other at $+5$. The quadratic model has positive curvature along one eigen-direction and zero curvature along $(1, 2)$. The Hessian test is therefore inconclusive about the *actual* critical point: higher-order terms along the flat direction can produce a minimum, maximum, or saddle.])
 
 // ═══════════════════ 5 · the ⭐ derivation ═══════════════════
 = The one derivation: the gradient of a quadratic form
@@ -581,7 +590,7 @@ Same argument in $RR^n$, one line: $bold(x)^top A bold(x) = sum_(i, j) A_(i j) x
 #pause
 *Corollary (one more derivative):* $H = J_(nabla) = A + A^top$ — for symmetric $A$ and $q = 1/2 bold(x)^top A bold(x)$: $nabla q = A bold(x)$, $H = A$. The gallery's caption is now a theorem.
 
-== The rule, cross-examined
+== Numerical check of the rule
 
 The slide checks itself. Chalkdust's autodiff evaluates $nabla (bold(x)^top A bold(x))$ for $A = mat(2, 1; 1, 2)$ at $(1, 1)$ — reverse mode, no symbols:
 
@@ -627,15 +636,15 @@ Every ingredient just grew up. Upgrade each term with today's zoo:
 #pause
 Slope became a vector, curvature became a matrix — and $h^2$ became "sandwich $H$ between two $bold(delta)$'s".
 
-== The formula every optimizer lives on
+== The second-order local model
 
 $ f(bold(x) + bold(delta)) thin approx thin underbrace(f(bold(x)), "height") + underbrace(nabla f(bold(x))^top bold(delta), "tilt: the local plane") + underbrace(1/2 bold(delta)^top H(bold(x)) thin bold(delta), "bend: the local bowl or saddle") $
 
 #pause
-Read it as a story: stand at $bold(x)$; the surface near you is *a height, plus a tilt, plus a pure-curvature shape from the gallery* — and you can now classify that shape by eigenvalue signs.
+Read it term by term: near $bold(x)$, the approximation is a *height, plus a tilt, plus a quadratic curvature term*. Eigenvalue signs classify that quadratic term; zero eigenvalues leave some directions to higher-order analysis.
 
 #pause
-#result[L16–L18 run on this one line: gradient descent trusts the tilt, Newton trusts the bend. Today it just has to become *yours*.]
+#result[Later, gradient descent uses the linear term to choose a descent direction, while Newton's method minimizes the quadratic model.]
 
 == Numbers: predict a function you've never met
 
@@ -654,7 +663,7 @@ Truth: $f(1.1, 1.1) = 1.1^2 times 1.1 = 1.331$. Off by $0.001$ — exactly the d
 #pause
 Note the Hessian is *indefinite* here ($det = -4 < 0$: saddle curvature) — Taylor doesn't care; it reports the local shape, whatever it is.
 
-== The three stories, along one street #V
+== Three approximations along one line #V
 
 Walk from $bold(a) = (1,1)$ along $bold(delta) = (t, t)$: the true $f$ becomes $g(t) = (1 + t)^3$, and the Taylor terms become L7-style line and parabola — all three plotted live:
 
@@ -668,7 +677,7 @@ Walk from $bold(a) = (1,1)$ along $bold(delta) = (t, t)$: the true $f$ becomes $
 ))
 
 #pause
-Near $bold(a)$: the parabola hugs the truth visibly longer than the line — the multivariate story, sliced back down to L7's picture.
+Near $bold(a)$, the quadratic approximation follows the truth visibly longer than the linear one — the multivariate formula reduced to L7's one-dimensional picture.
 
 == Code: the whole expansion in five lines
 
@@ -684,9 +693,9 @@ pred2 = f(a) + g @ d + 0.5 * d @ H @ d
 ```]
 
 #pause
-Five lines you will reuse in T5, and conceptually in every optimizer of Module 4.
+Five lines you will reuse in T5; the same local model appears in the second-order optimizers of Module 4.
 
-== A promissory note: where this formula gets cashed
+== Where this formula is used later
 
 #table(
   columns: (auto, 1fr),
@@ -699,14 +708,14 @@ Five lines you will reuse in T5, and conceptually in every optimizer of Module 4
 )
 
 #pause
-#result[Every optimizer is a policy about *which Taylor term to trust, and how far*.]
+#result[Many optimization methods can be compared by which local information they use and how they control the step size.]
 
 // ═══════════════════ 7 · bookkeeping & take-home ═══════════════════
 = Bookkeeping & the take-home
 
 == Our contract: the gradient is a column
 
-Matrix calculus has a dirty secret: two bookkeeping schools. *Numerator layout* writes the derivative of a scalar as a row; *denominator layout* as a column. Both are fine; mixing them mid-derivation is how homework dies.
+Matrix calculus uses two common bookkeeping conventions. *Numerator layout* writes the derivative of a scalar as a row; *denominator layout* as a column. Both are consistent; mixing them mid-derivation creates transposition errors.
 
 #pause
 This course signs one contract and sticks to it (MML's):
@@ -734,7 +743,7 @@ $ underbrace(J_(g compose f), k times n) = underbrace(J_g, k times m) underbrace
 If a derivation produces a shape mismatch, it is wrong — no further reading required. That five-second check replaces half of matrix-calculus memorization.
 
 #pause
-#notebox[*References for life:* the #link("https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf")[Matrix Cookbook] (look identities up — nobody re-derives them), #link("https://explained.ai/matrix-calculus/")[Parr & Howard, _The Matrix Calculus You Need for Deep Learning_] (the gentle full story), MML §5.4–5.7 (our text, same conventions).]
+#notebox[*References:* the #link("https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf")[Matrix Cookbook] for identities; #link("https://explained.ai/matrix-calculus/")[Parr & Howard, _The Matrix Calculus You Need for Deep Learning_] for an accessible derivation; MML §5.4–5.7 for the course convention.]
 
 == Apply both derivatives to the opening model
 
@@ -745,29 +754,37 @@ A neural network is a chain $cal(L) = f_L compose dots.c compose f_1 (theta)$. W
 + the chain rule multiplies them: $J = J_L dots.c J_1$;
 #pause
 + the last output is the scalar loss, so the whole product collapses to *one row* — the gradient $nabla cal(L)^top$, L8's uphill vector, for a million inputs;
-#pause
-+ the loss's curvature is a *Hessian* — but at $d = 10^6$ it has $10^12$ entries ($approx 4$ TB in float32): real optimizers never store it, they respect it (L17–L18).
 
 #pause
-#result[The Jacobian is the local linear map for vector outputs; the Hessian is the local curvature matrix for a scalar output. L10–L11 compute and compose these derivatives.]
+#result[The Jacobian is the local linear map for vector outputs. L10–L11 compute and compose these derivatives efficiently.]
+
+== Why a full Hessian is rarely stored
+
+The scalar loss also has a curvature matrix, the *Hessian*. At $d = 10^6$ parameters it contains $10^12$ entries, about $4$ TB in float32.
+
+#pause
+Large-model optimizers therefore use approximations or Hessian-vector products rather than store the matrix explicitly. L17–L18 develop those uses.
 
 == The zoo, complete #V
 
 #zoo(3)
 
 #pause
-One idea, four containers: *the derivative is the best local linear (then quadratic) story* — the container just matches the function's shape.
+One idea, four containers: derivatives parameterize local linear approximations, and the Hessian supplies the quadratic term for a scalar output. The array shape follows the function's input and output shapes.
 
 == Lecture 9 — summary
 
 - *Jacobian*: $m times n$ array of partial derivatives; the local linear map $Phi(bold(a) + bold(delta)) approx Phi(bold(a)) + J bold(delta)$; $abs(det J)$ gives local area scaling for square maps (polar: $det J = r$).
 - *Chain rule* = matrix multiplication of Jacobians; shapes must click ($(k times m)(m times n)$).
-- *Hessian* = Jacobian of the gradient; symmetric; entry $(i, j)$ = "how slope $i$ feels nudge $j$"; $bold(u)^top H bold(u)$ = curvature along $bold(u)$, extremes at eigenvectors.
+- *Hessian* = Jacobian of the gradient; symmetric when second partials are continuous; entry $(i, j)$ = "how slope $i$ feels nudge $j$"; $bold(u)^top H bold(u)$ = curvature along $bold(u)$, extremes at eigenvectors.
 - *Quadratic forms* $1/2 bold(x)^top A bold(x)$: bowls (all $lambda > 0$), saddles (mixed), troughs (a zero $lambda$); 2×2 hand test via det and trace; ⭐ $nabla(bold(x)^top A bold(x)) = (A + A^top) bold(x)$.
 - *Taylor, order 2*: $f + nabla f^top bold(delta) + 1/2 bold(delta)^top H bold(delta)$ — height, tilt, bend; the optimizer's home.
 
-#pause
-#notebox[*Read before L10:* MML §5.4–5.7; skim #link("https://explained.ai/matrix-calculus/")[explained.ai/matrix-calculus]; keep the Matrix Cookbook bookmarked as a reference, not bedtime reading. *T5* (after L11) drills Jacobians and the full backward pass.]
+== Before L10
+
+- Read MML §5.4–5.7 and skim #link("https://explained.ai/matrix-calculus/")[Parr & Howard's matrix-calculus guide].
+- Keep the Matrix Cookbook as a lookup reference; do not try to memorize it.
+- T5, after L11, practises Jacobians and a complete backward pass.
 
 == Practice problems
 
@@ -795,7 +812,7 @@ Why does everyone stop at the Hessian? Keep differentiating and count indices:
 )
 
 #pause
-Storage explodes by $d$ per order while (L7's lesson) each Taylor term buys less — so ML lives on order 1, consults order 2, and never writes order 3 down.
+Storage explodes by $d$ per order, so large-scale ML usually uses first derivatives, sometimes exploits second-order information, and seldom materializes third-order derivative tensors.
 
 #pause
 #notebox[Escape hatch, teased for L11 ⭐⭐⭐: you can compute *Hessian-vector products* $H bold(v)$ without ever materializing $H$ — differentiate $nabla f^top bold(v)$ once more. Curvature information at gradient prices.]

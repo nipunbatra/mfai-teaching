@@ -2,12 +2,7 @@
 title: "Notebooks"
 ---
 
-Companion notebooks are linked from the schedule on the [Home page](index.qmd) and from each [tutorial](tutorials/index.qmd). Conventions:
-
-- `notebooks/lecNN-*.ipynb` — lecture companions (run the lecture's numbers yourself)
-- `notebooks/tutNN-*.ipynb` — the coding half of each tutorial
-
-Tutorial notebooks:
+Each tutorial notebook follows its pen-and-paper worksheet and is linked from the [course schedule](index.qmd) and [tutorial index](tutorials/index.qmd). The committed versions include outputs from a clean top-to-bottom execution.
 
 | Notebook | Goes with |
 |----------|-----------|
@@ -25,4 +20,4 @@ Tutorial notebooks:
 | [tut12-entropy-huffman-kl](notebooks/tut12-entropy-huffman-kl.ipynb) | T12 · L24 (entropy, coding and KL) |
 | [tut13-markov-ngram](notebooks/tut13-markov-ngram.ipynb) | T13 · L26 (Markov chains and n-grams) |
 
-The notebooks use NumPy and Matplotlib; a few also use SciPy or CVXPY. Each has been run top-to-bottom in a fresh kernel.
+The notebooks use NumPy and Matplotlib; T6, T7, T9, and T11 also use SciPy or CVXPY. The source notebook remains downloadable from the page toolbar.

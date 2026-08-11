@@ -63,14 +63,14 @@
 #fig("/lecture7/figures/loss_zoom.svg", w: 98%)
 
 #pause
-Wiggly from far away. Zoom at the minimum: a *parabola* appears. Zoom anywhere else: a *line*. Try any smooth loss — same two shapes, every time.
+Wiggly from far away. Near a nondegenerate minimum ($cal(L)''>0$), a *parabola* appears. At a point with nonzero slope, a *line* appears. Flat higher-order points such as $x^4$ are an important exception.
 
 #pause
 #notebox[*Guess before we continue:* why a _line_ almost everywhere, but a _parabola_ exactly at the bottom? The answer is one formula — you'll derive it today.]
 
 == Today's one idea
 
-#result[A derivative is the *best local linear replacement* of a function. Taylor series is the systematic upgrade to *polynomial* replacements.]
+#result[The derivative is the slope in a function's *best local affine approximation*. Taylor series systematically upgrades that local line to higher-degree polynomial approximations.]
 
 #pause
 Why ML cares: training never sees the whole loss — only a *tiny neighbourhood* of the current weights. Local replacements are the *only* map it has.
@@ -79,7 +79,7 @@ Why ML cares: training never sees the whole loss — only a *tiny neighbourhood*
 Three questions, in order:
 + What is the best local *line*? → the derivative
 + Can we do better than a line? → Taylor's parabola, cubic, …
-+ Where does the local story *break*? → convergence radius
++ Where does the local approximation *break*? → convergence radius
 
 == Learning outcomes
 
@@ -178,7 +178,7 @@ $f'(x_0)$ answers one question: *if the input moves a little, how hard does the 
 )
 
 #pause
-The last row is the *only number training ever consults* about a weight — millions of times per run (L17).
+The last row is the local sensitivity that a standard first-order training method uses for this weight — millions of times per run (L17).
 
 #pause
 #result[$f'(x_0) approx (Delta "output") / (Delta "input")$ — a plain ratio of small changes. Everything else in this course is bookkeeping around that ratio.]
@@ -285,7 +285,7 @@ School calculus, on one slide — this course *refreshes*, it does not reteach:
 )
 
 #pause
-Only the last cell carries today's weight. Every loss you will ever differentiate is a *composition* — so the chain rule gets its own treatment.
+Only the last cell carries today's weight. Most ML losses are evaluated through a composition of operations, so the chain rule gets its own treatment.
 
 == The chain rule is ratio bookkeeping
 
@@ -468,7 +468,7 @@ $ 1 - (0.25) / 2 = 0.875 quad "vs" quad cos(0.5) = 0.87758dots quad arrow.r quad
 Now the suspicious part. The *next* Taylor term would be $x^4 slash 24$, and at $x = 0.5$ that term equals $(0.5)^4 slash 24 = 0.00260$.
 
 #pause
-#result[The error *is* the first term we dropped, almost exactly. That is Taylor's error story in one number.]
+#result[Here the error is almost the first omitted term, $x^4 slash 24$. This numerical check is consistent with the Taylor remainder bound.]
 
 == ⭐ Step 3: the error, visualized #D #V
 
@@ -519,7 +519,7 @@ for n in [0, 2, 4, 6]:
 ```]
 
 #pause
-At $x = 1$, every two orders buy roughly a factor *30* of accuracy. Six terms of grade-school arithmetic already give $cos(1)$ to $4$ digits — this loop _is_ how libraries compute $cos$.
+At $x = 1$, every two orders buy roughly a factor *30* of accuracy. Six terms already give $cos(1)$ to $4$ digits. Real libraries combine polynomial approximations with *range reduction* rather than summing this Taylor series at arbitrary inputs.
 
 == Checkpoint: how fast does the error die? #Q
 
@@ -535,7 +535,7 @@ At $x = 1$, every two orders buy roughly a factor *30* of accuracy. Six terms of
 #mcq-answer([D], [$16 times$ — quartic scaling],
   [Error $approx x^4 slash 24$, so doubling $x$ multiplies it by $2^4 = 16$. (Check: at $0.4$ the true error is $1.06 times 10^(-3) approx 15.9 times$ bigger.) General rule: drop terms above order $n$, and the error scales like $h^(n+1)$.])
 
-= Where the local story breaks
+= Where the local approximation breaks
 
 == $log(1 + x)$: a series with a boundary
 
@@ -573,13 +573,13 @@ Inside $abs(x) < 1$: higher order = better, everywhere. Past $x = 1$ the orders 
 Why $1$? The series was built entirely from data *at $x = 0$* — and $ln(1 + x)$ has a disaster at $x = -1$ (it plunges to $-oo$).
 
 #pause
-#result[A Taylor series converges inside a radius equal to the distance from $x_0$ to the *nearest disaster* — and diverges beyond it, in _every_ direction.]
+#result[For $ln(1+x)$ about $0$, the singularity at $x=-1$ gives radius $1$: the series converges for $abs(x)<1$ and diverges for $abs(x)>1$.]
 
 #pause
-#alertbox[The direction doesn't matter! The blow-up lives at $-1$, yet the series also fails at $+2$ — a point where the function itself is perfectly finite. The local story simply *cannot see* past its radius.]
+#alertbox[The failure need not occur where the real function itself is undefined: the singularity at $-1$ limits this expansion in both real directions, so it also fails at $+2$.]
 
 #pause
-#notebox[Intuition to carry: a Taylor series is *local testimony*. Near the base point it is superb evidence; past the radius it is no evidence at all.]
+#notebox[General fact (stated, not proved): for an analytic function, the radius is set by the nearest singularity in the *complex* plane. Smoothness alone does not guarantee that a Taylor series equals the function; the optional final slide shows why.]
 
 == And $cos$ never breaks
 
@@ -608,7 +608,7 @@ Zoom near a minimum $theta^*$ and Taylor-expand the loss there:
 $ cal(L)(theta) thin approx thin cal(L)(theta^*) + underbrace(cal(L)'(theta^*), = thin 0 "at a minimum") (theta - theta^*) + 1/2 cal(L)''(theta^*) (theta - theta^*)^2 $
 
 #pause
-At the bottom, the *line term is dead* — the first surviving correction is the quadratic. That is why every smooth loss bottoms out as a parabola.
+At a minimum the *line term is dead*. If $cal(L)''(theta^*)>0$, the first surviving correction is quadratic, so the loss locally looks like a parabola. If the second derivative also vanishes, higher orders decide.
 
 #pause
 Anywhere else, $cal(L)' eq.not 0$: the line term dominates all others for small steps — which is why zooming elsewhere gave a *line*.
@@ -630,11 +630,11 @@ Near its minimum ($theta^* = -1.497$, $cal(L)^* = 0.828$, $cal(L)'' (theta^*) = 
 ))
 
 #pause
-Near $theta^*$ the parabola is the loss, for every practical purpose. Optimizers exploit exactly this — next slide's promissory note.
+Near $theta^*$ the quadratic is an accurate local model of this loss. Later optimizers use either this local quadratic or its linear part.
 
-== A promissory note: where L7 gets cashed
+== Where L7 is used later
 
-Continuity ledger — *planted today, paid off later*:
+The same local approximations reappear in later lectures:
 
 #table(
   columns: (auto, 1fr),
@@ -642,7 +642,7 @@ Continuity ledger — *planted today, paid off later*:
   inset: 8pt,
   table.header([*lecture*], [*what it does with today's Taylor*]),
   [L8–L9], [slope $->$ gradient, curvature $->$ Hessian: same formulas, more dimensions],
-  [L16], [convexity: the smile never flips — one global basin, no bad minima],
+  [L16], [convexity: every local minimum is global; the Hessian is PSD where defined],
   [L17], [*gradient descent derived*: trust the line, step downhill],
   [L18], [*Newton's method derived*: trust the parabola, jump to its bottom],
 )
@@ -659,7 +659,7 @@ Continuity ledger — *planted today, paid off later*:
 - *Chain rule*: pipelines multiply local ratios ($3 times 14 = 42$); ML is a deep pipeline.
 - *Flat + curvature*: $f' = 0$ finds candidates; the sign of $f''$ classifies them — usually.
 - *Taylor*: match $n$ derivatives, repair by $k!$; ⭐ $cos x approx 1 - x^2 slash 2$, error $approx x^4 slash 24$.
-- *Radius*: local testimony expires at the nearest disaster ($ln(1 + x)$ past $abs(x) = 1$; $cos$ never).
+- *Radius*: for analytic functions, the Taylor series has a convergence radius; $ln(1 + x)$ about $0$ has radius $1$, while $cos$ converges everywhere.
 - *At a smooth minimum*: the linear term vanishes and the Hessian determines the local quadratic shape used in L16–L18.
 
 #pause

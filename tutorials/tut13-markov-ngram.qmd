@@ -43,4 +43,4 @@ If test transitions receive probabilities $(1/2,1/4,1/8)$, compute total bits, B
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut13-markov-ngram.ipynb`](../notebooks/tut13-markov-ngram.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut13-markov-ngram.ipynb). Predict each result, run the cell, and explain any disagreement.

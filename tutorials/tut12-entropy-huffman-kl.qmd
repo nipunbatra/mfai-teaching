@@ -43,4 +43,4 @@ Convert 2.5 bits/symbol and 2.5 nats/symbol to their matching perplexities.
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut12-entropy-huffman-kl.ipynb`](../notebooks/tut12-entropy-huffman-kl.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut12-entropy-huffman-kl.ipynb). Predict each result, run the cell, and explain any disagreement.

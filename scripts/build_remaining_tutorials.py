@@ -486,7 +486,7 @@ def qmd_for(tutorial: dict) -> str:
         f'{(chr(10) * 2).join(solution_text)}\n'
         ":::\n\n"
         "## Part B · Notebook (~40 min, laptop)\n\n"
-        f'Open [`../notebooks/tut{n:02d}-{tutorial["slug"]}.ipynb`](../notebooks/tut{n:02d}-{tutorial["slug"]}.ipynb). '
+        f'Open the [companion notebook](../notebooks/tut{n:02d}-{tutorial["slug"]}.ipynb). '
         "Predict each result, run the cell, and explain any disagreement.\n"
     )
 

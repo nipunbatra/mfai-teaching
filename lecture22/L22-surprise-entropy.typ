@@ -444,6 +444,9 @@ $ H=-sum_(i=1)^K 1/K log_2(1/K)=log_2 K. $
 #pause
 #result[$H(X)<=log_2 K$, with equality for the uniform distribution.]
 
+#pause
+The Hessian is diagonal with entries $-1/(p_i ln 2)<0$ in the simplex interior, so entropy is strictly concave. Therefore this stationary point is the unique global maximum; boundary values follow by continuity.
+
 == Example: four outcomes
 
 #table(

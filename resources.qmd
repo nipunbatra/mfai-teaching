@@ -1,6 +1,6 @@
 ---
-title: "Resources"
-subtitle: "Everything here is free"
+title: "Books and Supplementary Resources"
+subtitle: "Open-access references used in the course"
 ---
 
 ## Books (all free PDFs)
@@ -9,7 +9,7 @@ subtitle: "Everything here is free"
 |------|------|
 | [Deisenroth, Faisal & Ong — *Mathematics for Machine Learning*](https://mml-book.github.io/) | The backbone (Modules 1–4); has its own exercises + notebooks |
 | [Boyd & Vandenberghe — *Convex Optimization*](https://stanford.edu/~boyd/cvxbook/) | Constrained optimization, duality, LP/QP |
-| [MacKay — *Information Theory, Inference and Learning Algorithms*](https://www.inference.org.uk/itprnn/book.pdf) | Information theory as inference — Module 5's soul |
+| [MacKay — *Information Theory, Inference and Learning Algorithms*](https://www.inference.org.uk/itprnn/book.pdf) | Information theory, coding, and inference |
 | [Solomon — *Numerical Algorithms*](https://people.csail.mit.edu/jsolomon/share/book/numerical_book.pdf) | Floating point, conditioning, Gauss-Newton |
 | [Murphy — *Probabilistic Machine Learning: An Introduction*](https://probml.github.io/pml-book/book1.html) | Modern reference for MLE/MAP/conjugacy |
 
@@ -27,21 +27,21 @@ subtitle: "Everything here is free"
 
 | Course | Why |
 |--------|-----|
-| [3Blue1Brown — Essence of Linear Algebra](https://www.3blue1brown.com/topics/linear-algebra) · [Essence of Calculus](https://www.3blue1brown.com/topics/calculus) | The visual language this course speaks; assigned pre-watches |
+| [3Blue1Brown — Essence of Linear Algebra](https://www.3blue1brown.com/topics/linear-algebra) · [Essence of Calculus](https://www.3blue1brown.com/topics/calculus) | Geometric introductions to Modules 1 and 2 |
 | [Tübingen — Math for Deep Learning (Geiger)](https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/informatik/lehrstuehle/autonomous-vision/lectures/math-for-deep-learning/) | 18 refresher micro-lectures, 3.5 h total — ideal pre-course |
 | [MacKay — Information Theory lectures](https://www.youtube.com/playlist?list=PLruBu5BI5n4aFpG32iMbdWoRVAA-Vcso6) | 16 lectures; games, puzzles, and the compression ↔ inference unification |
 | [MIT 18.065 — Strang, Matrix Methods](https://ocw.mit.edu/courses/18-065-matrix-methods-in-data-analysis-signal-processing-and-machine-learning-spring-2018/) | SVD as the centerpiece of applied linear algebra |
 | [Stanford EE364a — Boyd, Convex Optimization](https://web.stanford.edu/class/ee364a/) · [2023 videos](https://www.youtube.com/playlist?list=PLoROMvodv4rMJqxxviPa4AmDClvcbHi6h) | Recognition-and-modeling approach; homework archives |
 | [Solomon — Applied Numerical Algorithms](https://www.youtube.com/playlist?list=PLQ3UicqQtfNv_Io_NT1b0Nzr9YDqpK3Lb) | The reference for floating point → Gauss-Newton |
 | [CMU 10-606/607 — Math Foundations for ML](https://www.cs.cmu.edu/~mgormley/courses/606-607-f18/schedule.html) | The closest sibling course; slides public |
-| [Karpathy — micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) · [makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) | Build autodiff and a bigram LM by hand — our A1 and A3 in video form |
+| [Karpathy — micrograd](https://www.youtube.com/watch?v=VMj-3S1tku0) · [makemore](https://www.youtube.com/watch?v=PaCmpygFfXo) | Worked implementations of scalar autodiff and a character bigram model |
 | [fast.ai — Computational Linear Algebra](https://github.com/fastai/numerical-linear-algebra) | Top-down, notebook-driven; randomized SVD, robust PCA |
 
 ## Interactive explorables
 
 | Explorable | Goes with |
 |------------|-----------|
-| [Course interactive library](https://nipunbatra.github.io/interactive-articles/) | numerical-tricks, autograd, MLE/MAP coin, Bayesian posterior, optimizer race, info theory, … |
+| [Course interactive library](https://nipunbatra.github.io/interactive-articles/) | Numerical computation, autodiff, estimation, optimization, and information theory |
 | [Setosa — Eigenvectors & Eigenvalues](https://setosa.io/ev/eigenvectors-and-eigenvalues/) | L5 |
 | [Setosa — Markov Chains](https://setosa.io/ev/markov-chains/) | L25 |
 | [matrixmultiplication.xyz](http://matrixmultiplication.xyz/) | L4 |

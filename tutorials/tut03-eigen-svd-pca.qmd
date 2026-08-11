@@ -43,4 +43,4 @@ For covariance $\begin{bmatrix}4 & 3 \\ 3 & 4\end{bmatrix}$, find principal dire
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut03-eigen-svd-pca.ipynb`](../notebooks/tut03-eigen-svd-pca.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut03-eigen-svd-pca.ipynb). Predict each result, run the cell, and explain any disagreement.

@@ -159,7 +159,7 @@ Some individual terms are negative; their weighted sum is never negative.
 
 == KL is non-negative
 
-For distributions with compatible support,
+For distributions $p$ and $q$ on the same outcome set,
 
 $ D_"KL"(p||q)>=0, $
 
@@ -172,20 +172,24 @@ $ H(p,q)>=H(p). $
 
 == ⭐ Jensen proof #D
 
-Since $-log z$ is convex,
+If $q(x)=0$ for an outcome with $p(x)>0$, then $D_"KL"(p||q)=infinity$ and the claim already holds.
 
-$ D_"KL"(p||q)=-sum_x p(x)log((q(x))/(p(x))). $
+#pause
+Otherwise let $S$ be the support of $p$. Since $-log z$ is convex,
+
+$ D_"KL"(p||q)=-sum_(x in S) p(x)log((q(x))/(p(x))). $
 
 #pause
 Jensen's inequality gives
 
-$ >=-log(sum_x p(x)(q(x))/(p(x))). $
+$ >=-log(sum_(x in S) p(x)(q(x))/(p(x))) $
 
 #pause
-$ =-log(sum_x q(x))=-log 1=0. $
+$ =-log(sum_(x in S) q(x))>=-log 1=0. $
 
-#pause
-Equality requires $q(x)/p(x)$ to be constant on the support; normalization makes that constant one.
+== ⭐ Equality conditions #D
+
+Equality requires $q(x)/p(x)$ to be constant on $S$ and $q$ to put no mass outside $S$. Normalization then makes that constant one, so $q=p$.
 
 == KL is asymmetric
 

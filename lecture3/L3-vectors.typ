@@ -26,7 +26,7 @@ $ "king" - "man" + "woman" approx "queen" $
 #pause
 The relation is a statement about vector displacement and direction; we will verify both numerically.
 
-== Exhibit B · "people like you"
+== A second example · "people like you"
 
 Every streaming app claims to know "people like you". But taste isn't a number — what could "like you" even *mean*, mathematically?
 
@@ -89,7 +89,7 @@ Left: $(3, 2)$ is an *arrow* — a direction plus a length. Right: the same kind
 #pause
 *One object, two readings* — an arrow you can draw, a row you can store. All of today is about switching between them at will.
 
-== Everything you meet in AI is one of these
+== Many AI objects can be represented this way
 
 #table(
   columns: (1fr, 1fr, auto),
@@ -104,7 +104,7 @@ Left: $(3, 2)$ is an *arrow* — a direction plus a length. Right: the same kind
 )
 
 #pause
-L2 callback: every entry is a float32 — each coordinate lives on last lecture's unevenly spaced number line.
+L2 callback: these entries are often stored as float32 or a lower-precision format — each coordinate then lives on an unevenly spaced number line.
 
 #pause
 #result[From here on, "data" means: $n$ points in $RR^d$ — $n$ = how many, $d$ = how rich.]
@@ -201,7 +201,7 @@ One model, three verdicts. *Choosing a norm is choosing what you care about.*
 All three earn the name "norm" by the same three axioms (MML 3.1): positive unless $bold(x) = bold(0)$, $norm(c bold(x)) = |c| thin norm(bold(x))$, triangle inequality.
 
 #pause
-And the L1 diamond has *corners* on the axes — the seed of why L1 regularization zeroes weights out. (ES 335 finishes that story.)
+The L1 diamond has *corners* on the axes — the geometric clue for why L1 regularization can set weights exactly to zero. (ES 335 develops that result.)
 
 == Unit vectors · direction, distilled
 
@@ -213,7 +213,7 @@ Numbers: $bold(x) = (3, 2)$: $hat(bold(x)) = (3, 2)\/sqrt(13) approx (0.832, 0.5
 Every nonzero vector splits cleanly: $bold(x) = norm(bold(x)) dot hat(bold(x))$ — *how much* × *which way*.
 
 #pause
-Hold on to this: today's similarity story turns out to be entirely about the *which way* part.
+Keep this distinction: cosine similarity will use direction and discard magnitude.
 
 == Distance · a norm in disguise
 
@@ -281,7 +281,7 @@ Read it as: "how much of $bold(x)$ points the $bold(y)$ way."
   inset: 8pt,
   table.header([*Angle*], [$cos theta$], [$bold(x)^top bold(y)$], [*Interpretation*]),
   [acute ($theta < 90 degree$)], [$+$], [$+$], [the vectors agree],
-  [right ($theta = 90 degree$)], [$0$], [$0$], [*orthogonal* — $bold(x) perp bold(y)$, nothing shared],
+  [right ($theta = 90 degree$)], [$0$], [$0$], [*orthogonal* — $bold(x) perp bold(y)$, zero signed projection],
   [obtuse ($theta > 90 degree$)], [$-$], [$-$], [they oppose],
 )
 
@@ -289,7 +289,7 @@ Read it as: "how much of $bold(x)$ points the $bold(y)$ way."
 Check: $(3, 2)^top (-2, 3) = -6 + 6 = 0$ → perpendicular. The axes too: $bold(e)_1^top bold(e)_2 = 0$.
 
 #pause
-Orthogonal directions carry *no information about each other* — the dot product literally sees nothing of one in the other. This idea returns twice today: residuals, and the nicest bases.
+Orthogonal directions have zero signed projection onto each other. This is a geometric statement; it does *not* by itself imply that two measured features are statistically independent. Orthogonality returns twice today: residuals, and the nicest bases.
 
 == Three readings, one number
 
@@ -384,7 +384,7 @@ In $RR^2$ we *saw* $theta$ and proved the formula. In $RR^300$ nobody sees anyth
 $ "cos_sim"(bold(x), bold(y)) := (bold(x)^top bold(y)) / (norm(bold(x)) norm(bold(y))) = hat(bold(x))^top hat(bold(y)) quad quad "— a dot product of unit vectors." $
 
 #pause
-This is legal and safe: Cauchy–Schwarz keeps it inside $[-1, 1]$, and any two vectors span an ordinary 2-D plane where it *is* the visible angle.
+This is legal and safe: Cauchy–Schwarz keeps it inside $[-1, 1]$, and any two non-collinear vectors span an ordinary 2-D plane where it *is* the visible angle. Collinear vectors give the endpoint angles $0 degree$ or $180 degree$.
 
 #pause
 #result[Cosine is scale-invariant: $"cos_sim"(10bold(x), bold(y)) = "cos_sim"(bold(x), bold(y))$. Lengths cancel — only *directions* are compared.]
@@ -394,7 +394,7 @@ This is legal and safe: Cauchy–Schwarz keeps it inside $[-1, 1]$, and any two 
 #fig("/lecture3/figures/angle_gallery.svg", w: 96%)
 
 #pause
-$+1$: same story · $0$: nothing shared · $-1$: opposite story. For data, read: *similar / unrelated / opposed*.
+$+1$: same direction · $0$: perpendicular · $-1$: opposite direction. For data, cosine can be a useful similarity score, but zero cosine does not automatically mean statistical or semantic independence.
 
 == "People like you", by hand
 
@@ -407,7 +407,18 @@ $ "you" dot "Priya": quad (5 dot 4 + 4 dot 5 + 1 dot 0) / (sqrt(42) sqrt(41)) = 
 $ "you" dot "Rohan": quad (0 + 4 + 5) / (sqrt(42) sqrt(26)) = 9 / 33.0 approx 0.27 quad => quad theta approx 74 degree $
 
 #pause
-#result["People like you" = *vectors at a small angle to yours*. Priya's 5★ for _Chak De!_ becomes your recommendation. Exhibit B: closed.]
+#result[In this toy representation, a smaller angle means a more similar rating direction. Priya is therefore the nearer neighbour, and her 5★ rating suggests _Chak De!_.]
+
+== What the toy recommender omits
+
+The cosine calculation isolated one geometric step. A real system must also:
+
+- distinguish "not rated" from an actual zero or low rating,
+- account for users who rate everything high or low and films that are broadly popular,
+- learn from many neighbours or fit latent user/item vectors rather than use three raw ratings.
+
+#pause
+#result[The example is useful for learning cosine geometry; it is not a complete recommendation algorithm.]
 
 == A word is 50 floats
 
@@ -425,7 +436,7 @@ cos_sim(glove["king"], glove["queen"])       # 0.784  →  θ ≈ 38.4°
 ```]
 
 #pause
-Coordinate 17 of "king" means… nothing anyone can name. Individually the 50 float32s (L2!) are gibberish — *the geometry between words carries the meaning*.
+Coordinate 17 of "king" is usually not interpretable on its own. The useful signal lies mainly in relations among the 50 coordinates — *the geometry between word vectors*.
 
 == Cosine similarity for real word embeddings #V
 
@@ -470,15 +481,15 @@ The subtraction never "understood" gender. *Directions in this space consistentl
 #pause
 #notebox[Honest small print: `most_similar` excludes the query words; keep them in and *king itself* outranks queen. The parallelogram is real but approximate — hence "$approx$", never "$=$".]
 
-== In high dimensions, strangers are orthogonal #V
+== Random high-dimensional directions are nearly orthogonal #V
 
 #fig("/lecture3/figures/high_d_angles.svg", w: 58%)
 
 #pause
-Random pairs in $RR^3$: any angle goes. In $RR^300$: everything piles up at $90 degree$ — *unrelated is the default state*.
+For independent isotropic random vectors, pairs in $RR^3$ cover a wide range of angles. In $RR^300$, their angles concentrate near $90 degree$.
 
 #pause
-So king · queen at $38 degree$ screams against that background. And the pile-up is good news: high-$d$ space fits astronomically many nearly-perpendicular directions — room for 400k words.
+So king · queen at $38 degree$ is far from this random baseline. Learned embedding clouds need not be isotropic, so the honest comparison is with angles from the same embedding model, not with a universal $90 degree$ rule.
 
 = Projections: shadows and residuals
 
@@ -609,7 +620,7 @@ Try on paper; verify in NumPy.
 + Find $t$ so that $(3, 2) perp (4, t)$.
 + Project $bold(x) = (1, 4)$ onto $bold(y) = (2, 0)$; write $bold(x)$ = shadow + residual and verify the residual is $perp bold(y)$.
 + Show $(1, 1) perp (1, -1)$, normalize both, and write $(3, 2)$ in this basis via two dot products.
-+ In the heatmap, king · cricket $approx 0.42$ but prince · python $approx -0.08$. One-sentence story for each number?
++ In the heatmap, king · cricket $approx 0.42$ but prince · python $approx -0.08$. Give one geometric interpretation of each number.
 
 == The reading map
 
@@ -641,5 +652,5 @@ Try on paper; verify in NumPy.
   Similarity is an angle.
   #v(12pt)
   #set text(size: 22pt)
-  Next: *Matrices as Linear Maps* — the spreadsheet stands up and starts moving: every neural-network layer is a matrix pushing your vectors around.
+  Next: *Matrices as Linear Maps* — a dense neural-network layer uses a matrix to transform its input vector.
 ]

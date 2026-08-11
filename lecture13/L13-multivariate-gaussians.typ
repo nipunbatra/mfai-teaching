@@ -67,7 +67,7 @@
 // ═══════════════════════════ 1 · motivation ═══════════════════════════
 = Why multivariate Gaussians appear in ML
 
-== One word stalks every ML paper you will ever read
+== Common uses of Gaussian distributions in ML
 
 #table(
   columns: (1fr, auto),
@@ -81,21 +81,21 @@
 )
 
 #pause
-Four different corners of AI. One distribution, over and over — never uniform, never exponential.
+These applications use Gaussians for different reasons: initialization, injected noise, latent variables, and observation models.
 
 #pause
-#align(center, text(size: 22pt)[*Why does everyone reach for the same bump?*])
+#align(center, text(size: 22pt)[*Which mathematical properties make the Gaussian useful?*])
 
-== Because it earned three superpowers
+== Three useful properties
 
-+ *It shows up uninvited.* Add up many small independent effects — anything — and a Gaussian emerges. (The *Central Limit Theorem*; demoed today.)
++ *Limit behavior.* Standardized sums of many i.i.d. finite-variance effects approach a Gaussian. (The *Central Limit Theorem*; demonstrated today.)
 #pause
-+ *It assumes the least.* Know only a mean and a covariance? The Gaussian is the honest choice — every alternative smuggles in extra assumptions. (*Max entropy*; stated today, proved in Module 5.)
++ *Maximum entropy under moment constraints.* Among densities with a specified mean and covariance, the Gaussian has maximum entropy. (Stated today, proved in Module 5.)
 #pause
-+ *It never leaves the family.* Slice it, project it, shift it, scale it, add two — the answer is a Gaussian again, with formulas you can write down. (*Closure*; you'll watch it happen today.)
++ *Closure.* Marginals, conditionals, affine transforms, and sums of independent Gaussians remain Gaussian, with explicit parameter formulas.
 
 #pause
-#notebox[The aristocrat of distributions: born everywhere, presumes nothing, and every operation ML performs keeps it in the family. Today we meet the full multivariate version.]
+#notebox[These three properties explain many Gaussian models, but using a Gaussian remains a modeling assumption whose adequacy should be checked against the application.]
 
 == L12 gave us bumps. But data is a vector.
 
@@ -144,7 +144,7 @@ $ p(x) = 1/(sigma sqrt(2 pi)) exp(-(x - mu)^2 / (2 sigma^2)) quad quad #text(fil
 ))
 
 #pause
-The whole personality of $cal(N)(mu, sigma^2)$ is $(mu, sigma)$. Question: what replaces these two numbers when $x$ becomes a *vector*?
+The parameters of $cal(N)(mu, sigma^2)$ are $(mu, sigma)$. What replaces them when $x$ becomes a *vector*?
 
 == First 2-D density: two independent bells, multiplied
 
@@ -206,7 +206,7 @@ where $Sigma = mat(delim: "(", sigma_1^2, 0; 0, sigma_2^2)$ collects the two var
 
 == Repackage the constant: a determinant appears
 
-The constant out front is secretly a determinant — for a diagonal matrix, $det$ = product of the diagonal (L4):
+The normalizing constant can be written with a determinant — for a diagonal matrix, $det$ is the product of the diagonal entries (L4):
 
 $ 1/(2 pi thin sigma_1 sigma_2) = 1/(2 pi thin sqrt(sigma_1^2 thin sigma_2^2)) = 1/(2 pi thin det(Sigma)^(1\/2)) $
 
@@ -225,7 +225,7 @@ $ p(bold(x)) = 1/((2 pi)^(d\/2) thin det(Sigma)^(1\/2)) exp(-1/2 (bold(x) - bold
 - $Sigma in RR^(d times d)$: the *covariance matrix* — symmetric, positive definite. Off-diagonal entries are the "twist": they *tilt* the bump, encoding co-variation that independence forbade.
 
 #pause
-An honest reaction to this formula: _how do we get such a weird-looking thing?!_ We just did — it's the independent case with the matrix let loose. The rest of today makes every piece *visual*.
+This formula is the independent case rewritten in matrix notation, then extended from diagonal covariance to any symmetric positive-definite covariance. The next sections interpret each term geometrically.
 
 == The formula, dissected
 
@@ -281,7 +281,7 @@ $ Sigma = mat("mean" d_x^2, "mean" d_x d_y; "mean" d_x d_y, "mean" d_y^2) = #m2(
 $ Sigma = mat(2, 1; 1, 2) $
 
 #pause
-*L5's running matrix.* You already know its secrets by heart: eigenvectors $(1, 1)$ and $(1, -1)$, eigenvalues $3$ and $1$. File that away — in the ⭐ section it becomes a picture.
+*L5's running matrix.* Its eigenvectors are $(1, 1)$ and $(1, -1)$, with eigenvalues $3$ and $1$. The contour derivation later in the lecture will turn these into ellipse axes and squared axis scales.
 
 #pause
 For any direction $bold(a)$, the variance of the projection $bold(a)^top bold(x)$ is
@@ -364,7 +364,7 @@ torch.cov(xs.T)             # ≈ [[2.00, 1.00], [1.00, 2.00]] ✓
 ```]
 
 #pause
-#notebox[`bias=True` divides by $n$ (what we did by hand); the default divides by $n - 1$. Why two conventions exist is an *estimation* question — L14's business, teased next lecture.]
+#notebox[`bias=True` divides by $n$ (what we did by hand); the default divides by $n - 1$. L14 explains the estimation distinction between these conventions.]
 
 == Checkpoint: read the matrix #Q
 
@@ -396,7 +396,7 @@ Your model is $p(x, y)$ over (height, weight). Two everyday questions:
   #h(1.2em) → the *conditional* $p(y | x = 180) = p(180, y) \/ p(180)$: freeze what you know, renormalize.
 
 #pause
-#result[On the hill, these are *geometric moves*: marginalize = *project* (squash the hill flat), condition = *slice* (cut it with a plane). The next two figures are the whole story.]
+#result[Geometrically, marginalization projects the joint density and conditioning takes and renormalizes a slice. The next two figures show both operations.]
 
 == Project = marginalize #V
 
@@ -470,7 +470,7 @@ band[:, 0].mean(), band[:, 0].var()
 ```]
 
 #pause
-The filtered histogram *is* the renormalized slice. Simulation, geometry, and algebra tell one story.
+The filtered histogram is the renormalized slice; simulation agrees with the conditional-density formula.
 
 #pause
 #result[Marginal = project. Conditional = slice. Both stay Gaussian — that's the spine of this lecture.]
@@ -554,7 +554,7 @@ Why exactly those numbers? $A$ lies along $(1,1)$ — the direction with varianc
 #fig("/lecture5/figures/spectral_ellipse.svg", w: 48%)
 
 #pause
-L5's exact picture, IOU attached: _"a Gaussian data cloud's covariance eigenvectors will be the axes of the data ellipse."_ Three slides of honest algebra pay it off.
+L5 anticipated the claim: a Gaussian data cloud's covariance eigenvectors give the axes of its density ellipses. The next three slides derive it.
 
 == ⭐ Step 1: a contour is a level set of the exponent #D
 
@@ -652,14 +652,14 @@ $ t_1^2/(r^2 lambda_1) + t_2^2/(r^2 lambda_2) = 1 quad #text(fill: MUTED)[— th
 // ═══════════════════════════ 7 · why Gaussians are everywhere ═══════════════════════════
 = Why the Gaussian is everywhere
 
-== Add enough of anything #V
+== Sums of independent variables #V
 
 Take the *least* Gaussian thing available — a flat uniform — and add independent copies:
 
 #fig("/lecture13/figures/clt_uniforms.svg", w: 96%)
 
 #pause
-By $n = 4$ the bell is unmistakable; by $n = 16$ the histogram and $cal(N)(0, 1)$ are visually identical. Nothing about the uniform was special — dice, coin flips, exponentials all morph the same way.
+By $n = 4$ the bell shape is visible; by $n = 16$ the histogram closely follows $cal(N)(0, 1)$ at the plotted resolution. Other i.i.d. finite-variance summands show the same standardized limit behavior.
 
 == The Central Limit Theorem, stated
 
@@ -668,47 +668,47 @@ By $n = 4$ the bell is unmistakable; by $n = 16$ the histogram and $cal(N)(0, 1)
 $ (X_1 + dots.c + X_n - n mu) / (sigma sqrt(n)) arrow.r quad cal(N)(0, 1) quad "as" n arrow.r infinity $
 
 #pause
-- The summands' own distribution *washes out* — only mean and variance survive the averaging.
+- After centering and scaling, the limiting distribution depends on the summands through their mean and variance; the finite-$n$ approximation quality still depends on the original distribution.
 #pause
 - Sensor error, measurement jitter, and aggregate effects often combine many small independent contributions, so the central limit theorem motivates Gaussian noise models.
 
 #pause
-#notebox[*Honesty:* we demoed the CLT and stated it; the proof needs tools (characteristic functions) beyond this course — see MML §6.4 for pointers. "Stated with pictures, cited, not proved" is our contract for it.]
+#notebox[The CLT is stated and illustrated here but not proved; a proof uses tools such as characteristic functions. See MML §6.4 for pointers.]
 
 == The Gaussian maximizes entropy at fixed variance
 
 *Fact (maximum entropy).* Among *all* densities on $RR$ with a given mean $mu$ and variance $sigma^2$, the Gaussian has the largest *entropy* — it is the least committed, most spread-out choice consistent with those two facts.
 
 #pause
-- Know only $bold(mu)$ and $Sigma$? Then $cal(N)(bold(mu), Sigma)$ adds *zero* further assumptions. Any other choice quietly claims extra structure you never measured.
+- If a modeling principle retains only $bold(mu)$ and $Sigma$ and otherwise maximizes entropy, it selects $cal(N)(bold(mu), Sigma)$. This does not make every dataset Gaussian; it states the optimization criterion used to choose the model.
 #pause
 - "Entropy" — a number measuring non-commitment? Defining it properly is the whole business of *Module 5* (L22). This fact is planted today and *proved there*.
 
 #pause
-#result[CLT: the Gaussian is where sums *end up*. Max entropy: it's where honesty *starts*. Two independent roads, one destination.]
+#result[The CLT motivates Gaussian approximations for standardized sums; the maximum-entropy theorem selects a Gaussian when only mean and covariance are constrained.]
 
 == Summary of the Gaussian modelling assumptions
 
-Why "Gaussian" in every ML paper:
+Why Gaussian models recur in ML:
 
 #table(
   columns: (auto, 1fr, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 7pt,
   table.header([*property*], [*modelling consequence*], [*status*]),
-  [CLT], [aggregated noise is *born* Gaussian], [demoed today],
-  [max entropy], [the *least-assuming* model given $bold(mu)$, $Sigma$], [stated → L22],
+  [CLT], [some aggregated effects are approximately Gaussian after standardization], [demoed today],
+  [max entropy], [maximum-entropy density given $bold(mu)$, $Sigma$], [stated → L22],
   [closure], [marginals, conditionals, sums: *closed forms*], [seen today],
 )
 
 #pause
-GPT-2's init, diffusion noise, VAE latents, Kalman filters — each leans on at least two of the three.
+GPT-2's initialization, diffusion noise, VAE latents, and Kalman filters use different subsets of these properties.
 
 #pause
-#result[Born everywhere, presumes nothing, never punished by the algebra. \ That's aristocracy.]
+#result[Gaussian models combine tractable linear algebra with useful limit and maximum-entropy characterizations.]
 
 // ═══════════════════════════ 8 · the take-home ═══════════════════════════
-= The take-home
+= Summary
 
 == Lecture 13 — summary
 
@@ -760,7 +760,7 @@ np.cov(x.T)                            # ≈ [[2.00, 1.00], [1.00, 2.00]] ✓
 ```]
 
 #pause
-- Geometry: $L$ maps the unit circle of $bold(z)$ onto *the covariance ellipse* — L5's circle-to-ellipse picture was secretly a sampling algorithm.
+- Geometry: $L$ maps the unit circle of $bold(z)$ onto *the covariance ellipse*; the same linear map is also a Gaussian sampling construction.
 #pause
 - Another valid square root, straight from the ⭐: $Sigma^(1\/2) = Q Lambda^(1\/2) Q^top$ — stretch by $sqrt(lambda_i)$ along the eigen-axes, rotate. Different $A$, same $A A^top$, same distribution.
 #pause

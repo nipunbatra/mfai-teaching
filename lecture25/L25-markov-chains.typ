@@ -404,7 +404,7 @@ A state has period $d$ if returns to it can occur only at times sharing greatest
 A chain is aperiodic if its states have period one.
 
 #pause
-A positive self-loop is a common sufficient reason for aperiodicity.
+In an irreducible chain, one positive self-loop is enough to make every state aperiodic.
 
 == Two failure patterns #V
 

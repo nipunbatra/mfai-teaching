@@ -1,34 +1,35 @@
 ---
 title: "Mathematical Foundations for AI"
 subtitle: "IIT Gandhinagar · Prof. Nipun Batra"
+toc: false
 ---
 
 ::: {.hero-section}
 
-A 26-lecture course on the mathematics used in machine learning: floating point, linear algebra, multivariate calculus and automatic differentiation, probability and estimation, optimization, information theory, and Markov chains. Each lecture is 80 minutes.
+This course develops the mathematics used in machine learning: floating-point computation, linear algebra, multivariate calculus and automatic differentiation, probability and estimation, optimization, information theory, and Markov chains. It comprises 26 lectures and 13 tutorials; each meeting is 80 minutes.
 
-We usually begin with an example or a picture, calculate a small case, and then write the general result. In the final lecture, these ideas come together in a character-level language model.
+The usual order is concrete example, calculation, geometric or probabilistic interpretation, and then the general statement. No prior machine-learning course is assumed. The final two lectures use a character-level language model to connect the main ideas.
 
 :::
 
-[Syllabus & reading map](syllabus.qmd){.btn .btn-primary .btn-sm}
-[Resources · books · videos · interactives](resources.qmd){.btn .btn-primary .btn-sm}
-[All slides](slides.qmd){.btn .btn-outline-primary .btn-sm}
-[Notebooks](notebooks.qmd){.btn .btn-outline-primary .btn-sm}
+::: {.course-actions}
+[Syllabus and readings](syllabus.qmd){.btn .btn-primary .btn-sm}
+[Lecture slides](slides.qmd){.btn .btn-outline-primary .btn-sm}
 [Tutorials](tutorials/index.qmd){.btn .btn-outline-primary .btn-sm}
-[Interactive library →](https://nipunbatra.github.io/interactive-articles/){.btn .btn-outline-primary .btn-sm}
-[GitHub repo](https://github.com/nipunbatra/mfai-teaching){.btn .btn-outline-secondary .btn-sm}
+[Notebooks](notebooks.qmd){.btn .btn-outline-primary .btn-sm}
+[Resources](resources.qmd){.btn .btn-outline-secondary .btn-sm}
+:::
 
 ::: {.callout-tip}
 ## How to use this site
-Each lecture row links its slides (PDF, one page per slide), companion notebook, and interactive. Tutorials are hybrid: a pen-and-paper worksheet plus a Jupyter notebook, both published. All four textbooks are **free PDFs** — see [Resources](resources.qmd).
+The schedule below links each lecture to its handout PDF and assigned reading. Every second lecture or so is followed by a tutorial with a pen-and-paper worksheet and an executed Jupyter notebook. Supplementary books, notes, videos, and interactive material are collected under [Resources](resources.qmd).
 :::
 
 ---
 
-## Textbook backbone
+## Primary texts and references
 
-The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learning*** (free PDF). Optimization leans on Boyd & Vandenberghe, information theory on MacKay, numerics on Solomon.
+The primary text is **Deisenroth, Faisal & Ong, *Mathematics for Machine Learning***. Boyd & Vandenberghe is used for optimization, MacKay for information theory, and Solomon for numerical computation.
 
 | Role | Resource |
 |------|----------|
@@ -94,7 +95,7 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 > **Quiz 4** · Module 4 · **A2 (CVXPY)** out
 
-## Module 5 · Information Theory ↔ Machine Learning (L22–L24)
+## Module 5 · Information Theory and Machine Learning (L22–L24)
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
@@ -104,19 +105,19 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 > **A3 (Huffman compressor + n-gram LM)** out
 
-## Module 6 · Markov Chains & the Payoff (L25–L26)
+## Module 6 · Markov Chains and Sequence Models (L25–L26)
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
 | 25 | Markov Chains | [Setosa](https://setosa.io/ev/markov-chains/) | [PDF](slides-pdf/L25.pdf) | |
-| 26 | Learning Sequences + Course Finale | MacKay Ch 2 | [PDF](slides-pdf/L26.pdf) | [T13](notebooks/tut13-markov-ngram.ipynb) |
+| 26 | Learning Sequence Models | MacKay Ch 2 | [PDF](slides-pdf/L26.pdf) | [T13](notebooks/tut13-markov-ngram.ipynb) |
 
 > **Quiz 5 / Endsem** · cumulative
 
 ---
 
-## One example used across the course
+## A recurring example
 
-We return to a character-level language model at several points:
+Several lectures revisit a character-level language model:
 
-**L2** log-space numerics → **L5/L25** transition matrices & stationary eigenvectors → **L11** gradients through the loss → **L14** fitting = MLE → **L17** gradient descent finds the parameters → **L24** cross-entropy & perplexity → **L26** trained, sampled, understood.
+**L2** log-space computation → **L5/L25** transition matrices and stationary eigenvectors → **L11** gradients through the loss → **L14** maximum-likelihood fitting → **L17** numerical optimization → **L24** cross-entropy and perplexity → **L26** training, evaluation, and sampling.

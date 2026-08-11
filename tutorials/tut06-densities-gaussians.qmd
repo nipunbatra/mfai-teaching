@@ -43,4 +43,4 @@ Compare squared Mahalanobis distances of $(1,1)$ and $(1,-1)$ under that covaria
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut06-densities-gaussians.ipynb`](../notebooks/tut06-densities-gaussians.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut06-densities-gaussians.ipynb). Predict each result, run the cell, and explain any disagreement.

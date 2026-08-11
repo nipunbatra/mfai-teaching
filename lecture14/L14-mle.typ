@@ -8,7 +8,7 @@
 #import "../common/mldiag.typ": *
 #show: metropolis-deck.with(
   title: [Maximum Likelihood Estimation],
-  subtitle: [Where every loss function comes from],
+  subtitle: [How probability models produce common training losses],
 )
 
 #let IA = "https://nipunbatra.github.io/interactive-articles/"
@@ -46,9 +46,9 @@
 
 = Deriving losses from probability models
 
-== Three lines you will type for the rest of your career
+== Three common supervised-learning losses
 
-Every ML training loop — every paper, every framework — ends the same way:
+Many supervised-learning pipelines use one of these objectives:
 
 #codebox[```python
 loss = F.mse_loss(y_hat, y)            # regression
@@ -60,7 +60,7 @@ loss = F.cross_entropy(logits, y)      # multi-class classification
 Squaring errors. Taking logs of probabilities. *Who decided these formulas?* Why squared — not absolute, not fourth power? Why is there a logarithm inside a classification loss?
 
 #pause
-#notebox[Nobody tuned these by trial and error. All three fall out of *one idea*, mechanically. Today: the idea, and the full derivation for MSE. Cross-entropy's turn comes in L24 — but you'll leave today knowing exactly where it lives.]
+#notebox[Each loss below is a negative log-likelihood for a particular observation model. Today we derive the construction and the Gaussian/MSE case; L24 returns to categorical cross-entropy.]
 
 == From a probability model to an objective
 
@@ -83,7 +83,7 @@ Squaring errors. Taking logs of probabilities. *Who decided these formulas?* Why
 Fix the observed data and vary the parameters. The following slides compute every step in this map.
 
 #pause
-#notebox[You have never formally "fit a model" in this course. That is the point: today is where *fitting* becomes a mathematical operation instead of a vibe.]
+#notebox[This lecture defines model fitting as optimizing an objective derived from an explicit statistical model.]
 
 == Learning outcomes
 
@@ -93,7 +93,7 @@ By the end of this lecture you will be able to:
 + Write the likelihood of an entire dataset using the *IID assumption*.
 + Explain *three independent reasons* the log goes in — and recap L2's $0.03^1000$ disaster.
 + Derive $hat(theta)_"MLE"$ for the *Bernoulli* coin (⭐) and the *Gaussian* mean.
-+ Derive the course's keystone: *minimizing MSE = maximizing Gaussian likelihood* (⭐).
++ Derive the equivalence: *minimizing MSE = maximizing a fixed-variance Gaussian likelihood* (⭐).
 + Map noise models to the losses they generate: Gaussian→MSE, Bernoulli→BCE, Categorical→CE, Laplace→MAE.
 
 = The flip: from probability to likelihood
@@ -112,7 +112,7 @@ I stop a random student in the corridor. They took exactly one of the three, and
 #pause
 *Which course would you guess?* Commit to an answer — and notice what your brain just did to produce it.
 
-== The guess, made honest #V
+== Compare the three likelihoods #V
 
 #align(center, text(size: 14pt)[
   #sw(TEAL, [C1: $cal(N)(80, 10^2)$]) #h(14pt)
@@ -349,7 +349,7 @@ Our five-point likelihood already sat at $10^(-4)$. In log-space, tiny becomes o
 $ log P("text") = sum_(i=1)^1000 log p_i approx 1000 times (-3.51) = -3507 quad #text(fill: GREEN)[✓ a boring, safe float] $
 
 #pause
-#notebox[L2's exact words: "Every loss you will ever meet is a _log_-likelihood — floating point demands it (*L14 shows the deeper reason*)." Today is that day — and underflow is only reason 1 of 3.]
+#notebox[Log space prevents underflow in likelihood products. It also preserves the maximizer and turns independent per-example factors into an additive objective.]
 
 == Reason 2 · the log moves the peak nowhere #V
 
@@ -387,9 +387,9 @@ To maximize, we differentiate (L7–L8) and set to zero. Compare the two forms:
 - $dif/(dif theta) sum_i log p_i = sum_i (dif/(dif theta)) log p_i$: differentiate each term *alone*, add
 
 #pause
-#result[Three independent wins — no underflow (L2), same argmax, per-point derivatives. This is why *every* training objective you will ever see is built from $log p$.]
+#result[For likelihood-based training, logs prevent underflow, preserve the argmax, and produce a sum of per-example terms. Other objectives also exist and need not be log-likelihoods.]
 
-== Flip the sign, and you have invented "the loss"
+== Negative log-likelihood as a minimization objective
 
 Optimizers by convention *minimize* (Module 4 is built that way). So negate:
 
@@ -481,7 +481,7 @@ $ n_H = (n_H + n_T) theta $
 #pause
 The answer your intuition would have guessed — but now it is a *theorem*, from a principle that will still work when intuition has nothing to say (a billion-parameter model has no "fraction of heads").
 
-== Sanity checks, one honest and one alarming
+== Two checks on the Bernoulli estimate
 
 The machine agrees — brute-force the curve:
 
@@ -535,7 +535,7 @@ On our running dataset: $hat(mu) = (0.5 + 1.5 + 2.0 + 2.5 + 3.5)\/5 = 2.0$ — *
 #pause
 #notebox[Note what $hat(mu)$ does *not* depend on: $sigma$. However noisy the ruler, the best center is the average. (With $sigma$ unknown, the $mu$-equation is unchanged.)]
 
-== The variance — and an honest footnote
+== The variance and its finite-sample bias
 
 Same recipe for $sigma$: differentiate $ell = dots - n log sigma - 1/(2 sigma^2) sum_i (x_i - mu)^2$, set to zero, solve:
 
@@ -545,7 +545,7 @@ $ (partial ell)/(partial sigma) = -n/sigma + 1/sigma^3 sum_i (x_i - hat(mu))^2 =
 On $cal(D)$: deviations $(-1.5, -0.5, 0, 0.5, 1.5)$, squares sum to $5.0$, so $hat(sigma)^2 = 5.0\/5 = 1.0$.
 
 #pause
-#notebox[*Honest footnote.* This estimator is *biased*: on average across datasets, $EE[hat(sigma)^2] = (n-1)/n dot sigma^2$ — systematically a bit small, because $macron(x)$ chased the sample before we measured spread around it. NumPy's `np.var(x, ddof=1)` applies the $n/(n-1)$ repair (Bessel's correction). We state this; a statistics course proves it. MLE is *excellent*, not sacred.]
+#notebox[This MLE is biased: across repeated datasets, $EE[hat(sigma)^2] = (n-1)/n dot sigma^2$. NumPy's `np.var(x, ddof=1)` applies Bessel's $n/(n-1)$ correction to obtain an unbiased estimator under Gaussian sampling.]
 
 == Estimation is optimization · the NLL landscape #V
 
@@ -569,7 +569,7 @@ Free both parameters: the *dataset NLL* over the $(mu, sigma)$ plane, computed l
 #pause
 #result[Fitting = minimizing NLL. Module 4 (L16–L21) is the art of *walking downhill* on such surfaces.]
 
-= The keystone: linear regression → MSE
+= Linear regression with Gaussian noise → least squares
 
 == A model that finally has an input #V
 
@@ -634,11 +634,11 @@ $ hat(theta)_"MLE" = arg max_theta ell(theta) = arg min_theta sum_(i=1)^n [ (y_i
 Adding a constant never moves an argmin — drop $n log sigma + n/2 log(2 pi)$. Scaling by a positive constant never moves an argmin — drop $1\/(2 sigma^2)$:
 
 #pause
-#result[$hat(theta)_"MLE" = arg min_(w, b) display(sum_(i=1)^n) (y_i - w x_i - b)^2$ — Gaussian MLE *is* least squares. \ Nobody "invented" MSE: it was hiding inside $cal(N)$ all along.]
+#result[$hat(theta)_"MLE" = arg min_(w, b) display(sum_(i=1)^n) (y_i - w x_i - b)^2$. With fixed-variance Gaussian observation noise, maximum likelihood and least squares have the same minimizers.]
 
-== What MSE silently assumes
+== A likelihood interpretation of MSE
 
-Run the derivation backwards: using MSE *is* declaring a noise model. Three claims, made every time you call `mse_loss`:
+If MSE is interpreted as a negative log-likelihood, the corresponding observation model makes three assumptions:
 
 + noise is *Gaussian* — bell-shaped errors around the prediction
 #pause
@@ -647,7 +647,7 @@ Run the derivation backwards: using MSE *is* declaring a noise model. Three clai
 + observations are *independent* given the inputs
 
 #pause
-#alertbox[Assumption 1 is how outliers wreck least squares: a point 5σ off the line pays $(5 sigma)^2\/2 sigma^2 = 12.5$ nats — the Gaussian is *certain* such points are freakish, so the fitted line contorts to appease them. Heavier-tailed noise models forgive them — that's the MAE row coming up.]
+#alertbox[The quadratic penalty gives outliers high leverage: a point 5σ from the line contributes $(5 sigma)^2\/2 sigma^2 = 12.5$ nats. A heavier-tailed observation model, such as Laplace, yields a linear absolute-error penalty.]
 
 == The machine agrees · one grid, two objectives
 
@@ -660,14 +660,14 @@ print(ws[np.argmin(mse)], ws[np.argmax(ll)])    # 1.0 1.0  — the same slope
 ```]
 
 #pause
-Two objectives, one winner — on every dataset, always, by the derivation you just did.
+With fixed $sigma$, these two objectives have the same minimizer for any dataset because they differ only by a positive scale and an additive constant.
 
 #pause
-#notebox[This is why earlier stats courses could teach least squares without ever saying "likelihood": with $sigma$ fixed, the two problems are *literally the same problem*. You now know which one is fundamental.]
+#notebox[Least squares can be introduced geometrically or as Gaussian maximum likelihood. The likelihood view makes the observation-noise assumptions explicit.]
 
-= Every loss is an NLL
+= Common losses as negative log-likelihoods
 
-== The table this course orbits around
+== Match an observation model to its NLL
 
 Choose a noise/observation model; the NLL *is* your loss:
 
@@ -682,7 +682,7 @@ Choose a noise/observation model; the NLL *is* your loss:
 ))
 
 #pause
-#result[Loss functions are not a menu of arbitrary formulas. Each row is *the same construction* — only the noise model changes.]
+#result[These common losses share one construction: choose an observation model and minimize its negative log-likelihood. This table is not a claim that every possible objective is an NLL.]
 
 == The BCE row costs one line
 
@@ -718,7 +718,7 @@ The *true* per-residual loss curves, computed from the densities themselves ($-l
 ))
 
 #pause
-The parabola *accelerates*: doubling a large residual quadruples its cost — outliers steer the fit. The Laplace's thin tails in log-space charge a flat rate — outliers get a shrug. Choosing a loss *is* choosing how much you believe in outliers.
+For the Gaussian NLL, doubling a residual quadruples its cost, so outliers have high leverage. The Laplace NLL grows linearly with $abs(r)$, reducing that leverage. The loss shape encodes a particular residual model.
 
 == Match each common loss to an observation model
 
@@ -755,9 +755,9 @@ Hold the head fraction at 70%, grow $n$ — the peak-aligned log-likelihood shar
 ))
 
 #pause
-- *Consistency* (stated): as $n arrow.r infinity$, $hat(theta)_"MLE" arrow.r$ the true $theta$ — alternatives get buried
+- *Consistency* (stated, under correct specification, identifiability, and regularity conditions): $hat(theta)_"MLE"$ converges to the true parameter as $n arrow.r infinity$
 #pause
-- Small $n$ misbehaves: biased $hat(sigma)^2$, certainty from 3 flips. Data cures MLE; priors (L15) cure small data.
+- Small samples expose limitations: $hat(sigma)^2$ is biased and three identical flips produce a boundary estimate. L15 shows how a prior changes the estimator and represents uncertainty.
 
 == Checkpoint: choose the loss like a modeler #Q
 
@@ -780,18 +780,18 @@ Try on paper; the T7 notebook (after L15) checks all of them in NumPy.
 + 12 flips, 9 heads: write $ell(theta)$, maximize it, and compute $ell(0.75) - ell(0.5)$.
 + For $cal(D) = {1.0, 3.0}$ under $cal(N)(mu, 1)$: sketch $L(mu)$; find $hat(mu)$, then $hat(sigma)^2$. (Answers: 2.0 and 1.0.)
 + Exponential waiting times $p(x | lambda) = lambda e^(-lambda x)$ (L12's zoo): derive $hat(lambda)_"MLE" = 1 \/ macron(x)$.
-+ Redo the keystone with *Laplace* noise and show the objective becomes $sum_i abs(y_i - w x_i - b)$.
-+ For $n = 10^6$, $p_i approx 0.1$: estimate $product_i p_i$ and compare with float64's smallest positive number ($approx 10^(-324)$, L2). Why must training code never form this product?
++ Repeat the derivation with *Laplace* noise and show that the objective becomes $sum_i abs(y_i - w x_i - b)$.
++ For $n = 10^6$, $p_i approx 0.1$: estimate $product_i p_i$ and compare with float64's smallest positive subnormal ($approx 5 times 10^(-324)$, L2). Why must training code never form this product?
 + True or false, one sentence: "the MLE of $theta$ is the most probable value of $theta$ given the data." Explain the distinction introduced in L15.
 
 == Lecture 14 — summary
 
 - *The flip*: freeze the data, vary $theta$ — the likelihood is a score, not a distribution over $theta$.
 - *Datasets*: IID → a product of per-point densities; slide the model, climb the score.
-- *Logs*: same argmax, no underflow (L2's $0.03^1000$, cashed), per-point derivatives. NLL = *the loss*.
+- *Logs*: same argmax, no underflow, and additive per-point derivatives. NLL gives many standard losses.
 - *Coin ⭐*: $hat(theta) = n_H\/n$ from $ell'(theta) = 0$; 3-for-3 heads exposes MLE's blind spot (→ L15).
-- *Gaussian*: $hat(mu) = macron(x)$; $hat(sigma)^2 = 1/n sum (x_i - macron(x))^2$ — biased, honestly footnoted.
-- *Keystone ⭐*: Gaussian noise on a line → max likelihood $equiv$ min squared error.
+- *Gaussian*: $hat(mu) = macron(x)$; $hat(sigma)^2 = 1/n sum (x_i - macron(x))^2$ — the variance MLE is biased at finite $n$.
+- *Linear regression ⭐*: fixed-variance Gaussian noise → maximum likelihood $equiv$ minimum squared error.
 - *The table*: Gaussian→MSE, Bernoulli→BCE, Categorical→CE (L24), Laplace→MAE.
 
 #pause
@@ -812,7 +812,7 @@ $ EE_(p^star)[log p(x | theta)] = underbrace(EE_(p^star)[log p^star (x)], "fixed
 #result[Maximizing likelihood is equivalent to minimizing $"KL"(p^star || p_theta)$ up to a constant independent of $theta$. L24 derives this identity from cross-entropy.]
 
 #focus-slide[
-  Every loss function is a negative log-likelihood in disguise.
+  Many standard supervised losses are negative log-likelihoods for explicit observation models.
   #v(12pt)
   #set text(size: 22pt)
   Next: *MAP & Conjugate Priors* — what if you have beliefs _before_ seeing data?

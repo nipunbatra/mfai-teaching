@@ -78,7 +78,7 @@ Variable-length code:
 `0 111 0 100` — 8 bits.
 
 #pause
-The decoder must still know where one codeword ends and the next begins.
+The decoder must be able to determine where one codeword ends and the next begins. The code structure must make those boundaries recoverable from the bit stream.
 
 == An ambiguous code
 
@@ -101,6 +101,9 @@ A code is *prefix-free* if no codeword is the prefix of another codeword.
 
 #pause
 Then decoding can proceed from left to right without separators.
+
+#pause
+Prefix-free is sufficient, but not necessary, for unique decoding. For example, $A arrow.r 0, B arrow.r 01$ is uniquely decodable but not prefix-free; prefix-free codes are preferred because they decode immediately from left to right.
 
 #pause
 In a binary tree:

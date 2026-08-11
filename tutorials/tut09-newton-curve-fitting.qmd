@@ -43,4 +43,4 @@ Explain how $(J^TJ+\lambda I)\delta=-J^Tr$ interpolates between Gauss–Newton a
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut09-newton-curve-fitting.ipynb`](../notebooks/tut09-newton-curve-fitting.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut09-newton-curve-fitting.ipynb). Predict each result, run the cell, and explain any disagreement.

@@ -10,7 +10,7 @@
 
 #show: metropolis-deck.with(
   title: [SVD & PCA],
-  subtitle: [The best low-rank story of your data],
+  subtitle: [Low-rank approximation and principal directions],
 )
 
 #title-slide()
@@ -49,12 +49,12 @@ $ Delta W = underbrace(B, 4096 times 8) space underbrace(A, 8 times 4096) quad a
 That is a *mathematical* question, and this lecture is the answer:
 
 #pause
-+ Every matrix secretly is a *rotation, a stretch, and a rotation* (the SVD)
-+ The stretches come *sorted by importance* — most matrices are dominated by a few
++ Every matrix admits two orthonormal coordinate systems with an axis scaling between them (the SVD)
++ The singular values come sorted; when they decay quickly, a few directions dominate
 + Keeping the top $k$ is *provably the best* rank-$k$ approximation (Eckart–Young)
 
 #pause
-#notebox[Training LoRA for real is the deep-learning course (ES 667). Today we build the theorem it stands on — and cash a cheque you can _see_…]
+#notebox[Training LoRA is covered in the deep-learning course (ES 667). Today we study the low-rank factorization and test it on an image where the approximation error is directly visible.]
 
 == The same trick, visible: image compression #V
 
@@ -69,14 +69,14 @@ By the end of class you will compute exactly _which_ 16% to keep — and prove n
 
 By the end of this lecture you will be able to:
 
-+ Describe what *any* matrix does to space: rotate · stretch · rotate — and read singular values as the ellipse's semi-axes.
++ Describe what *any* matrix does using orthonormal input/output coordinates and axis scaling, and read singular values as ellipse semi-axes.
 + Compute a full *2×2 SVD by hand* via $A^top A$, and verify it multiplies back.
 + Expand a matrix into *rank-1 layers*, ranked by energy $sigma_i^2$.
 + State *Eckart–Young* and use the $sigma$-tail to predict compression error.
 + Derive *PCA* as best-fit axes / max-variance directions, and run it on real data.
 + Show *PCA = SVD of the centered data matrix*, and pick the right route in code.
 
-= Every matrix: rotate · stretch · rotate
+= Every matrix: choose coordinates · scale · place the output
 
 == L5 gave us eigenvectors — and left a gap
 
@@ -135,11 +135,11 @@ $ A = underbrace(U, "rotate (output)") space underbrace(Sigma, "stretch") space 
 read right-to-left, like function composition (L4).
 
 #pause
-- $U, V$: *orthonormal* columns (perpendicular unit vectors — pure rotations/reflections)
+- $U, V$: *orthonormal* columns (perpendicular unit vectors). In the square full SVD they are rotations/reflections; in a thin rectangular SVD they are orthonormal coordinate frames.
 - $Sigma$: *diagonal*, entries $sigma_1 >= sigma_2 >= dots.c >= 0$
 
 #pause
-#result[*Singular value decomposition:* every matrix is a rotation, a stretch, and a rotation. No exceptions — not even rectangular ones.]
+#result[*Singular value decomposition:* every matrix is an orthogonal change of input coordinates, an axis scaling (with discarded null directions), and an orthogonal placement in the output space.]
 
 == Rectangular is fine — the shapes
 
@@ -148,7 +148,7 @@ For $A in RR^(m times n)$ with rank $r$, the (thin) SVD reads
 $ underbrace(A, m times n) = underbrace(U, m times r) space underbrace(Sigma, r times r) space underbrace(V^top, r times n) $
 
 #pause
-- $V^top$ rotates in the *input* space $RR^n$; $U$ poses the result in the *output* space $RR^m$ — a map between different worlds needs two casts
+- $V^top$ expresses the input in right-singular coordinates and retains the $r$ active components; $U$ places those components in the *output* space $RR^m$
 #pause
 - $Sigma$ stretches $r$ surviving directions and drops the rest
 
@@ -326,7 +326,7 @@ But is blunt truncation a _good_ approximation — or just a cheap one?
 
 == Which direction does $A$ amplify most? #D
 
-Let's earn the $k = 1$ case. The best single story about $A$ should be built from the direction it cares most about:
+Let's earn the $k = 1$ case. Start by finding the unit direction that $A$ amplifies most:
 
 $ max_(norm(bold(v)) = 1) norm(A bold(v)) quad = quad ? $
 
@@ -391,7 +391,7 @@ $k = 1$ is literally one column times one row — yet the sky gradient is alread
 #pause
 - "Energy kept" = $sum_(i <= k) sigma_i^2 \/ sum_i sigma_i^2$; "rel. error" = $norm(A - A_k)_F \/ norm(A)_F$
 #pause
-- $k = 1$ keeps 93% of the energy — one layer of 256 already tells most of the story
+- $k = 1$ keeps 93% of the squared Frobenius norm — one rank-1 layer already captures the dominant light–dark pattern
 
 == Why it works: the spectrum falls off a cliff #V
 
@@ -414,7 +414,7 @@ Replace "image" by "weight update" and rerun the argument:
 - Fine-tune = ship the tiny $B, A$ pair; the 7B base model stays frozen, shared by every task
 
 #pause
-#result[Same theorem, three costumes: compress an image, adapt a model — and next, _summarize a dataset_.]
+#result[The same low-rank approximation applies to image compression and model updates; next we apply it to a centered dataset.]
 
 == Compression in six lines
 
@@ -446,7 +446,7 @@ np.linalg.norm(img - img_k) / np.linalg.norm(img)    # 0.042  — as the table s
 #mcq-answer([C], [$sqrt(5) approx 2.24$],
   [Eckart–Young: the error is the tail in _quadrature_, $sqrt(sigma_3^2 + sigma_4^2) = sqrt(4 + 1)$ — discarded layers are orthogonal, so their energies add like Pythagoras. A forgets $sigma_4$; B adds instead of squaring; D starts the tail at $sigma_2$, which $A_2$ still keeps.])
 
-= PCA: the best flat story of a dataset
+= PCA: the best low-dimensional summary of a dataset
 
 == Datasets are wide; structure is thin
 
@@ -462,7 +462,7 @@ Stack $n$ data points as the rows of a matrix $X in RR^(n times d)$:
 
 #result[The matrix most worth compressing is the dataset itself. Finding its best flat summary has a name: *PCA*.]
 
-== Which axis keeps the most story? #V
+== Which axis keeps the most variance? #V
 
 Project a centered 2-D cloud onto one line — which line loses least?
 
@@ -562,7 +562,7 @@ That _is_ an eigendecomposition of $C$ — orthonormal $V$, diagonal middle. Rea
 - and the mirror fact: $X X^top = U Sigma^2 U^top$ — the $n times n$ point-similarity matrix shares the same spectrum
 
 #pause
-#result[*PCA = SVD of the centered data matrix.* Eigen-of-covariance and SVD-of-data are the same theorem wearing different clothes.]
+#result[*PCA = SVD of the centered data matrix.* Covariance eigenvectors and the right singular vectors of centered data are the same axes.]
 
 == The bridge, checked in code
 
@@ -603,7 +603,7 @@ Both routes are correct mathematics. Numerically they are not equals:
 #pause
 - *Precision*: forming $A^top A$ squares the singular values — $sigma_i = 10^(-8)$ becomes $lambda_i = 10^(-16)$, close to float64 $epsilon$. The numerical example reports a tail eigenvalue of $-0.0$, a rounding artifact rather than negative variance
 #pause
-- sklearn's `PCA` therefore never forms $C$: it runs an SVD of $X_c$ under the hood
+- direct and randomized-SVD PCA solvers work on $X_c$ without forming $C$; some libraries also offer a covariance-eigensolver when that shape is favourable
 
 #pause
 #result[Think in covariance eigenvectors; _compute_ with the SVD.]
@@ -637,7 +637,7 @@ Exact SVD costs $O(m n min(m, n))$ — hopeless for a $10^6 times 10^5$ matrix. 
 
 == Lecture 6 — summary
 
-- *SVD*: every matrix is $U Sigma V^top$ — rotate, stretch, rotate; $sigma_i$ = ellipse semi-axes; rank = surviving axes; computed by hand via the eigenvectors of $A^top A$ (L5's spectral theorem).
+- *SVD*: every matrix is $U Sigma V^top$ — orthonormal input/output coordinates with axis scaling; $sigma_i$ = ellipse semi-axes; rank = surviving axes; computed by hand via the eigenvectors of $A^top A$ (L5's spectral theorem).
 - *Layers*: $A = sum_i sigma_i bold(u)_i bold(v)_i^top$, importance-sorted; energy $norm(A)_F^2 = sum_i sigma_i^2$.
 - *Eckart–Young*: truncating at $k$ is the _best_ rank-$k$ approximation; error = the $sigma$-tail. One theorem behind image compression *and* LoRA's 0.4% fine-tuning.
 - *PCA*: best-fit axes = max-variance directions = eigenvectors of the covariance.
@@ -647,7 +647,7 @@ Exact SVD costs $O(m n min(m, n))$ — hopeless for a $10^6 times 10^5$ matrix. 
 #notebox[*Read before L7* — MML Ch 4.4–4.5 (SVD) and Ch 10 (PCA); Solomon Ch 7. *Tutorial 3* this week: SVD compression on your own photo + PCA on digits. *Quiz 1* covers Module 1 (L1–L6) — the worked 2×2 here is exam-shaped.]
 
 #focus-slide[
-  Every matrix is a rotation, a stretch, and a rotation.
+  Every matrix has orthonormal input and output directions connected by singular-value scaling.
   #v(12pt)
   #set text(size: 22pt)
   Module 2 begins. Next: *Univariate Calculus & Taylor Series* — we stop rearranging space and start measuring change.

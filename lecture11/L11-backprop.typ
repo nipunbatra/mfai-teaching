@@ -8,7 +8,7 @@
 #import "../common/mldiag.typ": *
 #show: metropolis-deck.with(
   title: [Reverse Mode & Backprop],
-  subtitle: [Every gradient, in one backward pass],
+  subtitle: [A scalar loss gradient in one reverse sweep],
 )
 // prose em-dashes must never split a slide (touying treats a lone "—" as a
 // Markdown-style horizontal-rule pagebreak by default)
@@ -88,7 +88,7 @@
   edge((1, 1.3), (2, 0.5), "-|>", stroke: 0.8pt + MUTED)
 }))
 
-// the finale neuron o = tanh(w1 x1 + w2 x2 + b), drawn as a computation graph
+// output neuron o = tanh(w1 x1 + w2 x2 + b), drawn as a computation graph
 #let neurongraph = align(center, diagram(spacing: (15mm, 5.2mm), {
   let N(p, lbl, c: INK, bg: white) = node(p, text(size: 12.5pt, weight: 600, fill: INK, lbl),
     shape: fletcher.shapes.rect, fill: bg, stroke: 0.9pt + c, corner-radius: 3pt, inset: 5pt)
@@ -139,7 +139,7 @@
 
 = What `loss.backward()` computes
 
-== The most-executed line in modern AI
+== A common operation in gradient-based training
 
 #codebox[```python
 loss = f(parameters, data)    # forward pass: ONE number comes out
@@ -147,20 +147,20 @@ loss.backward()               # ← this line. What does it DO?
 ```]
 
 #pause
-Every model you have ever heard of — chatbots, image generators, speech systems — was trained by a loop whose heart is `loss.backward()`, executed *millions of times per run*.
+Many modern models are trained by repeating a forward evaluation of a scalar loss and a reverse-mode gradient computation.
 
 #pause
-About 20 milliseconds after the call, `∂loss/∂θ` has appeared for *every one* of the model's parameters. Billions of them. From one pass.
+After one reverse sweep, `∂loss/∂θ` is available for every parameter that contributed to the loss. The runtime is a small constant multiple of the forward evaluation, not one pass per parameter.
 
 #pause
 #notebox[We will compute the reverse pass by hand, implement a scalar autodiff engine in about 35 lines of Python, and compare it with PyTorch.]
 
-== Today's one idea
+== Reverse mode for a scalar output
 
 #result[Reverse mode computes the gradient of *one output* with respect to a *million inputs* in *one backward pass*.]
 
 #pause
-That asymmetry — not faster chips, not bigger data — is why deep learning is possible at all.
+This input/output asymmetry makes gradients of scalar losses computationally practical even when the parameter vector is large.
 
 #pause
 Three questions, in order:
@@ -168,7 +168,7 @@ Three questions, in order:
 + What flows backward through it? → *adjoints* (the chain rule, organized)
 + Who does the bookkeeping? → *you* (micrograd), then *PyTorch*
 
-== Where L10 left us: a cliffhanger
+== The cost left open in L10
 
 #table(
   columns: (auto, 1fr, 1fr),
@@ -177,14 +177,14 @@ Three questions, in order:
   table.header([*Method*], [*Assessment from L10*], [*Cost for* $nabla f$, $f: RR^n -> RR$]),
   [symbolic], [exact, but expressions explode], [—],
   [finite differences], [truncation vs rounding — both lose], [$n$ evals, *approximate*],
-  [forward-mode AD], [exact! carry $("value", "derivative")$ pairs], [#text(fill: RED)[$n$ *passes* — one per input]],
+  [forward-mode AD], [no finite-difference approximation; carry $("value", "derivative")$ pairs], [#text(fill: RED)[$n$ *passes* — one per input]],
 )
 
 #pause
-Forward mode ended L10 undefeated on *accuracy* — and disqualified on *cost*: a million inputs means a million passes.
+Forward mode removed the finite-difference approximation, but a million input directions still require a million passes to assemble the full gradient.
 
 #pause
-#result[Today's fix: don't push derivatives *forward* from each input. Pull them *backward* from the one output.]
+#result[Reverse mode seeds the scalar output and propagates adjoints backward, producing every input partial derivative in one reverse sweep.]
 
 == Learning outcomes
 
@@ -475,7 +475,7 @@ Hand, calculus, Typst engine: three routes, one answer. Two more coming (microgr
 #mcq-answer([B], [$overline(y) = 4$],
   [$y$ reaches $f$ through one path: the $+$ node *copies* $overline(a)$, and the $times$ node made $overline(a) = overline(f) dot b = 4$. Sanity check by calculus: $partial f slash partial y = x^2 = 4$. (Option D is $overline(x) = 3x^2 + 2x y = 32$ — the *other* input's adjoint.)])
 
-= Why reverse mode wins
+= When reverse mode is cheaper
 
 == Two sweep directions, two prices #V
 
@@ -489,7 +489,7 @@ Hand, calculus, Typst engine: three routes, one answer. Two more coming (microgr
 #pause
 #result[Forward: one pass per *input*. #h(1em) Reverse: one pass per *output*.]
 
-== The scoreboard #V
+== Pass counts for a full gradient #V
 
 Passes needed to assemble the full gradient of $f: RR^10 -> RR$:
 
@@ -510,9 +510,9 @@ And the gap *scales*:
 )
 
 #pause
-At 60 ms per pass, forward mode on GPT-3 needs $approx$ *330 years* per training step. Reverse: *60 ms*.
+At 60 ms per directional pass, the forward-mode estimate is about *330 years* to assemble this full gradient. Reverse mode needs one sweep, typically comparable to a small number of forward evaluations.
 
-== ML's shape is exactly reverse mode's shape
+== Scalar losses favor reverse mode
 
 Why does reverse mode fit machine learning so perfectly?
 
@@ -521,13 +521,13 @@ Why does reverse mode fit machine learning so perfectly?
 #pause
 - But it scores them with $m$ = *one* output — the loss $cal(L)(theta)$ (L14 builds it: a log-likelihood).
 #pause
-- $RR^n -> RR$, gigantic $n$, $m = 1$: the most extreme "reverse wins" shape that exists.
+- $RR^n -> RR$, with large $n$ and $m = 1$, is the regime in which reverse mode has the favorable pass count.
 
 #pause
-#result[Millions of knobs, one score. Reverse mode is not *an* option for ML — it is *the* option.]
+#result[For a scalar loss with many parameters, one reverse sweep computes the full gradient; a full forward-mode gradient needs one seed direction per input.]
 
 #pause
-#notebox[Flip the shape and forward mode wins: for $g: RR -> RR^(10^6)$ (one input, many outputs), forward needs 1 pass, reverse $10^6$. Rare in ML — but keep it for the checkpoint.]
+#notebox[For $g: RR -> RR^(10^6)$ (one input, many outputs), forward mode needs one pass whereas reverse mode needs one pass per output coordinate.]
 
 == The price: memory (here is the memoization)
 
@@ -543,7 +543,7 @@ So the forward pass must *keep every intermediate value alive* until backward is
 #result[Store each node's value once, reuse it for every path through that node: backprop is the chain rule with *memoization*.]
 
 #pause
-#notebox[The trade: forward mode streams in $O(1)$ extra memory; reverse pays $O("graph size")$ memory to win time. This is literally why training a network needs far more GPU memory than running one.]
+#notebox[The trade: a single forward-mode directional derivative can stream without retaining a reverse tape; reverse mode stores intermediate values, using memory proportional to the recorded graph. This is one major reason training needs more memory than inference.]
 
 == The cheap-gradient principle
 
@@ -553,7 +553,7 @@ How much *time* does the backward sweep add? Each node fires once, doing constan
 #result[Computing $nabla f$ costs a small constant multiple ($approx 2$–$3times$) of computing $f$ — *independent of $n$*. True for $n = 2$ and for $n = 1.75 times 10^11$.]
 
 #pause
-#notebox[This is the *cheap gradient principle* (Baur–Strassen; Griewank). It is why "just take the gradient" is a reasonable instruction at any scale — and why all of modern ML is gradient-based. The catch stays memory, not time.]
+#notebox[This is the *cheap gradient principle* (Baur–Strassen; Griewank): for suitable computational graphs, a scalar-output gradient costs only a constant factor more arithmetic than evaluating the function. Reverse mode pays for that time efficiency with storage for the tape.]
 
 == Checkpoint: pick the mode #Q
 
@@ -764,12 +764,12 @@ for step in range(1000):
 ```]
 
 #pause
-#alertbox[Forget line 1 and nothing crashes — gradients from every past step silently pile up, and training goes sideways. The single most common autograd bug; now you know exactly which `+=` causes it.]
+#alertbox[If line 1 is omitted, gradients from previous iterations accumulate silently. Clear them unless accumulation across batches is intentional.]
 
 #pause
 #notebox[Lines 3–4 are the bridge to Module 4: L16 takes the gradients you can now compute and asks *where to step*.]
 
-== Finale: the graph AI actually trains #V
+== Example: differentiate one neuron #V
 
 One last graph — small algebra, but shaped like the real thing: inputs weighted, summed, squashed.
 
@@ -801,7 +801,7 @@ Our Typst engine, live, agrees: $overline(w)_1 = #fnum(gn.at(0))$, $overline(w)_
 #pause
 #notebox[Read $overline(w)_2 = 0$ off the mul rule: $times$ *sends the other input*, and $w_2$'s partner is $x_2 = 0$. A weight attached to a silent input gets no gradient — no data, no learning signal.]
 
-== The 20 milliseconds, itemized
+== What `backward()` does, itemized
 
 Every step of `loss.backward()` is now one you have done yourself:
 
@@ -817,7 +817,7 @@ Every step of `loss.backward()` is now one you have done yourself:
 #pause
 #align(center, scale(66%, reflow: true, mlp-diagram((3, 4, 4, 1), labels: ([inputs], [layer 1], [layer 2], [loss]))))
 
-#result[Bigger graph, same single pass — why deep learning is possible.]
+#result[The same reverse-sweep procedure applies to larger graphs; work scales with the graph rather than with one separate evaluation per parameter.]
 
 = Summary & what's next
 
@@ -827,7 +827,7 @@ Every step of `loss.backward()` is now one you have done yourself:
 - *Adjoints*: $overline(v) = partial f slash partial v$; seed $overline(f) = 1$; each node sends *arriving × local*; branches `+=`.
 - *The graph*: $f = (x + y) x^2$ at $(3, 1)$: $f = 36$, $nabla f = (33, 9)$ — five methods, one answer.
 - *Asymmetry*: one pass per input (forward) vs one pass per *output* (reverse); a loss has one output.
-- *The price*: the tape stores forward values — memoization; costs memory, not time.
+- *The price*: the tape stores forward values — extra memory in exchange for avoiding one pass per input.
 - *Engines*: `data / grad / _prev / _backward` + topo sort + one sweep; in PyTorch `requires_grad` → `.backward()` → `.grad`, with `zero_grad()` every step.
 
 #pause

@@ -43,4 +43,4 @@ For $f:\mathbb{R}^n to \mathbb{R}^m$, state the shapes of a seed row vector and 
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut05-backprop-micrograd.ipynb`](../notebooks/tut05-backprop-micrograd.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut05-backprop-micrograd.ipynb). Predict each result, run the cell, and explain any disagreement.

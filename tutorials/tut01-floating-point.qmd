@@ -14,15 +14,17 @@ Every tutorial is 80 minutes, split in half:
 Tutorials are **formative**: attendance/effort credit only, nothing here is directly graded. Attempt every problem before opening the solutions. **Bring a laptop** (one per pair is fine) with Python + NumPy working.
 :::
 
-In Lecture 2 you watched a training loss go `NaN` and traced it back to how machines store numbers. This tutorial makes you fluent in that story: converting to binary by hand, encoding into an IEEE-754-style format, predicting exactly when arithmetic silently loses digits — and then confirming every prediction in code.
+In Lecture 2 you watched a training loss go `NaN` and traced it to finite-precision arithmetic. This tutorial develops that analysis directly: convert numbers to binary, encode them in an IEEE-754-style format, predict where arithmetic loses information, and then test those predictions in code.
 
-Remember the one-line takeaway: *computers don't do real numbers — they do ~4 billion of them, unevenly spaced.*
+A binary32 value is selected from roughly 4.3 billion bit patterns, including finite values, infinities, and NaNs. The finite values are not evenly spaced.
 
 ---
 
 ## Part A · Worksheet (~40 min, pen and paper)
 
 Throughout, subscripts denote the base: $1101.011_2$ is binary, $13.375_{10}$ is decimal.
+
+The stars indicate expected difficulty: ⭐ routine, ⭐⭐ multi-step, and ⭐⭐⭐ challenge.
 
 ### Problem 1 — Decimal to binary ⭐
 
@@ -76,7 +78,7 @@ For each expression below (evaluated in float64), predict the computed result, s
 
 ### Problem 6 — Log-sum-exp by hand ⭐⭐
 
-The quantity $\operatorname{LSE}(x_1,\dots,x_n) = \log \sum_i e^{x_i}$ appears in every softmax and every language-model loss.
+The quantity $\operatorname{LSE}(x_1,\dots,x_n) = \log \sum_i e^{x_i}$ appears in softmax and cross-entropy calculations.
 
 **(a)** Why does computing $\operatorname{LSE}(1000, 1000, 1000)$ naively fail in float32 *and* float64? (The overflow thresholds of $e^x$ are $x \approx 88.7$ for float32 and $x \approx 709.8$ for float64.)
 
@@ -90,7 +92,7 @@ The quantity $\operatorname{LSE}(x_1,\dots,x_n) = \log \sum_i e^{x_i}$ appears i
 $$\frac{|\operatorname{fl}(x) - x|}{|x|} \;\le\; 2^{-4}.$$
 (Hint: write $x = m \cdot 2^{e}$ with $1 \le m < 2$, use Problem 3(c) for the spacing, and remember round-to-nearest errs by at most half a gap.)
 
-**(b)** Generalize: for a format with $p$ mantissa (fraction) bits, the bound is $2^{-(p+1)}$. Conclude that float32 ($p = 23$) guarantees relative error $\le 2^{-24} \approx 6 \times 10^{-8}$ on every single rounding. This number $u = 2^{-(p+1)}$ is the **unit roundoff** — the "grain size" of all floating-point arithmetic.
+**(b)** Generalize: for a format with $p$ mantissa (fraction) bits, the bound is $2^{-(p+1)}$ when rounding to a finite normal result. Conclude that float32 ($p = 23$) has relative error $\le 2^{-24} \approx 6 \times 10^{-8}$ under that condition. This number $u = 2^{-(p+1)}$ is the **unit roundoff**.
 
 ---
 
@@ -126,7 +128,7 @@ $$\texttt{0 0001 000} = 1.0 \times 2^{-6} = \tfrac{1}{64} = \mathbf{0.015625}.$$
 
 **(b)** Numbers in $[8, 16)$ have exponent $3$; the same last-bit step is now scaled by $2^3$: gap $= 2^{3-3} = \mathbf{1}$. In float8, the next number after $8$ is $9$ — there is no $8.5$.
 
-**(c)** Gap $= 2^{e-3}$ for numbers in $[2^e, 2^{e+1})$ — the gaps *grow with the number*, which is exactly what "unevenly spaced" means. Machine epsilon is not the smallest representable number (that's $2^{-6}$ here, and subnormals go smaller); it is the *relative* grain size — the gap **at 1**. Absolute gaps range from tiny (near 0) to huge (near the top of the range).
+**(c)** Gap $= 2^{e-3}$ for numbers in $[2^e, 2^{e+1})$ — the gaps *grow with the number*, which is exactly what "unevenly spaced" means. Machine epsilon is not the smallest representable number: $2^{-6}$ is the smallest positive *normal* in this format, and $2^{-9}$ is the smallest positive subnormal. Machine epsilon is the gap **at 1**. Absolute gaps range from tiny near zero to large near the top of the range.
 
 ### Problem 4
 
@@ -161,11 +163,11 @@ Divide by $|x| = m \cdot 2^e \ge 2^e$:
 $$\frac{|\operatorname{fl}(x) - x|}{|x|} \;\le\; \frac{2^{e-4}}{2^{e}} = 2^{-4}. \qquad \blacksquare$$
 (The bound is tight-ish near $m = 1$ and twice as good near $m = 2$.)
 
-**(b)** Identical argument with $p$ mantissa bits: spacing $2^{e-p}$, half-gap $2^{e-(p+1)}$, relative error $\le 2^{-(p+1)}$. For float32, $p = 23$ gives $u = 2^{-24} \approx 5.96 \times 10^{-8}$ — about 7 decimal digits. Every basic operation (`+ − × ÷`, `sqrt`) in IEEE-754 returns the exactly-rounded result, so *each* operation is accurate to relative error $u$. Numerical disasters (Problems 5–6) are never one bad rounding — they are correct roundings *arranged badly*.
+**(b)** Identical argument with $p$ mantissa bits: spacing $2^{e-p}$, half-gap $2^{e-(p+1)}$, relative error $\le 2^{-(p+1)}$ for a finite normal rounded result. For float32, $p = 23$ gives $u = 2^{-24} \approx 5.96 \times 10^{-8}$ — about 7 decimal digits. IEEE-754 specifies correctly rounded results for the basic operations shown here. The relative-error bound applies when the exact result rounds to a finite normal value; overflow, underflow, and subnormal results need separate treatment. Problems 5–6 show that individually correct roundings can still compose into an inaccurate calculation.
 :::
 
 ---
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut01-floating-point.ipynb`](../notebooks/tut01-floating-point.ipynb): every prediction you just made on paper — `0.1 + 0.2`, machine epsilon, the uneven number line, catastrophic cancellation, overflowing softmax, float16 vs bfloat16 — run live in NumPy, ending with why modern AI trains in bfloat16 and computes in log-space.
+Open the [companion notebook](../notebooks/tut01-floating-point.ipynb). It reproduces Problems 1–7 in NumPy and compares cancellation, log-sum-exp, float16, and bfloat16 numerically.

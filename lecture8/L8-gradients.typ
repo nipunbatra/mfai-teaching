@@ -77,7 +77,7 @@ You will stare at thousands of the left plot. It is an *altimeter log*: height v
 
 - A real model has *millions* of weights — its loss surface lives in $RR^(10^6)$, unplottable forever.
 #pause
-- But every mechanism you'll ever need — slopes, contours, steepest directions — already exists, fully visible, at *two* weights.
+- The core local mechanisms — slopes, contours, and steepest directions — are already visible with *two* weights.
 #pause
 - So today is deliberately flat-footed: $f(x, y)$, drawn every way we can.
 
@@ -86,7 +86,7 @@ You will stare at thousands of the left plot. It is an *altimeter log*: height v
 
 == Today's one idea
 
-#result[The *gradient* collects every partial sensitivity into one vector — and that vector points *straight uphill*, perpendicular to the contour lines.]
+#result[The *gradient* collects every partial sensitivity into one vector. At a regular point it gives steepest ascent and is perpendicular to the local contour.]
 
 #pause
 Three questions, in order:
@@ -196,7 +196,7 @@ plt.gca().set_aspect("equal")
 ```]
 
 #pause
-`meshgrid` tabulates the plane; `contour` interpolates the level curves between grid values. Every loss-landscape picture you have ever seen is these five lines.
+`meshgrid` tabulates the plane; `contour` interpolates level curves between grid values. These five lines are the basic recipe behind many two-dimensional loss-landscape plots.
 
 #pause
 #notebox[T4 walks through `meshgrid` slowly — including the classic confusion about which axis is which.]
@@ -228,7 +228,7 @@ plt.gca().set_aspect("equal")
     At the center: flat — yet *neither* a peak nor a pit. Ride $x = y$ and you climb; ride $x = -y$ and you sink.
 
     #pause
-    #alertbox[High-dimensional loss surfaces are *full* of saddle points — flat spots that stall training without being minima. L9 gives you the tool (the Hessian) that tells bowls, saddles, and trenches apart.]
+    #alertbox[High-dimensional objectives can have saddle critical points: zero-gradient locations that are not minima. L9 introduces the Hessian, whose curvature signs distinguish the local quadratic models of bowls, saddles, and troughs.]
   ],
 )
 
@@ -237,7 +237,7 @@ plt.gca().set_aspect("equal")
 Contours are not just a plotting trick — they are how ML *draws decisions*:
 
 #pause
-- A classifier outputs a probability surface $p(x, y)$ over the plane; its *decision boundary* is precisely the level set $p = 0.5$.
+- With the usual binary threshold $0.5$, a classifier's *decision boundary* is the level set $p(x, y) = 0.5$. Different costs or thresholds move that boundary.
 #pause
 - Every "decision boundary" plot in ES 335 is `plt.contour(X, Y, P, levels=[0.5])` — the same five lines of code as before.
 
@@ -279,7 +279,7 @@ Each freeze exposes a *cut edge* through our base point $(2, 1)$, where $f = 7$ 
 ))
 
 #pause
-Each cut is a parabola with a *tangent line* at the base point — L7's local-line story, verbatim. Two cuts, two slopes. Let's measure them.
+Each cut is a parabola with a *tangent line* at the base point — exactly L7's local-line approximation. Two cuts, two slopes. Let's measure them.
 
 == The nudge table, twice
 
@@ -393,12 +393,12 @@ Every arrow is $nabla f$ planted at its base point — three regularities hide h
 
 + Every arrow points *away from the pit* — uphill, toward higher contours.
 #pause
-+ Every arrow crosses its contour line *at a right angle* — no exceptions, anywhere.
++ Wherever $nabla f eq.not bold(0)$ and the level set is smooth, the gradient crosses its contour at a right angle.
 #pause
 + Arrows are *long where lines crowd* (steep!), and shrink to $nabla f = bold(0)$ at the flat bottom — the resting places of gradient descent (L16–L18's obsession).
 
 #pause
-#result[The gradient is perpendicular to the contour through the point, and its norm is the maximum directional derivative.]
+#result[At a regular point ($nabla f eq.not bold(0)$), the gradient is perpendicular to the contour through the point, and its norm is the maximum directional derivative.]
 
 == The field in code
 
@@ -456,7 +456,7 @@ $ f(2 + h, thin 1 + k) thin approx thin underbrace(7, f(2,1)) + underbrace(4, pa
 Why: move in two legs. East by $h$: the $x$-cut's tangent charges $4h$. Then north by $k$: the $y$-cut's tangent charges $6k$. (To first order the second leg's slope hasn't changed — that's what *smooth* buys.)
 
 #pause
-*Test it* at $(h, k) = (0.1, 0.05)$: plane says $7 + 0.4 + 0.3 = 7.70$; truth $f(2.1, 1.05) = 7.7175$. Off by $0.0175$ — quadratically small, L7's superlinear story again.
+*Test it* at $(h, k) = (0.1, 0.05)$: plane says $7 + 0.4 + 0.3 = 7.70$; truth $f(2.1, 1.05) = 7.7175$. Off by $0.0175$ — a second-order error, as L7 predicts.
 
 == ⭐ Step 2 · the slope along $bold(u)$ is a dot product #D
 
@@ -473,7 +473,7 @@ $ D_bold(u) f = nabla f dot bold(u) $
 Check against the measured table: $bold(u) = (0.6, 0.8)$: $(4)(0.6) + (6)(0.8) = 7.2$ ✓. Axes: $(1,0) -> 4$ ✓, $(0,1) -> 6$ ✓.
 
 #pause
-#result[One vector, $nabla f$, predicts the slope in *every* direction. That is why the gradient is the only thing an optimizer asks for.]
+#result[One vector, $nabla f$, predicts the slope in *every* direction. A first-order optimizer uses this information to choose a local descent direction.]
 
 == The right angle, up close #V
 
@@ -487,7 +487,7 @@ Zoom onto $(2, 1)$: the exact $nabla f$ (green pin) vs the level curve $f = 7$ a
   x-label: $x$, y-label: $y$))
 
 #pause
-The claim: *always* $90 degree$, at every point of every smooth surface. Picture argument, then algebra.
+The claim: $90 degree$ at every *regular point* of a smooth level set, where $nabla f eq.not bold(0)$. Picture argument, then algebra.
 
 == ⭐ Step 3 · level walking ⟹ perpendicular #D
 
@@ -614,7 +614,7 @@ Gradient descent on $cal(L)(w, b)$ from the two-point fit, starting at $(w, b) =
 )
 
 #pause
-Fast drop, then a long crawl *along the valley floor* toward $(2, 0)$ — the plateau in every real training curve is usually this: a valley, walked lengthwise.
+For this quadratic loss, the fast drop is followed by a long crawl *along the valley floor* toward $(2, 0)$. Real training curves can flatten for several other reasons, so the curve alone does not diagnose a valley.
 
 == Interactive: gradient-descent trajectories #I
 
@@ -625,7 +625,7 @@ Fast drop, then a long crawl *along the valley floor* toward $(2, 0)$ — the pl
 #pause
 Try the ill-conditioned valley: watch steps zigzag *across* the valley precisely because each one is perpendicular to its contour.
 
-== Where today's ideas get cashed
+== Where today's gradient is used later
 
 #table(
   columns: (auto, 1fr),
@@ -679,7 +679,7 @@ $f(x, y) = abs(x) + abs(y)$ — the L1 norm from L3, as terrain:
     Diamond rings — with *corners* wherever $x = 0$ or $y = 0$.
 
     #pause
-    At a corner the left and right slices disagree on the slope: *no single tangent, no gradient*. Our smooth-zoom story needs a patch.
+    At a corner the left and right slices disagree on the slope: *no single tangent, no gradient*. The smooth local-plane argument no longer applies.
 
     #pause
     #notebox[At a nondifferentiable corner, a *subgradient* replaces the derivative. This is used for $L_1$ regularization and ReLU networks; L16 revisits the convex case.]

@@ -142,17 +142,17 @@ For this bounded LP, a vertex attains the optimum.
 
 == Why a vertex is enough
 
-Suppose a point lies strictly inside an edge between vertices $bold(u)$ and $bold(v)$:
+Every point in a bounded polytope is a convex combination of its vertices:
 
-$ bold(x)=alpha bold(u)+(1-alpha)bold(v), quad 0<alpha<1. $
+$ bold(x)=sum_k alpha_k bold(v)_k, quad alpha_k>=0, quad sum_k alpha_k=1. $
 
 #pause
 For a linear objective,
 
-$ bold(c)^top bold(x)=alpha bold(c)^top bold(u)+(1-alpha)bold(c)^top bold(v). $
+$ bold(c)^top bold(x)=sum_k alpha_k bold(c)^top bold(v)_k. $
 
 #pause
-The interior value cannot exceed both endpoint values. Move to the better endpoint; repeat until reaching a vertex.
+This weighted average cannot exceed the best vertex value. Hence some vertex is at least as good as $bold(x)$.
 
 == Three possible LP outcomes
 
@@ -192,7 +192,7 @@ The constraint $x_1+x_2<=4$ is tight along the segment from $(1,3)$ to $(2,2)$, 
 
 == Answer #A
 
-#mcq-answer("B", [a vertex of the polytope], [A linear objective cannot be strictly better in the interior of a segment than at both endpoints.])
+#mcq-answer("B", [a vertex of the polytope], [Every feasible point is a convex combination of vertices, so its linear-objective value cannot exceed the best vertex value.])
 
 // ═══════════════════ 3 · modeling ═══════════════════
 = From words to an LP
@@ -416,7 +416,7 @@ For $bold(z)=(3,1.4)$, the projection is $(2,1.4)$—inside an edge, not at a ve
   table.header([], [*LP*], [*convex QP*]),
   [objective contours], [parallel hyperplanes], [ellipses / cylinders],
   [curvature], [none], [$P$ positive semidefinite],
-  [typical optimum], [a vertex exists], [interior, edge, or vertex],
+  [typical optimum], [vertex, for a bounded polytope], [interior, edge, or vertex],
   [constraints], [affine], [affine],
 )
 
@@ -449,7 +449,7 @@ Thus
 $ P=A^top A, quad bold(q)=-A^top bold(b), quad "and" quad P " is positive semidefinite". $
 
 #pause
-Bounded or equality-constrained least squares is a convex QP.
+Least squares with affine equality or inequality constraints is a convex QP.
 
 // ═══════════════════ 6 · portfolio QP ═══════════════════
 = Balancing return and risk
@@ -684,7 +684,7 @@ Modeling systems can select a compatible solver; production work should record t
 #result[Linear and convex quadratic programs are standard numerical technologies; the main skill is building the right model.]
 
 #pause
-+ LP: linear objective, affine constraints, and an optimum at some vertex when finite.
++ LP: linear objective and affine constraints; over a bounded polytope, some vertex is optimal.
 + Convex QP: positive-semidefinite quadratic objective over affine constraints.
 + Dual variables attach marginal prices to constraints.
 + CVXPY expresses the model; the solver status and residuals still require inspection.

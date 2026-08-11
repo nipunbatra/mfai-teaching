@@ -1,4 +1,4 @@
-// Learning Sequences and Course Finale — Lecture 26 · Mathematical Foundations for AI
+// Learning Sequence Models — Lecture 26 · Mathematical Foundations for AI
 // Compile from the repository root:
 //   typst compile --root . lecture26/L26-learning-sequences-finale.typ
 
@@ -6,7 +6,7 @@
 #import "../common/mldiag.typ": *
 #show: metropolis-deck.with(
   title: [Learning Sequence Models],
-  subtitle: [Counts, smoothing, generation, and the course finale],
+  subtitle: [Counts, smoothing, evaluation, and generation],
 )
 
 #title-slide()
@@ -118,6 +118,9 @@ $ "subject to" quad sum_j P_(i j)=1. $
 $ cal(L)_i=sum_j n_(i j)log P_(i j)-lambda_i(sum_j P_(i j)-1). $
 
 #pause
+First assume every $n_(i j)>0$, so the maximizing row is in the simplex interior.
+
+#pause
 Differentiate with respect to $P_(i j)$:
 
 $ partial cal(L)_i/(partial P_(i j))=(n_(i j))/(P_(i j))-lambda_i=0. $
@@ -145,10 +148,13 @@ $ lambda_i=n_(i dot). $
 
 Substitute $lambda_i=n_(i dot)$:
 
-#result[$hat(P)_(i j)=(n_(i j))/(n_(i dot))$.]
+#result[$hat(P)_(i j)=(n_(i j))/(n_(i dot)) quad "for" quad n_(i dot)>0$.]
 
 #pause
 The maximum-likelihood transition probability is the empirical fraction of departures from $i$ that arrive at $j$.
+
+#pause
+#notebox[If $n_(i j)=0$, KKT places that coordinate on the boundary at $hat(P)_(i j)=0$, giving the same formula. If $n_(i dot)=0$, the row was never observed and its transition probabilities are not identifiable without a prior or another modeling choice.]
 
 == Return to the A/B sequence
 
@@ -636,7 +642,7 @@ The probability and loss framework remains; the parameterization becomes much ri
 #result[Transition-count MLE is row normalization; smoothing makes prediction finite; cross-entropy evaluates the fitted sequence model.]
 
 #pause
-+ $hat(P)_(i j)=n_(i j)/n_(i dot)$ follows from constrained maximum likelihood.
++ For an observed row, $hat(P)_(i j)=n_(i j)/n_(i dot)$ follows from constrained maximum likelihood.
 + A Dirichlet prior yields add-$alpha$ posterior predictive probabilities.
 + Longer context can reduce BPC but increases parameter and data requirements.
 + Generation repeatedly samples the same conditional probabilities used for scoring.

@@ -1,19 +1,41 @@
 ---
-title: "Syllabus & Reading Map"
+title: "Syllabus and Reading Guide"
 subtitle: "Mathematical Foundations for AI · 3-1-0-4 · 26 lectures + 13 tutorials, 80 min each"
 ---
 
-> **Backbone text:** Deisenroth, Faisal & Ong, *Mathematics for Machine Learning* (MML) — [free PDF](https://mml-book.github.io/). Supplemented by Boyd & Vandenberghe (optimization), MacKay (information theory), Solomon (numerics) — all free PDFs.
+The primary text is Deisenroth, Faisal & Ong, *Mathematics for Machine Learning* (MML) — [free PDF](https://mml-book.github.io/). Boyd & Vandenberghe, MacKay, and Solomon provide the main supplementary readings.
+
+## Course format
+
+| Item | Details |
+|------|---------|
+| Credits | 3-1-0-4 |
+| Instructor | Prof. Nipun Batra, IIT Gandhinagar |
+| Meetings | 26 lectures and 13 tutorials; 80 minutes each |
+| Tutorial format | Pen-and-paper worksheet followed by a computational notebook |
+| Primary text | Deisenroth, Faisal & Ong, *Mathematics for Machine Learning* |
 
 **Prerequisites:** ES 113 (Data Centric Computing) and ES 114 (Probability, Statistics & Data Visualisation). We assume Python/NumPy and basic discrete probability. We do **not** assume any machine learning.
 
-**Assessment** (advertised structure; dates on the announcements page): quizzes at module boundaries (best n−1) · midsem after Module 3 · endsem (cumulative) · 3 take-home assignments (micrograd · CVXPY · compressor + language model). Tutorials are formative.
+**Assessment structure:** quizzes at module boundaries (best n−1), a mid-semester examination after Module 3, a cumulative end-semester examination, and three take-home assignments (micrograd, CVXPY, and compression plus a language model). Tutorials are formative.
+
+## Learning outcomes
+
+By the end of the course, students should be able to:
+
+1. diagnose common floating-point failures and choose numerically stable forms of elementary computations;
+2. use vector, matrix, eigenvalue, SVD, and PCA calculations to describe data and linear maps;
+3. compute gradients, Jacobians, and Hessians, and implement forward- and reverse-mode automatic differentiation on small graphs;
+4. work with continuous and multivariate distributions and derive MLE and MAP estimators in standard models;
+5. formulate and solve unconstrained, equality-constrained, and inequality-constrained optimization problems, including LPs and QPs;
+6. compute entropy, cross-entropy, KL divergence, and expected code length; and
+7. fit, evaluate, and sample from a finite-state Markov or n-gram sequence model.
 
 ## Module 0 · Motivation & Machine Numbers { .module-0 }
 
 | # | Lecture | Reading | Supplementary |
 |:---:|---------|---------|---------------|
-| 1 | Why Math for AI + Course Map | MML Ch 1 | course-design pillars on the repo |
+| 1 | Why Math for AI + Course Map | MML Ch 1 | — |
 | 2 | Floating Point | Solomon Ch 2 | [numerical-tricks interactive](https://nipunbatra.github.io/interactive-articles/) |
 
 ## Module 1 · Linear Algebra Refresher { .module-1 }
@@ -55,23 +77,23 @@ subtitle: "Mathematical Foundations for AI · 3-1-0-4 · 26 lectures + 13 tutori
 | 20 | Duality & KKT | Boyd Ch 5 (guided) | — |
 | 21 | Linear & Quadratic Programming | Boyd 4.3–4.4 | [CVXPY examples](https://www.cvxpy.org/examples/index.html); EE364a archives |
 
-## Module 5 · Information Theory ↔ ML { .module-5 }
+## Module 5 · Information Theory and ML { .module-5 }
 
 | # | Lecture | Reading | Supplementary |
 |:---:|---------|---------|---------------|
 | 22 | Surprise & Entropy | MacKay Ch 2, 4 | [MacKay video lecture 1](https://www.youtube.com/playlist?list=PLruBu5BI5n4aFpG32iMbdWoRVAA-Vcso6) |
 | 23 | Compression & Optimal Codes | MacKay Ch 4–5 | MacKay Ch 1 (Hamming 7,4) |
-| 24 | KL & the Grand Unification | MacKay 2.6, Ch 8 | [Olah: Visual Information Theory](https://colah.github.io/posts/2015-09-Visual-Information/) |
+| 24 | Cross-Entropy and KL Divergence | MacKay 2.6, Ch 8 | [Olah: Visual Information Theory](https://colah.github.io/posts/2015-09-Visual-Information/) |
 
-## Module 6 · Markov Chains & the Payoff { .module-6 }
+## Module 6 · Markov Chains and Sequence Models { .module-6 }
 
 | # | Lecture | Reading | Supplementary |
 |:---:|---------|---------|---------------|
 | 25 | Markov Chains | [Setosa](https://setosa.io/ev/markov-chains/) | pml MCMC notes (Markov half) |
-| 26 | Learning Sequences + Finale | MacKay Ch 2 revisited | [makemore part 1](https://www.youtube.com/watch?v=PaCmpygFfXo) |
+| 26 | Learning Sequence Models | MacKay Ch 2 revisited | [makemore part 1](https://www.youtube.com/watch?v=PaCmpygFfXo) |
 
 ---
 
-## Learning outcomes (from the approved proposal)
+## Alignment with the approved proposal
 
-Students gain the mathematical tooling for subsequent CS/AI courses, with a mix of theory and programming: numerical representation, linear algebra, multivariate calculus and automatic differentiation, probabilistic modeling and estimation, continuous and constrained optimization, information-theoretic foundations, and sequential models.
+The sequence covers numerical representation, linear algebra, multivariate calculus and automatic differentiation, probabilistic modelling and estimation, continuous and constrained optimization, information-theoretic foundations, and sequential models. Theory and programming are paired throughout the course.

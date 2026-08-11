@@ -43,4 +43,4 @@ Explain why a velocity average can reduce zig-zagging in the steep direction whi
 
 ## Part B · Notebook (~40 min, laptop)
 
-Open [`../notebooks/tut08-gradient-descent-conditioning.ipynb`](../notebooks/tut08-gradient-descent-conditioning.ipynb). Predict each result, run the cell, and explain any disagreement.
+Open the [companion notebook](../notebooks/tut08-gradient-descent-conditioning.ipynb). Predict each result, run the cell, and explain any disagreement.

@@ -39,24 +39,24 @@
 
 = Generating samples by transforming noise
 
-== Where does a brand-new face come from?
+== A common generative-model construction
 
-Image generators, voice cloners, molecule designers — none of them stores a warehouse of faces to hand out. Every fresh sample is manufactured on the spot, by one recipe:
+Many generative models begin with a simple random variable and transform it into a sample:
 
 #genpipe
 
 #pause
-That first box is astonishingly humble. In PyTorch it is literally
+In a simplified PyTorch example:
 
 #codebox[```python
-z = torch.randn(...)     # plain Gaussian noise — that's the whole "creativity"
+z = torch.randn(...)     # simple Gaussian noise
 x = f(z)                 # a learned transformation does the rest
 ```]
 
 #pause
 Diffusion models, VAEs, normalizing flows — different learned $f$, *same recipe*: sample cheap noise, transform it.
 
-== Two questions hide inside that recipe
+== Two mathematical questions
 
 + The noise $z$ and the sample $x$ are *continuous* quantities. In ES 114, probability meant counting outcomes: $P(X = x)$. What does probability even *mean* when $x$ can be any real number?
 
@@ -64,20 +64,20 @@ Diffusion models, VAEs, normalizing flows — different learned $f$, *same recip
 + The transformation $f$ moves samples around. What does it do to their *probabilities*?
 
 #pause
-#notebox[Honesty up front: the real $f$ is a neural network in a million dimensions (ES 667's story). Today we build the *1-D mathematics that makes the recipe legal* — and by the last section you will run the recipe yourself, exactly, on a real distribution.]
+#notebox[In applications, $f$ may be a high-dimensional neural network. Today we develop the one-dimensional density and transformation rules, then implement inverse-CDF sampling for a distribution with a closed-form inverse.]
 
 == Today, in one line
 
-#result[For continuous quantities, probability lives in *areas under a density curve* — and any transformation of the variable must pay a *Jacobian toll*.]
+#result[For continuous quantities, interval probabilities are areas under a density. An invertible differentiable transformation changes density by an inverse-Jacobian factor.]
 
 #pause
 The route:
 
-+ *Density* — the object that replaces the PMF (and the traps it sets)
++ *Density* — the object that replaces point masses
 + *CDF* — the running total that connects density to real probabilities
 + *Expectation & variance* — the old formulas, with $sum -> integral$
 + *The zoo* — uniform, exponential, Gaussian, Beta
-+ *The toll* — change of variables, then *sampling anything from* $cal(U)(0,1)$
++ *Change of variables* — the Jacobian factor, then inverse-CDF sampling from $cal(U)(0,1)$
 
 == What ES 114 already gave you
 
@@ -93,7 +93,7 @@ Two dice, $Z = $ sum of the faces — the PMF you have drawn many times:
 Everything lived on this scaffolding: $p_Z (z) = P(Z = z)$ is a genuine probability, probabilities of events are *sums* of bar heights, $EE[Z] = sum z thin p_Z (z)$.
 
 #pause
-Today every one of those moves gets a continuous twin — and two of them change in ways that surprise almost everyone.
+Today each operation gets its continuous counterpart.
 
 == Learning outcomes
 
@@ -122,7 +122,7 @@ Different question: what is
 $ P(H = italic("exactly") 68 "inches") = P(H = 68.000000000 dots) = thin ? $
 
 #pause
-Nobody is *exactly* 68 inches. Any specific real number has infinitely many decimals to match; matching all of them is a miracle of probability zero.
+Under a continuous model, probability is assigned to intervals. A singleton has zero width and hence zero probability, even though a realized measurement takes some value.
 
 #pause
 #alertbox[For a continuous quantity, $P(X = x) = 0$ at *every single* $x$. The PMF — our whole ES 114 toolkit — reads 0 everywhere. We need a new object.]
@@ -138,7 +138,7 @@ The staircase stops changing shape and settles onto a smooth curve. *That limiti
 
 == The limit object: a probability density
 
-#result[$ p(x) = lim_(delta -> 0) P(x <= X <= x + delta) / delta $ — probability *per unit length*, not probability.]
+#result[At points where the density is continuous, $ p(x) = lim_(delta -> 0^+) P(x <= X <= x + delta) / delta $ — probability *per unit length*, not probability.]
 
 #pause
 Read it like the speedometer of probability: for a tiny interval,
@@ -155,7 +155,7 @@ $ P(x <= X <= x + delta) approx p(x) dot delta quad quad "(height × width = a s
 Uncomfortable but true: the dart *does* land somewhere, yet every exact landing point had probability 0.
 
 #pause
-- "Probability 0" for continuous $X$ means *vanishingly unlikely under infinite precision* — not forbidden. Some zero-probability outcome occurs on every draw.
+- A probability-zero event need not be logically impossible. For a continuous variable, every singleton has probability zero even though the realized value belongs to one of them.
 #pause
 - Nothing is broken: probability was never promised to individual points, only to *sets with width*.
 
@@ -331,10 +331,10 @@ Round trip on $"Exp"(1)$:
 $ dif / (dif x) (1 - e^(-x)) = e^(-x) = p(x) quad ✓ $
 
 #pause
-#result[pdf $arrow.r^(integral)$ CDF and CDF $arrow.r^(dif \/ dif x)$ pdf. One object, two views, both directions open.]
+#result[Integrating a pdf gives its CDF; at points where the CDF is differentiable, $F'(x) = p(x)$.]
 
 #pause
-This is also the honest *definition* of the density: whatever function you must integrate to reproduce $F$.
+Equivalently, a density is a function whose integral reproduces the CDF.
 
 == Every interval question routes through $F$
 
@@ -484,7 +484,7 @@ $ X tilde cal(U)(a, b) quad quad p(x) = cases(1\/(b-a) & quad a <= x <= b, 0 & q
 #pause
 - Fair dice made continuous: no value in the support is more special than another.
 #pause
-#result[$cal(U)(0, 1)$ is what `rng.random()` gives you — and by the end of today it is the *only* randomness you will ever need.]
+#result[`rng.random()` supplies $cal(U)(0, 1)$ draws; inverse-CDF and other algorithms transform uniform draws into many useful distributions.]
 
 == Card 2 · Exponential: waiting times
 
@@ -503,7 +503,7 @@ $ X tilde "Exp"(lambda) quad quad p(x) = lambda e^(-lambda x) "  on " [0, oo) qu
 #pause
 Time between requests at a server, between clicks, between mutations. One famous quirk: it is *memoryless* — having already waited 5 minutes changes nothing about the wait ahead.
 
-== Card 3 · Gaussian: the celebrity
+== Card 3 · Gaussian
 
 $ X tilde cal(N)(mu, sigma^2) quad quad p(x) = 1/(sigma sqrt(2 pi)) thin e^(-(x - mu)^2 \/ (2 sigma^2)) $
 
@@ -521,7 +521,7 @@ $ X tilde cal(N)(mu, sigma^2) quad quad p(x) = 1/(sigma sqrt(2 pi)) thin e^(-(x 
 $mu$ slides, $sigma$ stretches — that is the *entire* family. Tape measure: $approx 68%$ of mass within $1sigma$, $95%$ within $2sigma$, $99.7%$ within $3sigma$.
 
 #pause
-Why everywhere? Sums of many small effects become Gaussian (CLT — demoed in L13), and it is the "most honest" default (max entropy — proved in the information module).
+Why everywhere? Standardized sums of many independent effects often approach a Gaussian (CLT — demoed in L13). Among densities with a fixed mean and variance, the Gaussian has maximum entropy (proved in the information module).
 
 == Card 4 · Beta: a distribution over probabilities #V
 
@@ -543,7 +543,7 @@ Beta draws live in $[0, 1]$ — so a draw can *be* a probability (a coin's heads
 )
 
 #pause
-#notebox[$p(theta) prop theta^(alpha - 1) (1 - theta)^(beta - 1)$, with $EE[theta] = alpha\/(alpha + beta)$. *Planted for L15:* read $alpha - 1$ as "heads seen", $beta - 1$ as "tails seen" — this becomes the machinery of Bayesian updating, with the Beta as star. Remember the shapes.]
+#notebox[$p(theta) prop theta^(alpha - 1) (1 - theta)^(beta - 1)$, with $EE[theta] = alpha\/(alpha + beta)$. In L15, $alpha - 1$ and $beta - 1$ become mode-based pseudo-count offsets, while observed counts update $alpha$ and $beta$ directly.]
 
 == The four, on one wall #V
 
@@ -657,7 +657,7 @@ If $a < 0$ the inequality flips ($P(X >= dots) = 1 - F_X$), and differentiating 
 #pause
 #result[$ p_Y (y) = p_X ((y - b)/a) dot 1/abs(a) quad quad "— the stretch factor, paid in density" $]
 
-== ⭐ Step 3: interrogate the formula #D
+== ⭐ Step 3: check the formula #D
 
 *Check against the pilot:* $X tilde cal(U)(0,1)$, $Y = 2X$: $p_Y (y) = p_X (y\/2) dot 1\/2 = 1\/2$ on $[0, 2]$ — the half-height box we measured by hand. ✓
 
@@ -671,7 +671,7 @@ The $1\/abs(a)$ is precisely what the substitution rule of integration (Module 2
 
 == The general 1-D rule
 
-For any strictly monotone, differentiable $g$, the same two moves (CDF, then chain rule) give:
+For a strictly monotone differentiable $g$ with nonzero derivative, the same two moves (CDF, then chain rule) give:
 
 $ p_Y (y) = p_X (g^(-1)(y)) dot abs((dif x)/(dif y)) quad quad "where " x = g^(-1)(y) $
 
@@ -698,7 +698,7 @@ L9 showed that $abs(det J)$ is the local volume-scaling factor of a square map.
 )
 
 #pause
-In $d$ dimensions the rule is verbatim $p_Y (bold(y)) = p_X (bold(x)) abs(det J)^(-1)$ — the factor every normalizing-flow and diffusion paper carries in its log-likelihood. You have now derived its 1-D soul.
+For an invertible differentiable map in $d$ dimensions, $p_Y (bold(y)) = p_X (bold(x)) abs(det J)^(-1)$ when $J = dif bold(y)\/dif bold(x)$. This determinant factor is central to normalizing flows; diffusion models generally use different likelihood constructions.
 
 == Build a Gaussian from a standard normal vector
 
@@ -734,22 +734,22 @@ This two-line transformation is the reparameterization used in variational autoe
 
 = Inverse-CDF sampling: uniform → anything
 
-== The last missing piece: where do samples come from?
+== Uniform draws as a starting point
 
-All of today assumed we can "draw $x tilde p$". But a computer owns exactly *one* source of randomness:
+Most numerical random-number APIs expose uniform pseudorandom draws (ultimately generated from random bits):
 
 #codebox[```python
-u = rng.random()        # U(0, 1) — this is ALL the machine truly has
+u = rng.random()        # U(0, 1)
 ```]
 
 #pause
-`randn`, `exponential`, every fancy sampler — all are *transformations of uniform draws*. There is no other well.
+Gaussian, exponential, and many other samplers can be constructed from uniform draws, although production libraries use several specialized algorithms.
 
 #pause
 #result[Claim: $cal(U)(0, 1)$ + a CDF $F$ = a sampler for $F$'s distribution. The transform is $x = F^(-1)(u)$.]
 
 #pause
-One transformation turning dumb noise into a chosen distribution — the generative recipe, in its smallest honest form.
+This is the simplest instance of sampling by transformation.
 
 == The picture: darts at the $u$-axis #V
 
@@ -783,7 +783,7 @@ And for a uniform, $P(U <= t) = t$ for any $t in [0, 1]$:
 $ P(X <= x) = F(x) quad qed $
 
 #pause
-#result[$F^(-1)(U)$ has CDF $F$ — *exactly*, not approximately. Two lines, no fine print.]
+#result[When $F$ is strictly increasing, $F^(-1)(U)$ has CDF $F$. More generally, the quantile function gives the same construction for CDFs with flat regions or jumps.]
 
 #pause
 (Both ⭐ derivations today were the same trick: don't touch densities — push events through monotone maps and read off the CDF.)
@@ -824,7 +824,7 @@ Works verbatim for any distribution whose $F^(-1)$ you can write: uniform, expon
 #genpipe
 
 #pause
-You have now run this pipeline honestly: noise $u tilde cal(U)(0,1)$, transformation $F^(-1)$, out came exponential samples — *sample simple noise, transform it* is a theorem, not a slogan.
+The pipeline is now explicit: draw $u tilde cal(U)(0,1)$ and transform it by $F^(-1)$ to obtain exponential samples.
 
 #pause
 The industrial versions upgrade each box, not the idea: the noise goes multivariate Gaussian (L13), the transformation becomes *learned* (ES 667), and the toll $abs(det J)$ prices every step.
@@ -858,7 +858,7 @@ One table, the whole lecture. The left column you owned already; the right colum
 - *Density* = probability per unit length: $P(X = x) = 0$; $p(x) > 1$ legal; *areas* are probabilities.
 - *CDF*: $F(x) = integral_(-oo)^x p$, and $F' = p$; interval questions are $F(b) - F(a)$.
 - *Moments are integrals*: uniform balances at $(a+b)\/2$; exponential waits $1\/lambda$.
-- *Zoo on sight*: uniform, exponential, Gaussian, Beta (L15's star).
+- *Common families*: uniform, exponential, Gaussian, and Beta.
 - *The toll*: $p_Y (y) = p_X (x) abs(dif x\/dif y)$ — the Gaussian's $1\/sigma$ is a receipt.
 - *The sampler*: $F^(-1)(U) tilde F$, proved in two lines — uniform darts become anything.
 

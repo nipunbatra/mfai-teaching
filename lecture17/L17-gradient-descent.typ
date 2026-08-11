@@ -65,9 +65,9 @@ Gradient descent uses the same code and learning rate $eta = 0.8$ on two quadrat
 #pause
 It converges slowly on one and diverges on the other. This lecture explains both outcomes with exact calculations.
 
-== Interrogating the suspect
+== Why one learning rate behaves differently
 
-The obvious suspect is $eta = 0.8$. Put it on the stand:
+Start by testing whether $eta = 0.8$ is simply too large or too small:
 
 #table(
   columns: (auto, 1fr, auto),
@@ -100,7 +100,7 @@ The same number cannot be simultaneously too big and too small…
 - L8 settled *which way* to step. Nobody has yet said *how far*.
 
 #pause
-- Today: derive the algorithm, then interrogate its one knob — $eta$ — until it confesses.
+- Today: derive the algorithm, then analyze how $eta$ interacts with curvature.
 
 == Learning outcomes
 
@@ -169,27 +169,27 @@ Fold the radius and the gradient's length into one knob, $#text(fill: ACC)[$eta$
 #result[$ theta_(t+1) = theta_t - #text(fill: ACC)[$eta$] thin nabla f(theta_t) $]
 
 #pause
-- $#text(fill: ACC)[$eta$]$ is the *learning rate* — literally the size of the trusted step.
+- $#text(fill: ACC)[$eta$]$ is the *learning rate*: it scales the gradient, so the step length is $eta norm(nabla f(theta_t))$.
 #pause
 - Rebuild the line at the new point, step again. That is the entire method.
 
 #pause
-#notebox[Cash the L7 promissory note: this update "quotes today's local line" — L7's closing table predicted this exact formula would appear here.]
+#notebox[This is the application anticipated in L7: the update uses today's local linear approximation to choose the next point.]
 
 == A sufficiently small step decreases the objective
 
-Substitute the step $Delta = -eta nabla f$ back into the linear model:
+For differentiable $f$, substitute $Delta = -eta nabla f$ into the first-order expansion:
 
-$ f(theta - eta nabla f) approx f(theta) - eta norm(nabla f(theta))^2 $
-
-#pause
-- $norm(nabla f)^2 >= 0$: while the line holds, *every step decreases $f$* — by more where the surface is steeper.
+$ f(theta - eta nabla f) = f(theta) - eta norm(nabla f(theta))^2 + o(eta) $
 
 #pause
-- Near a minimum $nabla f -> 0$: the payout shrinks, steps shrink, the walk settles *by itself*.
+- If $nabla f(theta) != bold(0)$, the negative linear term dominates for sufficiently small positive $eta$, so the true objective decreases.
 
 #pause
-#alertbox[The fine print: the payout is promised *by the line*. Step past the trust radius and the true $f$ can go *up* — we watched it happen on the previous figure.]
+- Near a stationary point $nabla f -> 0$, so the step norm $eta norm(nabla f)$ shrinks.
+
+#pause
+#alertbox[The decrease above is a local first-order prediction. A step that is too large can increase the true objective, as in the previous figure.]
 
 == The whole algorithm is four lines
 
@@ -201,9 +201,9 @@ for t in range(T):                  # 2. repeat
 ```]
 
 #pause
-- Stop when $norm(g)$ is tiny, the loss plateaus, or the budget $T$ runs out.
+- Stop when $norm(g)$ is tiny, the loss plateaus, or the budget $T$ runs out. A small gradient alone does not distinguish a minimum from a saddle or plateau.
 #pause
-- This loop — with refinements — trains *everything*: linear regression, GPT, the lot.
+- This loop and its stochastic variants train many models, from linear regression to neural networks.
 
 #pause
 #result[One hyperparameter, no memory, only first derivatives. The rest of today: what that one hyperparameter does.]
@@ -221,7 +221,7 @@ $ x_1 = 2 - 0.25 dot (2 dot 2) = 1, quad x_2 = 1 - 0.25 dot 2 = 0.5, quad x_3 = 
 - The distance to the minimum shrinks by the *same factor $0.5$ every step* — a clean geometric decay.
 
 #pause
-#notebox[Hold that thought. That per-step factor is about to become the main character of the lecture.]
+#notebox[The next section derives this per-step factor exactly.]
 
 == On a round bowl, GD is unstoppable #V
 
@@ -243,7 +243,7 @@ This round bowl is the well-conditioned reference case.
 == What $eta$ really is
 
 #pause
-- *Too timid*: you trust the line less than you could — you collect only a sliver of the guaranteed payout per step.
+- *Too small*: the guaranteed first-order decrease per step is much smaller than it could be.
 
 #pause
 - *Too large*: the neglected curvature dominates, and the true $f$ may rise.
@@ -306,7 +306,7 @@ On a bowl of curvature $a$, the step from $x$ has length $eta a |x|$ — against
 #result[The speed limit is $#text(fill: ACC)[$eta < 2 slash a$]$ — two divided by the curvature.]
 
 #pause
-#notebox[For a general smooth loss, the worst curvature anywhere is called $L$ ("$L$-smooth" in every optimization text) — the classical safe range is $eta < 2\/L$. Same wall, bigger vocabulary.]
+#notebox[If $f$ has an $L$-Lipschitz gradient, then $0 < eta < 2\/L$ guarantees a decrease at every non-stationary iterate. Convergence needs additional conditions such as a lower-bounded objective; convexity gives stronger conclusions.]
 
 == What you'll actually see: the training curve #V
 
@@ -354,22 +354,22 @@ Find the wall experimentally on the bowl, then check it against the curvature re
 #pause
 $ x: quad 0 arrow.r 6 arrow.r 0 arrow.r 6 arrow.r dots.c quad #text(fill: MUTED)[— a perpetual, loss-preserving dance around $x^* = 3$] $
 
-= The exact story on quadratics
+= Exact analysis on quadratics
 
-== Why quadratics tell the whole story
+== Why quadratics give a local model
 
 Near a minimum $theta^*$ of a smooth loss, use the Taylor model from L9:
 
 $ f(theta) approx f(theta^*) + 1/2 space f''(theta^*) (theta - theta^*)^2 $
 
 #pause
-- The endgame of *every* training run is played on an approximate quadratic — curvature $a = f''(theta^*)$.
+- Near a non-degenerate smooth local minimum, the second-order Taylor model is approximately quadratic, with curvature $a = f''(theta^*)$ in one dimension.
 
 #pause
 - And on a quadratic we don't have to approximate anything: GD can be solved *exactly*, in one line.
 
 #pause
-#result[Exact answers on quadratics = the local theory of gradient descent on everything.]
+#result[Exact answers on positive-definite quadratics describe local gradient-descent behavior near a smooth strict minimum.]
 
 == ⭐ One line of algebra #D
 
@@ -426,7 +426,7 @@ $|1 - eta a|$ against $eta$ (drawn for $a = 1$):
 
 == Apply the contraction factor to both objectives #D
 
-Confession time. L1's two "problems" were exactly $f(x) = a/2 x^2$ — with different curvatures, same $eta = 0.8$:
+The opening two objectives were $f(x) = a/2 x^2$ with different curvatures and the same $eta = 0.8$:
 
 #table(
   columns: (1fr, 1fr, 1fr),
@@ -517,7 +517,7 @@ Try to pick one $eta$ for A's and B's curvatures *simultaneously* ($a = 0.02$, $
 
 == The condition number controls the convergence rate #D
 
-$ kappa = a_"max" / a_"min" quad #text(fill: MUTED)[(largest curvature over smallest — for the opening pair: $3.2 \/ 0.02 = 160$)] $
+$ kappa = a_"max" / a_"min" quad #text(fill: MUTED)[$0 < a_"min" <= a_"max"$ — for the opening SPD quadratic: $3.2 \/ 0.02 = 160$] $
 
 #pause
 Best compromise: $eta^* = 2\/(a_"max" + a_"min")$ balances the two factors at
@@ -554,7 +554,7 @@ Put the opening example's two curvatures into one objective: $f(x, y) = 1/2 (0.0
 #align(center, text(size: 16pt, fill: MUTED)[the infamous *zig-zag*: oscillate across the ravine (factor $-0.76$), crawl along it (factor $0.989$)])
 
 #pause
-#alertbox[A real loss over $10^6$ parameters has $10^6$ curvatures. Its $kappa$ — worst over best — routinely reaches the thousands. Every training run lives inside this picture.]
+#alertbox[In a local quadratic model, Hessian eigenvalues play the role of directional curvatures. A wide positive eigenvalue range produces the same slow/oscillatory tradeoff; zero or negative eigenvalues require separate analysis.]
 
 == Why zig-zag? L8 told us
 
@@ -572,7 +572,7 @@ Put the opening example's two curvatures into one objective: $f(x, y) = 1/2 (0.0
 
 == Where do squashed bowls come from? Your features
 
-Fit a price from two features by least squares. The loss curvature along weight $w_j$ is $a_j = "mean"(x_j^2)$ (the Hessian is $1/n X^top X$ — L16's matrix):
+Fit a price from two features using the loss $norm(X bold(w) - bold(y))^2/(2n)$. Its Hessian is $X^top X/n$; the diagonal entry for weight $w_j$ is $"mean"(x_j^2)$:
 
 #pause
 #table(
@@ -584,10 +584,10 @@ Fit a price from two features by least squares. The loss curvature along weight 
   [rooms], [$2, 3, 4$], [$29\/3 approx 9.67$],
 )
 
-$ kappa = 46400/29 = 1600 $
+$ "diagonal scale ratio" = (46400\/3) / (29\/3) = 1600 $
 
 #pause
-#result[Nobody chose an ill-conditioned bowl. It walked in with the *units of the data* — curvature is the feature scale, *squared*.]
+#result[Units can create a large coordinate-scale mismatch. Here there is a second problem: area $= 40 times$ rooms, so the columns are perfectly dependent and the true Hessian condition number is infinite.]
 
 == The fix costs one line: standardize
 
@@ -596,13 +596,15 @@ X = (X - X.mean(axis=0)) / X.std(axis=0)   # each column: mean 0, std 1
 ```]
 
 #pause
-- Every column now has $"mean"(x_j^2) = 1$ ⟹ all curvatures comparable ⟹ $kappa approx 1$: the bowl is *round again*, and one $eta$ serves all axes.
+- Every column now has $"mean"(x_j^2) = 1$, removing conditioning caused purely by unequal units. Correlated columns can still make $X^top X$ ill-conditioned, so standardization does *not* guarantee $kappa approx 1$.
+#pause
+- In this example the two standardized columns remain identical, so the Hessian is still singular. Standardization fixes scale, not collinearity.
 
 #pause
-- This is why `StandardScaler` opens almost every ML pipeline: it is not cosmetics — it *reshapes the loss surface*. The fancy word is *preconditioning*.
+- Standardization often improves gradient-based optimization by rescaling coordinate directions. It is a simple diagonal preconditioner.
 
 #pause
-#notebox[Deep nets can't pre-scale their internal activations by hand — so they bolt the same idea inside the network: BatchNorm / LayerNorm. Story continued in ES 667.]
+#notebox[Deep networks cannot pre-scale all internal activations by hand; BatchNorm and LayerNorm provide related internal normalization mechanisms. Their optimization effects are studied in ES 667.]
 
 == Checkpoint: units and curvature #Q
 
@@ -751,15 +753,15 @@ Same bowl ($kappa = 160$), same start, same 36 steps:
 )
 
 #pause
-#result[Every cell is the quadratic story $x_(t+1) = (1 - eta a) x_t$, read in a different corner of the $(eta, a, kappa)$ space.]
+#result[Every row follows from $x_(t+1) = (1 - eta a) x_t$ in a different region of $(eta, a, kappa)$ space.]
 
 == Lecture 17 — summary
 
-- *GD derived* ⭐: trust L7's line for one step — $theta_(t+1) = theta_t - eta nabla f$, payout $approx eta norm(nabla f)^2$ (direction: L8's Cauchy–Schwarz).
+- *GD derived* ⭐: use L7's local line for one step — $theta_(t+1) = theta_t - eta nabla f$, with first-order decrease $eta norm(nabla f)^2$ (direction: L8's Cauchy–Schwarz).
 - *Learning-rate regimes*: slow convergence / fast convergence / oscillation / divergence; the boundary is $eta = 2\/a$.
-- *Quadratics tell all* ⭐: iterates are $(1 - eta a)^t x_0$; per-axis factors on bowls; best $eta = 1\/a$.
+- *Quadratic local model* ⭐: iterates are $(1 - eta a)^t x_0$; per-axis factors on positive-definite bowls; best 1-D rate at $eta = 1\/a$.
 - *Conditioning*: $kappa = a_"max"\/a_"min"$; the best contraction factor is $(kappa - 1)\/(kappa + 1)$, so the required steps scale with $kappa$.
-- *Preconditioning*: curvature = feature scale squared — standardizing rounds the bowl.
+- *Preconditioning*: feature scale enters the Hessian quadratically; standardizing removes scale imbalance but not feature correlation.
 - *Momentum*: $v = beta v + g$; consistent directions $times 1\/(1 - beta)$, flip-flops damped — ravines tamed, not cured.
 
 #pause
@@ -772,13 +774,13 @@ Try on paper; verify in the T8 notebook.
 + For $f(x) = 2x^2$ with $eta = 0.4$: compute the contraction factor and the first three iterates from $x_0 = 1$. Converging?
 + On $f(x) = 5/2 x^2$: find every $eta$ that converges, the $eta$ that lands in one step, and what happens at exactly $eta = 0.4$.
 + On $f(x, y) = 1/2 (x^2 + 16 y^2)$ with the best single $eta$: per-axis factors, and how many steps to shrink the slow-axis error $1000 times$?
-+ Two features have standard deviations $1$ and $50$ (means $0$). Estimate $kappa$ before and after standardization.
++ Two uncorrelated features have standard deviations $1$ and $50$ (means $0$). Estimate $kappa$ before and after standardization. What changes if they are nearly collinear?
 + Momentum with $beta = 0.95$: the effective memory length, and the limiting $|v|$ under alternating gradients $plus.minus g$.
 + Reproduce the opening pair in NumPy ($a = 0.02, 3.2$, $eta = 0.8$, 30 steps). Find the largest $eta$ that converges on both and the steps the flatter problem needs for a $100 times$ error reduction.
 
 == ⭐⭐⭐ SGD exists #OPT
 
-A real loss is an *average over data*: $cal(L)(theta) = 1/n sum_i ell_i (theta)$ — one true gradient costs $n$ backprops. *Stochastic* GD steps on a random example's $nabla ell_i$ instead: right *on average*, noisy every step, $n times$ cheaper.
+A finite-sum loss is $cal(L)(theta) = 1/n sum_i ell_i(theta)$. If index $i$ is sampled uniformly, then $EE_i[nabla ell_i(theta)] = nabla cal(L)(theta)$. One-example SGD uses this unbiased but noisy estimate and usually costs much less per update than a full-data gradient.
 
 #let bowl-sgd = ad.expr("x^2 + y^2", ("x", "y"))
 #align(center, contour(ad.fn2(bowl-sgd), xlim: (-2.4, 2.4), ylim: (-1.6, 1.6),
@@ -788,7 +790,7 @@ A real loss is an *average over data*: $cal(L)(theta) = 1/n sum_i ell_i (theta)$
 ))
 
 #pause
-#notebox[That noise, minibatches, learning-rate schedules (see the `lr-schedule-visualizer` interactive), and the adaptive per-coordinate $eta$ of RMSProp/Adam — conditioning medicine, all of it — belong to *ES 335 and ES 667*. Today's contraction-factor story is the foundation they all stand on.]
+#notebox[Minibatches, learning-rate schedules, and the adaptive per-coordinate rates of RMSProp and Adam belong to ES 335 and ES 667. The contraction-factor analysis here is their quadratic baseline.]
 
 #focus-slide[
   The learning rate sets the step length used with a local linear approximation.

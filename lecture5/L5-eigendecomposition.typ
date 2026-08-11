@@ -105,13 +105,13 @@ Almost every direction gets turned. Two refuse. Today we go deep: where they com
 
 == 1998 · the web has a ranking problem
 
-Early search engines ranked pages by *counting keywords*. Type "Ferrari" a thousand times in white-on-white text — congratulations, you outrank Ferrari.
+Keyword-based ranking was easy to manipulate with repeated or hidden terms. Link structure offered a second signal: which pages point to this one?
 
 #pause
 Two Stanford grad students, Sergey Brin and Larry Page, proposed something structural: ignore what a page _says about itself_; look at *who links to it*.
 
 #pause
-#notebox[Their algorithm — *PageRank* — turned into Google. At its mathematical core sits exactly the object from that L1 picture. That is not a metaphor; it is the literal algorithm, and you will run it before this lecture ends.]
+#notebox[PageRank became a core component of early Google search. Its mathematical centre is an eigenvector of a link-transition matrix, which you will compute before this lecture ends.]
 
 == A four-page internet #V
 
@@ -143,7 +143,7 @@ By the end of this lecture you will be able to:
 
 + Say what an *eigenvector* and *eigenvalue* are — in pictures, numbers, code, and symbols.
 + Compute both *by hand* for any 2×2 matrix (characteristic polynomial).
-+ Interpret $lambda$ as stretch, shrink, squash, flip, or rotation.
++ Interpret a real $lambda$ as scaling and possible sign reversal; recognize that complex-conjugate pairs describe two-dimensional rotation–scaling behaviour.
 + Factor $A = P D P^(-1)$ and use it to compute $A^k$ instantly.
 + Run *power iteration* — and prove why it finds the top eigenvector.
 + State the *spectral theorem* for symmetric matrices (and see why ML loves them).
@@ -368,7 +368,7 @@ $ det(R - lambda I) = lambda^2 + 1 = 0 quad arrow.r.double quad lambda = plus.mi
 No real roots. The eigenvalues have become a *complex pair* — and that is precisely the algebra's way of saying "this map rotates".
 
 #pause
-#notebox[One honest slide, no complex arithmetic beyond this: a complex eigenvalue pair $=$ a rotation (possibly combined with scaling) hiding inside the matrix. We will meet it once more today — as a wobble in a live computation. Deep dive: not this course.]
+#notebox[We will not use complex arithmetic beyond this slide: a complex eigenvalue pair represents a rotation, possibly combined with scaling. We will see the same effect once more today as a wobble in a live computation. A formal treatment of complex vector spaces is beyond this course.]
 
 == Eigenvalue cases in one table
 
@@ -493,7 +493,7 @@ Every entry is $approx 3^(10)\/2$: after ten applications, the $lambda = 3$ dire
 #align(center, text(size: 16pt, fill: MUTED)[for a generic start, the component along the dominant eigenvector eventually determines the direction of $A^k bold(x)$])
 
 #pause
-#align(center, text(size: 18pt, fill: ACC)[That observation is an algorithm wearing a trench coat.])
+#align(center, text(size: 18pt, fill: ACC)[That observation gives a practical algorithm.])
 
 // ═══════════════════════════ 6 · power iteration ═══════════════════════════
 = Power iteration, live
@@ -589,9 +589,9 @@ $ (lambda_2 / lambda_1)^k = (1/3)^k arrow.r 0 quad quad #text(fill: MUTED)[the $
 
 == The fine print (three honest conditions)
 
-+ *A gap:* need $abs(lambda_1) > abs(lambda_2)$ strictly. The closer the ratio to 1, the slower the convergence — the gap *is* the speed.
++ *An eigen-basis and a gap:* the derivation assumes the start can be expanded in eigenvectors (as for our symmetric matrix) and $abs(lambda_1) > abs(lambda_2)$ strictly. The closer the ratio to 1, the slower the convergence.
 #pause
-+ *A foothold:* need $c_1 != 0$ — the start must contain _some_ $bold(v)_1$. Random starts do. (Start exactly at $bold(x)_0 = (1, -1)$ and the math says you're stuck on $bold(v)_2$ forever — but float32 rounding injects a microscopic $c_1$ within a few steps and rescues you. L2's "tiny lies" occasionally save the day.)
++ *A foothold:* need $c_1 != 0$ — the start must contain _some_ $bold(v)_1$. Random starts do with probability one under a continuous distribution. For this matrix, starting exactly at $(1, -1)$ stays on $bold(v)_2$ even in float32 because the relevant operations are exactly representable.
 #pause
 + *Normalize:* not for correctness — for survival. Un-normalized, $norm(A^k bold(x)) tilde 3^k$ overflows float32 near $k approx 81$.
 
@@ -613,7 +613,7 @@ array([0.70710678, 0.70710678])
 ```]
 
 #pause
-Six lines, no polynomial, scales to matrices with *billions* of rows — you only ever need matrix-vector products.
+Six lines, no characteristic polynomial. The method can scale to huge *sparse or implicit* matrices when a matrix-vector product is cheap; a dense billion-row matrix would still be infeasible to store.
 
 == Checkpoint: power-iteration rate #Q
 
@@ -740,7 +740,7 @@ Perpendicular eigen-directions, real eigenvalues, no drama. Coincidence?
 
 + all eigenvalues *real* — no rotation pairs can hide in it,
 #pause
-+ a full set of eigenvectors that are *mutually orthogonal* — they form a perpendicular grid,
++ an *orthonormal eigenbasis* can be chosen — a perpendicular grid, including within repeated-eigenvalue subspaces,
 #pause
 + hence the clean factorization $A = Q Lambda Q^top$, with $Q$'s columns orthonormal ($Q^(-1) = Q^top$ — inverting it is free).
 
@@ -793,7 +793,7 @@ Symmetric matrices are not a corner case — ML manufactures them:
 
 == Lecture 5 — summary
 
-- *Eigen-pair:* $A bold(v) = lambda bold(v)$ — $bold(v)$ keeps its direction; $lambda$ sets scaling, sign reversal, or rotation in a complex invariant plane.
+- *Eigen-pair:* $A bold(v) = lambda bold(v)$ — for a real eigenpair, $bold(v)$ keeps its line and $lambda$ sets scaling and possible sign reversal. A complex-conjugate pair describes a real two-dimensional invariant plane.
 - *2×2 by hand:* solve $det(A - lambda I) = 0$; audit with trace $= sum lambda_i$, det $= product lambda_i$.
 - *Diagonalize:* $A = P D P^(-1)$ — in the eigen-basis $A$ is pure dials, so $A^k = P D^k P^(-1)$.
 - *Power iteration:* multiply-normalize → dominant eigenvector; error $times abs(lambda_2 \/ lambda_1)$ per step. PageRank uses the eigenvector with $lambda = 1$ (L25).
@@ -811,7 +811,7 @@ Try on paper; then check yourself with `np.linalg.eig` and your six-line power i
 + Two steps of power iteration on our $A$ from $bold(x)_0 = (0, 1)$. Why the same limit as from $(1, 0)$?
 + For the Markov matrix $mat(0.9, 0.5; 0.1, 0.5)$: find the $lambda = 1$ eigenvector — you have just computed a stationary distribution (L25).
 + Why does rotation (by anything but $0°$ or $180°$) have no real eigenvectors? Picture first, then the discriminant.
-+ Power-iterate $A$ from exactly $bold(x)_0 = (1, -1)$: what does theory predict? What will float32 *actually* do?
++ Power-iterate $A$ from exactly $bold(x)_0 = (1, -1)$: what does theory predict? Why does float32 also remain on that direction for this particular integer matrix?
 
 == ⭐⭐⭐ When diagonalization fails #OPT
 
@@ -820,7 +820,7 @@ The shear $J = mat(1, 1; 0, 1)$ has characteristic polynomial $(1 - lambda)^2$: 
 $ (J - I) bold(v) = mat(0, 1; 0, 0) bold(v) = 0 quad arrow.r.double quad "only" bold(v) = vec(1, 0) $
 
 #pause
-One direction for a 2×2 matrix — not enough to build $P$. $J$ is *defective*: it cannot be diagonalized. Nothing we proved today applies to it.
+One direction for a 2×2 matrix — not enough to build $P$. $J$ is *defective*: it cannot be diagonalized, so the eigen-basis formula $A = P D P^(-1)$ and the power proof built from it do not apply. The eigenvalue equation and characteristic polynomial still do.
 
 #pause
 #notebox[Two consolations. Symmetric matrices are *never* defective (spectral theorem — one more reason ML loves them). And next lecture's SVD factors *every* matrix, defective or not, square or not.]
