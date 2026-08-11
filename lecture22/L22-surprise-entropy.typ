@@ -4,6 +4,7 @@
 
 #import "../common/metropolis.typ": *
 #import "../common/mldiag.typ": *
+#let IA = "https://nipunbatra.github.io/interactive-articles/"
 #show: metropolis-deck.with(
   title: [Surprise and Entropy],
   subtitle: [Measuring uncertainty in bits],
@@ -13,6 +14,19 @@
 
 // ═══════════════════ 1 · questions ═══════════════════
 = How many yes/no questions?
+
+== One bit per character
+
+Model reports and compression benchmarks describe strong language models as reaching roughly one bit per character on English text.
+
+#pause
+Shannon ran the human version in 1951: readers guessing the next character of English landed between roughly $0.6$ and $1.3$ bits per character.
+
+#pause
+Both statements use the *bit* as a unit of uncertainty. Exact figures depend on the text and the tokenizer; the unit is what this lecture defines.
+
+#pause
+A guessing game makes the unit concrete.
 
 == Guess a number from 1 to 8
 
@@ -66,6 +80,32 @@ $ log_2 16=4. $
 #pause
 For $N$ equally likely outcomes, the ideal number is $log_2 N$ bits.
 
+== A balance puzzle with twelve coins
+
+Twelve coins look identical; exactly one is counterfeit, either heavier or lighter than the rest. A balance scale compares any two groups of coins.
+
+#pause
+Each weighing returns one of *three* results: left heavy, right heavy, balanced.
+
+#pause
+Possible states: $12 "coins" times 2 "directions"=24$.
+
+#pause
+How many weighings identify the coin and its direction?
+
+== Count the weighings
+
+$w$ weighings produce at most $3^w$ distinct result sequences, so $24<=3^w$ is required.
+
+#pause
+$ 3^2=9<24<=27=3^3 quad arrow.r.double quad w>=3. $
+
+#pause
+Three weighings also suffice — MacKay (Ch 4) gives a strategy whose weighings keep the three results near-equally likely.
+
+#pause
+The same count in bits: the answer holds $log_2 24 approx 4.58$ bits, one weighing yields at most $log_2 3 approx 1.58$ bits, and $(log_2 24)/(log_2 3)=log_3 24 approx 2.89$.
+
 == Outcomes need not be equally likely
 
 Suppose tomorrow's weather probabilities are
@@ -110,13 +150,13 @@ We want:
 
 For two independent fair coin flips,
 
-$ P(HH)=1/2 times 1/2=1/4. $
+$ P("HH")=1/2 times 1/2=1/4. $
 
 #pause
 Learning the first result takes one bit; learning the second takes one more bit.
 
 #pause
-So learning $HH$ should take two bits:
+So learning $"HH"$ should take two bits:
 
 $ I(1/4)=I(1/2)+I(1/2). $
 
@@ -143,7 +183,7 @@ $ I_2(p)=-log_2 p. $
 #pause
 Base $e$ measures information in *nats*:
 
-$ I_e(p)=-ln p. $
+$ I_e (p)=-ln p. $
 
 #pause
 Conversion:
@@ -185,6 +225,30 @@ $ I("rain")=-log_2 0.05 approx 4.322 " bits". $
 
 #pause
 Rain is about ten times more surprising than sun on this scale.
+
+== Battleship on an 8-by-8 board
+
+A submarine occupies one of $64$ squares, uniformly at random. Each turn you name one square and hear "hit" or "miss".
+
+#pause
+On the first guess, $P("hit")=1/64$ and $P("miss")=63/64$:
+
+$ I("hit")=log_2 64=6 " bits", quad I("miss")=-log_2 (63/64) approx 0.023 " bits". $
+
+#pause
+The rare answer is the informative one: a miss barely narrows the board; a hit ends the search.
+
+== Every route to the submarine totals six bits
+
+Suppose the first $32$ guesses miss and the next one hits.
+
+$ underbrace(log_2 (64/63)+log_2 (63/62)+dots+log_2 (33/32), "32 misses — the product telescopes")=log_2 (64/32)=1 " bit". $
+
+#pause
+The hit, with $32$ squares left, has probability $1/32$ and adds $log_2 32=5$ bits.
+
+#pause
+Total $1+5=6=log_2 64$ bits. Multiplying the answer probabilities telescopes the same way, so surprise adds to the same total along any route to the submarine (MacKay, Ch 4).
 
 == Log-likelihood already used this quantity
 
@@ -304,7 +368,7 @@ For probabilities $(0.75,0.20,0.05)$,
 $ H(X)=0.75(0.415)+0.20(2.322)+0.05(4.322). $
 
 #pause
-$ H(X) approx 0.311+0.464+0.216=0.991 " bits". $
+$ H(X) approx 0.3113+0.4644+0.2161 approx 0.992 " bits". $
 
 #pause
 The three-outcome source has less than one bit of average uncertainty because “sun” dominates.
@@ -342,6 +406,12 @@ because renaming heads and tails does not change uncertainty.
 #pause
 Entropy is maximal at $p=1/2$ and approaches zero as $p$ approaches $0$ or $1$.
 
+== Interactive: trace the entropy curve #I
+
+#interbox(link-to: IA + "info-theory")[
+  The *info-theory* article recomputes entropy as you drag probability bars. Set two outcomes, drag $p$ from $0.5$ toward $0.99$, and watch $H_2(p)$ slide down today's curve.
+]
+
 == Differentiate to find the maximum
 
 It is cleaner to use natural logs and convert at the end:
@@ -349,16 +419,16 @@ It is cleaner to use natural logs and convert at the end:
 $ H_2(p)=-(p ln p+(1-p)ln(1-p))/(ln 2). $
 
 #pause
-$ H_2'(p)=(ln(1-p)-ln p)/(ln 2). $
+$ H'_2 (p)=(ln(1-p)-ln p)/(ln 2). $
 
 #pause
-Set $H_2'(p)=0$:
+Set $H'_2 (p)=0$:
 
 $ ln(1-p)=ln p quad arrow.r.double quad p=1/2. $
 
 == Check the curvature
 
-$ H_2''(p)=-1/(ln 2)(1/p+1/(1-p))<0 $
+$ H''_2 (p)=-1/(ln 2)(1/p+1/(1-p))<0 $
 
 for $0<p<1$.
 
@@ -417,7 +487,7 @@ $ cal(L)(bold(p),lambda)=-sum_i p_i ln p_i-lambda(sum_i p_i-1). $
 #pause
 For each coordinate,
 
-$ partial cal(L)/partial p_i=-(ln p_i+1)-lambda=0. $
+$ (partial cal(L))/(partial p_i)=-(ln p_i+1)-lambda=0. $
 
 == ⭐ Every probability is equal #D
 
@@ -445,7 +515,24 @@ $ H=-sum_(i=1)^K 1/K log_2(1/K)=log_2 K. $
 #result[$H(X)<=log_2 K$, with equality for the uniform distribution.]
 
 #pause
-The Hessian is diagonal with entries $-1/(p_i ln 2)<0$ in the simplex interior, so entropy is strictly concave. Therefore this stationary point is the unique global maximum; boundary values follow by continuity.
+The Hessian of the objective $-sum_i p_i ln p_i$ is diagonal with entries $-1/p_i<0$ in the simplex interior, so entropy is strictly concave. Therefore this stationary point is the unique global maximum; boundary values follow by continuity.
+
+== ⭐ The multiplier is a sensitivity #D
+
+At the optimum, $p_i=exp(-1-lambda)=1/K$ gives
+
+$ lambda=ln K-1. $
+
+#pause
+L19's reading of $lambda$: relax the constraint to $sum_i p_i=c$. The optimum becomes $p_i=c/K$, with value
+
+$ H^*(c)=-K dot c/K ln(c/K)=-c ln(c/K). $
+
+#pause
+$ (dif H^*)/(dif c)=-ln(c/K)-1, quad "at " c=1: quad (dif H^*)/(dif c)=ln K-1=lambda. $
+
+#pause
+As in L19, the multiplier measures how the optimal value responds when the constraint moves.
 
 == Example: four outcomes
 
@@ -519,7 +606,7 @@ $ hat(H)=-(1/2)(-1)-(1/4)(-2)-2(1/8)(-3)=1.75 " bits/symbol". $
 
 == Course-plan letter frequencies #V
 
-#fig("/lecture22/figures/course_letter_entropy.svg", w: 70%)
+#fig("/lecture22/figures/course_letter_entropy.svg", w: 58%)
 
 #pause
 The calculation treats letters as independent draws. Natural language has dependencies, so a model that uses context can predict—and compress—better than this unigram estimate.
@@ -563,6 +650,19 @@ But English letters are not independent: after `q`, the next letter is often `u`
 
 #pause
 Conditional models reduce uncertainty by using context. Markov chains in L25 make this explicit.
+
+== One bit per character, resolved
+
+Treating letters as independent draws gave about $4.24$ bits/letter.
+
+#pause
+Shannon's 1951 prediction experiments: human readers using full context predict English at roughly $0.6$ to $1.3$ bits per character.
+
+#pause
+"About one bit per character" for a language model means its average surprise $-log_2 q("next character")$ on English text is near one bit: context closes most of the gap below the unigram $4.24$.
+
+#pause
+L24 defines this model-based average surprise as cross-entropy.
 
 // ═══════════════════ 7 · close ═══════════════════
 = One scale for uncertainty
@@ -642,4 +742,7 @@ Next lecture:
 + Huffman's greedy algorithm,
 + expected code length versus entropy.
 
-#focus-slide[Probability determines surprise; averaging surprise gives entropy.]
+#pause
+#notebox[*Reading:* MacKay, _Information Theory, Inference, and Learning Algorithms_ — Ch 2 and Ch 4 (guided) · MacKay's video lecture 1 (assigned).]
+
+#focus-slide[Information is surprise; entropy is its average.]

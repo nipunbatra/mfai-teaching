@@ -57,7 +57,9 @@ def surprise_curve():
     bits = -np.log2(probs)
     ax.scatter(probs, bits, color=RED, s=55, zorder=5)
     for x, y in zip(probs[:-1], bits[:-1]):
-        ax.annotate(f"p={x:g}: {y:g} bits", (x, y), xytext=(5, 6), textcoords="offset points", fontsize=9)
+        value = abs(y)  # avoid "-0" for p=1
+        unit = "bit" if value == 1 else "bits"
+        ax.annotate(f"p={x:g}: {value:g} {unit}", (x, y), xytext=(5, 6), textcoords="offset points", fontsize=9)
     ax.annotate("rare event", (0.01, bits[-1]), xytext=(0.12, 6.0),
                 arrowprops={"arrowstyle": "->", "color": RED}, color=RED)
     ax.set(xlabel="event probability $p$", ylabel=r"surprise $-\log_2 p$ (bits)", xlim=(0, 1.02), ylim=(-0.1, 7))
@@ -73,10 +75,10 @@ def binary_entropy():
     pts = np.array([0.01, 0.1, 0.5, 0.9, 0.99])
     vals = -(pts * np.log2(pts) + (1 - pts) * np.log2(1 - pts))
     ax.scatter(pts, vals, color=[MUTED, ACC, RED, ACC, MUTED], s=55, zorder=5)
-    ax.annotate("maximum uncertainty\n$p=0.5$, $H=1$ bit", (0.5, 1), xytext=(0.62, 0.78),
+    ax.annotate("maximum uncertainty\n$p=0.5$, $H=1$ bit", (0.5, 1), xytext=(0.27, 0.52),
                 arrowprops={"arrowstyle": "->", "color": RED}, color=RED, fontsize=10)
-    ax.text(0.03, 0.12, "almost certain", color=MUTED)
-    ax.text(0.79, 0.12, "almost certain", color=MUTED)
+    ax.text(0.03, 0.06, "almost certain", color=MUTED)
+    ax.text(0.68, 0.06, "almost certain", color=MUTED)
     ax.set(xlabel=r"coin bias $p=P(X=1)$", ylabel=r"entropy $H_2(p)$ (bits)", xlim=(0, 1), ylim=(0, 1.08))
     ax.grid(alpha=0.16)
     save(fig, "binary_entropy")
@@ -103,7 +105,7 @@ def question_tree():
             ha="center", color=INK)
     ax.text(0.08, 0.81, "no", color=BLUE)
     ax.text(0.82, 0.81, "yes", color=BLUE)
-    ax.text(0.5, 0.04, "$\log_2 8=3$ bits", ha="center", color=RED, fontsize=12)
+    ax.text(0.5, 0.04, r"$\log_2 8=3$ bits", ha="center", color=RED, fontsize=12)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1.1)
     ax.axis("off")
