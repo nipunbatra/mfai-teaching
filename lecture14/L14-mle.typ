@@ -91,7 +91,7 @@ By the end of this lecture you will be able to:
 
 + Read $p(x | theta)$ *two ways*: as a distribution over $x$, and as a likelihood over $theta$.
 + Write the likelihood of an entire dataset using the *IID assumption*.
-+ Explain *three independent reasons* the log goes in — and recap L2's $0.03^1000$ disaster.
++ Explain *three independent reasons* the log goes in — and recap L2's $0.03^1000$ underflow.
 + Derive $hat(theta)_"MLE"$ for the *Bernoulli* coin (⭐) and the *Gaussian* mean.
 + Derive the equivalence: *minimizing MSE = maximizing a fixed-variance Gaussian likelihood* (⭐).
 + Map noise models to the losses they generate: Gaussian→MSE, Bernoulli→BCE, Categorical→CE, Laplace→MAE.
@@ -154,7 +154,7 @@ A coin with $P("heads") = theta$. One formula, $p(x | theta)$ — *two completel
     #align(center, lines(fn: t => t, domain: (0, 1), markers: false, colors: (ACC,),
       x-label: [$theta$], y-label: [$L(theta)$], size: (52mm, 30mm)))
     #v(3pt)
-    the *likelihood* of that outcome \ #text(size: 16pt, fill: MUTED)[area under this line: $1\/2$ — every $theta$ gives the same value]
+    the *likelihood* of that outcome \ #text(size: 16pt, fill: MUTED)[area under this line: $1\/2$ — nothing forces it to be 1]
   ],
 )
 
@@ -337,7 +337,7 @@ Evaluate $L(mu)$ at *every* candidate $mu$ — the likelihood function of this d
 
 = Log-likelihood: products become sums
 
-== Products of probabilities are numerically doomed
+== Reason 1 · products of probabilities underflow
 
 You proved this in L2 — the recap: a language model scores a 1000-character text, each character with probability $approx 0.03$:
 
@@ -401,7 +401,7 @@ $ "NLL"(theta) = -ell(theta) = -sum_(i=1)^n log p(x_i | theta) quad quad "and of
 - each data point contributes $-log p(x_i | theta)$: *its personal penalty* — large when the model found it implausible
 
 #pause
-#result[A "loss" is not a design flourish. Training loss = per-example negative log-likelihood, averaged. This sentence is the hinge of the whole course.]
+#result[Training loss = per-example negative log-likelihood, averaged. The rest of the lecture instantiates this construction for specific observation models.]
 
 = The coin: your first MLE, derived ⭐
 
@@ -489,7 +489,7 @@ The machine agrees — brute-force the curve:
 heads, n = 7, 10
 theta  = np.linspace(0.01, 0.99, 981)
 loglik = heads * np.log(theta) + (n - heads) * np.log(1 - theta)
-theta[np.argmax(loglik)]                    # 0.7  — the head fraction
+round(theta[np.argmax(loglik)], 3)          # 0.7  — the head fraction
 ```]
 
 #pause
@@ -549,7 +549,7 @@ On $cal(D)$: deviations $(-1.5, -0.5, 0, 0.5, 1.5)$, squares sum to $5.0$, so $h
 
 == Estimation is optimization · the NLL landscape #V
 
-Free both parameters: the *dataset NLL* over the $(mu, sigma)$ plane, computed live from $cal(D)$ —
+Free both parameters: the *dataset NLL* over the $(mu, sigma)$ plane, computed from $cal(D)$:
 
 #align(center, contour(
   (m, s) => g-nll2(m, s),
@@ -557,7 +557,7 @@ Free both parameters: the *dataset NLL* over the $(mu, sigma)$ plane, computed l
   levels: (7.3, 7.8, 8.5, 9.5, 11, 13, 16, 20, 26),
   size: (96mm, 36mm), color: TEAL,
   paths: (gd(grad2d((m, s) => g-nll2(m, s)), (0.7, 1.85), lr: 0.05, steps: 60),),
-  marks: ((2.0, 1.0, [$(hat(mu), hat(sigma)) = (2, 1)$], RED),),
+  marks: ((2.0, 1.0, [$(2, 1)$], RED),),
   x-label: [$mu$], y-label: [$sigma$],
 ))
 
@@ -725,10 +725,10 @@ For the Gaussian NLL, doubling a residual quadruples its cost, so outliers have 
 #align(center, table(
   columns: (auto, 1fr, auto), stroke: 0.5pt + MUTED.lighten(40%),
   inset: (x: 12pt, y: 8pt), align: (left, left, center),
-  table.header([*Loss*], [*Where it comes from*], [*Status*]),
-  [`mse_loss`], [Gaussian noise on the prediction — derived, boxed, yours], [#text(fill: GREEN)[*closed*]],
-  [`binary_cross_entropy`], [Bernoulli NLL — the coin, renamed], [#text(fill: GREEN)[*closed*]],
-  [`cross_entropy`], [Categorical NLL + information theory: *why it's called entropy*, what it has to do with compression], [#text(fill: ACC)[*open → L24*]],
+  table.header([*Loss*], [*Where it comes from*], [*Derived*]),
+  [`mse_loss`], [Gaussian noise on the prediction — the ⭐ derivation above], [#text(fill: GREEN)[*today*]],
+  [`binary_cross_entropy`], [Bernoulli NLL — the coin's likelihood, written per example], [#text(fill: GREEN)[*today*]],
+  [`cross_entropy`], [Categorical NLL + information theory: *why it's called entropy*, what it has to do with compression], [#text(fill: ACC)[*→ L24*]],
 ))
 
 #pause
@@ -778,7 +778,7 @@ Hold the head fraction at 70%, grow $n$ — the peak-aligned log-likelihood shar
 Try on paper; the T7 notebook (after L15) checks all of them in NumPy.
 
 + 12 flips, 9 heads: write $ell(theta)$, maximize it, and compute $ell(0.75) - ell(0.5)$.
-+ For $cal(D) = {1.0, 3.0}$ under $cal(N)(mu, 1)$: sketch $L(mu)$; find $hat(mu)$, then $hat(sigma)^2$. (Answers: 2.0 and 1.0.)
++ For $cal(D) = {1.0, 3.0}$ under $cal(N)(mu, sigma^2)$: sketch $L(mu)$ at $sigma = 1$; find $hat(mu)$, then $hat(sigma)^2$. (Answers: 2.0 and 1.0.)
 + Exponential waiting times $p(x | lambda) = lambda e^(-lambda x)$ (L12's zoo): derive $hat(lambda)_"MLE" = 1 \/ macron(x)$.
 + Repeat the derivation with *Laplace* noise and show that the objective becomes $sum_i abs(y_i - w x_i - b)$.
 + For $n = 10^6$, $p_i approx 0.1$: estimate $product_i p_i$ and compare with float64's smallest positive subnormal ($approx 5 times 10^(-324)$, L2). Why must training code never form this product?
