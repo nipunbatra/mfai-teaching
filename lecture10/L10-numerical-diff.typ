@@ -98,7 +98,7 @@ Every serious framework ships a gradient checker. PyTorch's:
 import torch
 from torch.autograd import gradcheck
 
-def my_op(x):                     # your shiny new operation
+def my_op(x):                     # your new operation
     return torch.sin(x) * x**2
 
 x = torch.randn(4, dtype=torch.float64, requires_grad=True)
@@ -169,11 +169,11 @@ $ f(x) = x^2 sin(x) quad arrow.r quad f'(x) = 2x sin(x) + x^2 cos(x) quad #text(
 Exact, human-readable… and it needs $f$ to *be* a formula. Your training loss — Python loops, branches, lookups — has no closed form to hand over.
 
 #pause
-And formulas have a darker problem. Watch what happens when we *compose* — the one thing deep learning does all day.
+Formulas have a second problem. Watch what happens under *composition* — the operation deep learning repeats at every layer.
 
 == Symbolic differentiation has a swelling problem
 
-Iterate a humble map (composition = depth, exactly like stacked layers): $ell_1 = x$, then $ell_(k+1) = 4 ell_k (1 - ell_k)$:
+Iterate the logistic map (composition = depth, exactly like stacked layers): $ell_1 = x$, then $ell_(k+1) = 4 ell_k (1 - ell_k)$:
 
 #table(
   columns: (auto, 1fr),
@@ -229,7 +229,7 @@ First we quantify the error and cost of finite differences.
 
 = Forward differences: two sources of error
 
-== L7's limit, with the limit amputated #V
+== The limit, stopped early #V
 
 L7 _defined_ the derivative as a limit of secant slopes. A computer can't take limits — it can only *stop early*:
 
@@ -248,7 +248,7 @@ $ f'(x) = lim_(h arrow.r 0) (f(x + h) - f(x)) / h quad quad arrow.r.double quad 
 
 #align(center, text(size: 16pt, fill: MUTED)[$f = e^x$ at $x = 0$, true slope $1$: the secant with $h = 1$ overshoots to $1.72$. Shrink $h$…])
 
-== First contact: it kind of works
+== A first test on $e^x$
 
 Test on $f = e^x$ at $x = 0$, where the truth is exactly $f'(0) = e^0 = 1$:
 
@@ -257,7 +257,7 @@ Test on $f = e^x$ at $x = 0$, where the truth is exactly $f'(0) = e^0 = 1$:
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
   table.header([*$h$*], [*$D_h f(0)$ (float64)*], [*error*]),
-  [$10^(-1)$], [1.0517091808…], [5.2 × 10⁻²],
+  [$10^(-1)$], [1.0517091807…], [5.2 × 10⁻²],
   [$10^(-2)$], [1.0050167084…], [5.0 × 10⁻³],
   [$10^(-3)$], [1.0005001667…], [5.0 × 10⁻⁴],
 )
@@ -266,7 +266,7 @@ Test on $f = e^x$ at $x = 0$, where the truth is exactly $f'(0) = e^0 = 1$:
 Divide $h$ by 10 → error divides by 10. Extrapolate the pattern: $h = 10^(-16)$ should give *16 correct digits*.
 
 #pause
-And look closer: the error isn't just _order_ $h$ — it is almost exactly $h\/2$. That "2" is not a coincidence. Taylor knows why.
+And look closer: the error isn't just _order_ $h$ — it is almost exactly $h\/2$. That 2 is not a coincidence — Taylor's theorem produces it.
 
 == Truncation error from Taylor's theorem
 
@@ -291,9 +291,9 @@ Take $h = 10^(-8)$. What float64 actually stores and computes:
 #let mono(c, s, w: 400) = text(font: "IBM Plex Mono", size: 14.5pt, fill: c, weight: w, s)
 #codebox[
   #grid(columns: (auto, auto, auto, 1fr), column-gutter: 0pt, row-gutter: 6pt, align: left,
-    mono(INK, "e^h stored  =  "), mono(MUTED, "1.00000000"), mono(INK, "99999999392252903…", w: 700), [#h(8pt)#text(size: 13.5pt, fill: RED)[← last digits: rounding noise]],
+    mono(INK, "e^h stored  =  "), mono(MUTED, "1.00000000"), mono(INK, "99999999392252902…", w: 700), [#h(8pt)#text(size: 13.5pt, fill: RED)[← last digits: rounding noise]],
     mono(INK, "1.0         =  "), mono(MUTED, "1.00000000"), mono(MUTED, "00000000000000000"), [],
-    mono(INK, "difference  =  "), mono(RED, "0.00000000", w: 700), mono(INK, "99999999392252903…", w: 700), [#h(8pt)#text(size: 13.5pt, fill: RED)[← 8 leading digits annihilated]],
+    mono(INK, "difference  =  "), mono(RED, "0.00000000", w: 700), mono(INK, "99999999392252902…", w: 700), [#h(8pt)#text(size: 13.5pt, fill: RED)[← 8 leading digits annihilated]],
   )
 ]
 
@@ -301,7 +301,7 @@ Take $h = 10^(-8)$. What float64 actually stores and computes:
 Both inputs carried \~16 good digits. Their difference carries *\~8* — then `/ h` scales the surviving noise up by $10^8$.
 
 #pause
-#result[Started with 16 digits. Kept 8. The estimate: $0.99999999#text(fill: RED)[39…]$ — noise wearing a derivative costume.]
+#result[Started with 16 digits. Kept 8. The estimate: $0.99999999#text(fill: RED)[39…]$ — every digit after the eighth is rounding noise.]
 
 == A rounding-error model grows as $epsilon\/h$
 
@@ -327,15 +327,15 @@ $f = e^x$, $x = 0$, float64 — every digit below is real:
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 6pt,
   table.header([*$h$*], [*$D_h f(0)$*], [*error*]),
-  [$10^(-4)$], [1.0000500017…], [5 × 10⁻⁵],
-  [$10^(-8)$], [#text(fill: GREEN)[*0.9999999939…*]], [#text(fill: GREEN)[*6 × 10⁻⁹* — the best it ever gets]],
-  [$10^(-12)$], [1.0000889006…], [9 × 10⁻⁵ — worse again!],
-  [$10^(-15)$], [1.1102230246…], [1 × 10⁻¹ — that's $epsilon_64$'s face],
+  [$10^(-4)$], [1.0000500016…], [5 × 10⁻⁵],
+  [$10^(-8)$], [#text(fill: GREEN)[*0.9999999939…*]], [#text(fill: GREEN)[*6 × 10⁻⁹* — near the floor]],
+  [$10^(-12)$], [1.0000889005…], [9 × 10⁻⁵ — worse again!],
+  [$10^(-15)$], [1.1102230246…], [1 × 10⁻¹ — the digits of $epsilon_64\/2$],
   [$10^(-16)$], [#text(fill: RED)[*0.0000000000*]], [#text(fill: RED)[*100%*]],
 )
 
 #pause
-#alertbox[The last row is pure L2: $1 + 10^(-16)$ *rounds to 1* — the nudge fell into the float gap, the numerator is exactly $0$, and the estimator reports that the derivative of _everything_ is zero. With total confidence.]
+#alertbox[The last row is pure L2: $1 + 10^(-16)$ *rounds to 1* — the nudge fell into the float gap, the numerator is exactly $0$, and the estimator reports that the derivative of _everything_ is zero.]
 
 == The U-curve #V
 
@@ -345,11 +345,11 @@ $f = e^x$, $x = 0$, float64 — every digit below is real:
 
 == How to read a U-curve
 
-- *Right wall, slope $+1$*: truncation, $prop h$ — smooth, predictable, Taylor's receipt
+- *Right wall, slope $+1$*: truncation, $prop h$ — smooth and predictable, from the Taylor term $M h\/2$
 #pause
 - *Left wall, slope $-1$*: rounding, $prop epsilon\/h$ — jagged, because rounding noise is erratic, not smooth
 #pause
-- *The floor* near $h approx 10^(-8)$: error $approx 10^(-8)$ — the best this method will _ever_ do in float64
+- *The floor* near $h approx 10^(-8)$: error $approx 10^(-8)$ — the scale of the best this method can do in float64
 
 #pause
 #result[There is no winning $h$ — only a least-bad one. Every finite-difference scheme has a floor it cannot go below.]
@@ -371,7 +371,7 @@ $ E(h) = underbrace(M / 2 h, #text(fill: TEAL)[truncation — grows with $h$]) +
 - Those are the two dashed lines drawn on the U-curve figure — this is a model you can check
 
 #pause
-Minimizing a function of one variable… we happen to own a lecture on that (L7).
+Minimizing a function of one variable is exactly L7's tool: set the derivative to zero.
 
 == ⭐ Step 2: minimize — with L7's own calculus #D
 
@@ -397,7 +397,7 @@ Zoom into the U-curve's valley and lay the model on top of the measurement:
 #fig("/lecture10/figures/l10_ucurve_zoom.svg", w: 67%)
 
 #pause
-The terms cross near $h^* approx 3 times 10^(-8)$. The predicted worst-case floor is $3 times 10^(-8)$, the measured best error is $6 times 10^(-9)$, and the two asymptotic slopes are $plus.minus 1$.
+The terms cross near $h^* approx 3 times 10^(-8)$ with slopes $plus.minus 1$. The modeled floor is a *worst case*: $h = 10^(-8)$ measures $6 times 10^(-9)$, and erratic rounding lets some $h$ dip lower.
 
 == The precision floor: roughly half the digits
 
@@ -414,17 +414,17 @@ Relative error $sqrt(epsilon)$ means: *of the digits your float carries, forward
 )
 
 #pause
-With default settings, a float32 numerical check may not distinguish a correct gradient from an error around $10^(-3)$. Gradient-checking tools therefore recommend double precision and warn that lower-precision inputs may fail their default tolerances.
+A float32 numerical check cannot tell a correct gradient from an error near $10^(-3)$ — gradient checkers therefore recommend float64 inputs.
 
 #pause
-#notebox[Rule of thumb worth memorizing: finite differences cost you *half your precision*. Exactness isn't on the menu — at any $h$.]
+#notebox[Rule of thumb worth memorizing: finite differences cost you *half your precision* — at any $h$.]
 
 == Same experiment, half the bits #V
 
 #fig("/lecture10/figures/l10_fp32_fp64.svg", w: 72%)
 
 #pause
-Same $f$, same code — float32's floor sits roughly *ten thousand times higher*, and below $h = 10^(-8)$ its estimate is exactly $0$ because `1.0 + 1e-8 == 1.0` in float32.
+Same $f$, same code — float32's floor sits more than *four orders of magnitude higher* ($sqrt(epsilon_32\/epsilon_64) approx 2 times 10^4$), and below $h = 10^(-8)$ its estimate is exactly $0$ because `1.0 + 1e-8 == 1.0` in float32.
 
 = Central differences: a better secant
 
@@ -502,7 +502,7 @@ def grad_fd(f, theta, h=1e-6):
 ```]
 
 #pause
-Nudging $theta_3$ tells you *nothing* about $theta_7$. There is no bulk discount.
+Nudging $theta_3$ tells you *nothing* about $theta_7$: none of the $2n$ evaluations can be shared across coordinates.
 
 == Function-evaluation cost grows with input dimension #V
 
@@ -556,7 +556,7 @@ The remaining goal is a formula-free derivative at roughly the cost of evaluatin
 
 == Remove the quadratic term algebraically
 
-Stare at why truncation existed at all:
+Look again at why truncation existed at all:
 
 $ f(x + h) = f(x) + h f'(x) + underbrace(h^2 / 2 f'' + dots, "everything we DON'T want") $
 
@@ -567,9 +567,9 @@ The unwanted terms all carry $h^2$ or higher. Finite differences make $h^2$ _sma
 We introduce a formal unit with $epsilon^2 = 0$ but $epsilon eq.not 0$. No real number has this property; it defines a different algebra.
 
 #pause
-#result[Dual numbers extend real arithmetic with a formal unit $epsilon$ satisfying $epsilon^2 = 0$.]
+#result[Dual numbers: real arithmetic plus a formal unit $epsilon$ with $epsilon^2 = 0$.]
 
-== Meet the dual numbers: decree $epsilon^2 = 0$
+== Dual numbers: the rule $epsilon^2 = 0$
 
 A *dual number* is $a + b epsilon$ — carry the pair $(a, b)$, compute with ordinary algebra plus one new rule, $epsilon^2 = 0$:
 
@@ -583,10 +583,10 @@ A *dual number* is $a + b epsilon$ — carry the pair $(a, b)$, compute with ord
 )
 
 #pause
-Look hard at the product's $epsilon$-part: $a d + b c$ — if $b, d$ were "derivatives of $a, c$"… that is the *product rule*, appearing uninvited.
+Look hard at the product's $epsilon$-part: $a d + b c$ — if $b, d$ are the derivatives of $a, c$, that is exactly the *product rule*.
 
 #pause
-#notebox[Two epsilons in this lecture, by historical accident: *machine epsilon* $epsilon_64$ (a float's gap, L2) and this *dual unit* $epsilon$ (an algebraic symbol). Unrelated beasts. From here on, $epsilon$ means the dual unit.]
+#notebox[Two epsilons in this lecture, by historical accident: *machine epsilon* $epsilon_64$ (a float's gap, L2) and this *dual unit* $epsilon$ (an algebraic symbol). The two are unrelated. From here on, $epsilon$ means the dual unit.]
 
 == Example: $(3 + epsilon)^2$
 
@@ -613,7 +613,7 @@ $ f(a + b epsilon) = f(a) + f'(a) b epsilon + f''(a) / 2 b^2 underbrace(epsilon^
 Every term we fought as "truncation error" contains $epsilon^2$ — and $epsilon^2$ *is zero*. Nothing is truncated; nothing is left to truncate.
 
 #pause
-#result[Finite differences make the Taylor tail *small* and pay $sqrt(epsilon_64)$. Dual numbers make it *zero* — by decree.]
+#result[Finite differences make the Taylor tail *small* and pay $sqrt(epsilon_64)$. Dual numbers make it *zero* — by construction.]
 
 #pause
 Thus the finite-difference error sources are absent: there is no truncated finite step and no subtraction of nearby values.
@@ -721,7 +721,7 @@ $dot(f)$ answered *one* question: sensitivity to $x$. For $partial f \/ partial 
 #result[$nabla f(3, 1) = (33, 9)$ in *two* passes: one seed direction per input.]
 
 #pause
-Keep $(33, 9)$ warm — L11 re-derives this exact pair by a very different route.
+L11 re-derives this exact pair $(33, 9)$ by a different route: a backward walk over the same graph.
 
 == The code agrees, digit for digit
 
@@ -736,14 +736,14 @@ print(f(Dual(3.0, 0.0), Dual(1.0, 1.0)).d)   # 9.0    ∂f/∂y  (seed y)
 ```]
 
 #pause
-No `h` anywhere in this program — so nothing to tune, no U-curve, no floor. The trichotomy's third road is *real*.
+No `h` anywhere in this program — so nothing to tune, no U-curve, no floor. This is the trichotomy's third approach, in ten lines of code.
 
 #pause
-#notebox[For comparison, central differences at a near-optimal $h$ return approximately $32.99999999$. `Dual` returns the floating-point result of the derivative arithmetic, nearest to $33$ in this example.]
+#notebox[For comparison, central differences at the near-optimal $h = 6 times 10^(-6)$ return $32.9999999996$. `Dual` returns exactly $33.0$ — the derivative arithmetic here uses only small integers, which float64 represents exactly.]
 
 == Forward mode in the wild
 
-Real frameworks ship exactly this trick (as "jvp" — more in a moment):
+Real frameworks ship exactly this mechanism (as "jvp" — more in a moment):
 
 #codebox[```python
 import jax
@@ -766,7 +766,7 @@ The finite-difference approximation is gone. Now count passes for the function s
   inset: 8pt,
   table.header([*Function shape*], [*Forward-mode passes*], [*Preferred mode*]),
   [$f: RR arrow.r RR^m$ (one knob, many outputs)], [#text(fill: GREEN)[*1*]], [#text(fill: GREEN)[perfect]],
-  [$f: RR^n arrow.r RR$ (a *loss*: $n = 10^9$ knobs, one number)], [#text(fill: RED)[*$n$* — one per seed]], [#text(fill: RED)[330 years again]],
+  [$f: RR^n arrow.r RR$ (a *loss*: $n = 1.75 times 10^(11)$ knobs, one number)], [#text(fill: RED)[*$n$* — one per seed]], [#text(fill: RED)[330 years again]],
 )
 
 #pause
@@ -787,7 +787,7 @@ One seed vector is propagated per pass. Computing every coordinate of a scalar-o
 == Answer: dual arithmetic #A
 
 #mcq-answer([C], [$8 + 12 epsilon$],
-  [$(2 + epsilon)^2 = 4 + 4 epsilon$; then $(4 + 4 epsilon)(2 + epsilon) = 8 + 4 epsilon + 8 epsilon = 8 + 12 epsilon$. The $epsilon$-slot holds $12 = 3 dot 2^2$ — exactly $(x^3)'$ at $x = 2$. Option D forgot the decree: any $epsilon^2$ term is *already* zero, not "small".])
+  [$(2 + epsilon)^2 = 4 + 4 epsilon$; then $(4 + 4 epsilon)(2 + epsilon) = 8 + 4 epsilon + 8 epsilon = 8 + 12 epsilon$. The $epsilon$-slot holds $12 = 3 dot 2^2$ — exactly $(x^3)'$ at $x = 2$. Option D forgot the rule: any $epsilon^2$ term is *already* zero, not "small".])
 
 = From forward mode to reverse mode
 
@@ -819,7 +819,7 @@ gradcheck(my_op, (x,))    # float64 recommended; default eps=1e-6; central formu
   inset: 8pt,
   table.header([*Method*], [*Assessment*], [*Cost for $nabla f$, $f: RR^n arrow.r RR$*]),
   [symbolic], [exact, but expressions explode], [—],
-  [finite differences], [truncation vs rounding — both lose], [$n$ evals, *approximate*],
+  [finite differences], [truncation vs rounding — both lose], [$n + 1$ evals, *approximate*],
   [forward-mode AD], [#text(fill: GREEN)[no finite-difference approximation; carries (value, derivative) pairs]], [#text(fill: RED)[$n$ *passes* — one per input]],
   [#text(fill: MUTED)[reverse-mode AD]], [#text(fill: MUTED)[L11]], [#text(fill: MUTED)[?]],
 )
@@ -852,12 +852,12 @@ Forward mode is efficient for few-input, many-output functions. For a many-input
 
 Try on paper; verify in the T5 notebook (it pairs with L10–L11).
 
-+ Estimate $dif / (dif x) sin x$ at $0$ with $h = 0.1$, forward and central. Both beat their advertised orders — which Taylor term vanished?
++ Estimate $dif / (dif x) sin x$ at $0$ with $h = 0.1$, forward and central. They agree exactly, and forward beats its advertised $O(h)$ — which Taylor term vanished?
 + ⭐ redo for central: minimize $E(h) = M h^2 \/ 6 + epsilon \/ h$; check $h^*$ and floor against the figure.
 + Your GPU is float16 ($epsilon approx 10^(-3)$). Can *any* $h$ pass a $10^(-5)$-tolerance gradient check? Use the $sqrt(epsilon)$ rule.
 + Find $c + d epsilon$ with $(a + b epsilon)(c + d epsilon) = 1$; match your $d$ to $(1\/x)'$.
 + Trace forward mode on $g(x, y) = x y + x$ at $(2, 3)$, both seeds. Check: $partial g\/partial x = y + 1$, $partial g\/partial y = x$.
-+ $n = 10^7$ parameters, 10 ms per pass: time one central-difference gradient, then one forward-mode gradient. (Both answers should make you want L11.)
++ $n = 10^7$ parameters, 10 ms per pass: time one central-difference gradient, then one forward-mode gradient. (Compare both with L11's single reverse pass.)
 
 == ⭐⭐⭐ Complex-step differentiation #OPT
 
@@ -874,18 +874,18 @@ The imaginary part starts at *zero* — extracting it subtracts nothing. No canc
 ```]
 
 #pause
-$i^2 = -1$ only leaks into the *real* part at $O(h^2)$ — harmless. Dual numbers go one step further: $epsilon^2 = 0$ kills the leak entirely. (Squire & Trapp, 1998 — beloved in engineering codes that predate autodiff.)
+$i^2 = -1$ only leaks into the *real* part at $O(h^2)$ — harmless. Dual numbers go one step further: $epsilon^2 = 0$ kills the leak entirely. (Squire & Trapp, 1998 — used in engineering codes that predate autodiff.)
 
 == Lecture 10 — summary
 
 - *Three approaches*: symbolic (may swell) · numerical (approximate) · automatic (chain rule on code).
-- *Finite-difference error*: truncation $M h\/2$ (L7) vs rounding $2 epsilon\/h$ (L2) — the U-curve and its floor.
-- ⭐ $h^* approx sqrt(epsilon)$, best error $approx sqrt(epsilon)$ — *half your digits*; central improves to $epsilon^(2\/3)$. Hence `gradcheck`: float64 · central · `eps = 1e-6`.
+- *Finite differences*: truncation $M h\/2$ (L7) vs rounding $2 epsilon\/h$ (L2) — the U-curve.
+- ⭐ $h^*$ and best error both $approx sqrt(epsilon)$ — *half your digits*; central improves to $epsilon^(2\/3)$. Hence `gradcheck`: float64 · central · `eps = 1e-6`.
 - *The wall*: one nudge per input → $n + 1$ evals per gradient — \~330 years/step for GPT-3.
-- *Forward mode*: $epsilon^2 = 0$ → $f(a + b epsilon) = f(a) + f'(a) b epsilon$ for the lifted primitives; sweep (value, tangent) once per *input* seed — $nabla f(3, 1) = (33, 9)$ in two passes.
+- *Forward mode*: $f(a + b epsilon) = f(a) + f'(a) b epsilon$; one (value, tangent) sweep per *input* seed — $nabla f(3, 1) = (33, 9)$ in two passes.
 
 #pause
-#notebox[*Read before L11* — MML §5.6 (start); Baydin et al., _AD in ML: a Survey_, §2–3 (skim — today's trichotomy is their map). *T5* drills the dual trace, then L11's backward walk on the *same* graph.]
+#notebox[*Read before L11* — MML §5.6 (start); Baydin et al., _AD in ML: a Survey_, §2–3 (their trichotomy is today's map). *T5* drills the dual trace, then L11's backward walk on the same graph.]
 
 #focus-slide[
   Finite differences balance truncation against floating-point rounding.

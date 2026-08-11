@@ -56,7 +56,7 @@ def fig_ucurve():
     ax.annotate(r'$h^* = 2\sqrt{\varepsilon} \approx 3\times 10^{-8}$',
                 xy=(hstar, 6e1), xytext=(1.2e-6, 8e2), color=ACC, fontsize=13.5,
                 arrowprops=dict(arrowstyle='->', color=ACC, lw=1.3))
-    ax.annotate('floor $\\approx 2\\sqrt{\\varepsilon} \\approx 3\\times10^{-8}$\n— half the digits, gone',
+    ax.annotate('floor $\\approx 2\\sqrt{\\varepsilon} \\approx 3\\times10^{-8}$\n— half the digits',
                 xy=(hstar * 1.6, 2.2e-8), xytext=(2e-4, 2e-12), color=ACC, fontsize=13.5,
                 arrowprops=dict(arrowstyle='->', color=ACC, lw=1.3))
     ax.text(1e-12, 6e-2, 'rounding dominates\n(slope −1)', color=RED, fontsize=13.5,
@@ -88,8 +88,8 @@ def fig_ucurve_zoom():
                 arrowprops=dict(arrowstyle='->', color=ACC, lw=1.3))
     ax.text(2.2e-7, 1.55e-8, r'predicted floor  $2\sqrt{\varepsilon M} \approx 3.0\times10^{-8}$',
             color=ACC, fontsize=13)
-    ax.annotate(r'measured best  $\approx 6\times10^{-9}$',
-                xy=(6.1e-9, 8e-10), xytext=(1.2e-7, 2.6e-10), color=INK, fontsize=13,
+    ax.annotate(r'measured at $h = 10^{-8}$:  $6\times10^{-9}$',
+                xy=(1.0e-8, 6.1e-9), xytext=(1.2e-7, 2.6e-10), color=INK, fontsize=13,
                 arrowprops=dict(arrowstyle='->', color=INK, lw=1.2))
     ax.text(3.5e-10, 2.3e-6, 'slope −1', color=RED, fontsize=13, rotation=-38)
     ax.text(3.2e-6, 4.5e-6, 'slope +1', color=TEAL, fontsize=13, rotation=38)
@@ -109,16 +109,12 @@ def fig_fwd_central():
     fig, ax = plt.subplots(figsize=(9.0, 4.8))
     ax.plot(hs, ef, color=TEAL, lw=1.9, label='forward  $(f(x+h)-f(x))/h$')
     ax.plot(hs, ec, color=ACC, lw=1.9, label='central  $(f(x+h)-f(x-h))/2h$')
-    # mark each curve's measured minimum
-    imf, imc = int(np.argmin(ef)), int(np.argmin(ec))
-    ax.plot([hs[imf]], [ef[imf]], 'o', ms=7, color=TEAL)
-    ax.plot([hs[imc]], [ec[imc]], 'o', ms=7, color=ACC)
     # floors as dotted reference lines, labelled in the clear bottom-right
     ax.axhline(1.2e-8, color=TEAL, lw=1.2, ls=':')
     ax.text(1.3e-2, 2.6e-8, r'forward floor $\approx 10^{-8}$   at  $h^*\!\approx 3\times10^{-8}$',
             color=TEAL, fontsize=12.5)
-    ax.axhline(4e-12, color=ACC, lw=1.2, ls=':')
-    ax.text(1.3e-2, 8.5e-12, r'central floor $\approx 10^{-11}$   at  $h^*\!\approx 6\times10^{-6}$',
+    ax.axhline(1e-11, color=ACC, lw=1.2, ls=':')
+    ax.text(1.3e-2, 2.1e-11, r'central floor $\approx 10^{-11}$   at  $h^*\!\approx 6\times10^{-6}$',
             color=ACC, fontsize=12.5)
     # slope tags beside the ascending branches
     ax.text(6e-3, 1.3e-1, r'$\propto h$', color=TEAL, fontsize=15)
@@ -143,8 +139,8 @@ def fig_fp32_fp64():
     fig, ax = plt.subplots(figsize=(9.0, 4.7))
     ax.plot(hs64, e64, color=TEAL, lw=1.9, label='float64')
     ax.plot(hs32, e32, color=RED, lw=1.9, label='float32')
-    ax.annotate('float32 floor $\\approx 2\\times10^{-4}$\n— only 3–4 digits survive',
-                xy=(2.4e-4, 1.4e-4), xytext=(6e-4, 1e-8), color=RED, fontsize=13,
+    ax.annotate('float32 floor $\\approx 3\\times10^{-4}$\n— only 3–4 digits survive',
+                xy=(2.4e-4, 3.6e-4), xytext=(6e-4, 1e-8), color=RED, fontsize=13,
                 arrowprops=dict(arrowstyle='->', color=RED, lw=1.3))
     ax.annotate('float64 floor $\\approx 10^{-8}$\n— 8 digits survive',
                 xy=(2.9e-8, 8e-9), xytext=(2e-11, 3e-12), color=TEAL, fontsize=13,
