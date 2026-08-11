@@ -43,12 +43,12 @@ One PDF per lecture, one page per slide (handout build). The full schedule with 
 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
-| 16 | The Optimization Landscape | *soon* |
-| 17 | Gradient Descent | *soon* |
-| 18 | Second-Order Methods: Newton & Gauss-Newton | *soon* |
-| 19 | Constrained Optimization: Lagrange Multipliers | *soon* |
-| 20 | Duality & KKT | *soon* |
-| 21 | Linear & Quadratic Programming | *soon* |
+| 16 | The Optimization Landscape | [PDF](slides-pdf/L16.pdf) |
+| 17 | Gradient Descent | [PDF](slides-pdf/L17.pdf) |
+| 18 | Second-Order Methods: Newton & Gauss-Newton | [PDF](slides-pdf/L18.pdf) |
+| 19 | Constrained Optimization: Lagrange Multipliers | [PDF](slides-pdf/L19.pdf) |
+| 20 | Duality & KKT | [PDF](slides-pdf/L20.pdf) |
+| 21 | Linear & Quadratic Programming | [PDF](slides-pdf/L21.pdf) |
 
 ## Module 5 · Information Theory ↔ Machine Learning
 

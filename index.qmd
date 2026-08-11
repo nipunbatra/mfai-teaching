@@ -85,12 +85,12 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
-| 16 | The Optimization Landscape | MML 7.3; Boyd Ch 2–3 | *soon* | |
-| 17 | Gradient Descent | MML 7.1; [Distill momentum](https://distill.pub/2017/momentum/) | *soon* | |
-| 18 | Second-Order Methods: Newton & Gauss-Newton | Solomon Ch 9 | *soon* | |
-| 19 | Constrained Optimization: Lagrange Multipliers | MML 7.2 | *soon* | |
-| 20 | Duality & KKT | Boyd Ch 5 | *soon* | |
-| 21 | Linear & Quadratic Programming | Boyd 4.3–4.4 | *soon* | |
+| 16 | The Optimization Landscape | MML 7.3; Boyd Ch 2–3 | [PDF](slides-pdf/L16.pdf) | |
+| 17 | Gradient Descent | MML 7.1; [Distill momentum](https://distill.pub/2017/momentum/) | [PDF](slides-pdf/L17.pdf) | |
+| 18 | Second-Order Methods: Newton & Gauss-Newton | Solomon Ch 9 | [PDF](slides-pdf/L18.pdf) | |
+| 19 | Constrained Optimization: Lagrange Multipliers | MML 7.2 | [PDF](slides-pdf/L19.pdf) | |
+| 20 | Duality & KKT | Boyd Ch 5 | [PDF](slides-pdf/L20.pdf) | |
+| 21 | Linear & Quadratic Programming | Boyd 4.3–4.4 | [PDF](slides-pdf/L21.pdf) | |
 
 > **Quiz 4** · Module 4 · **A2 (CVXPY)** out
 
