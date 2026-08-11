@@ -82,9 +82,9 @@ def wrong_model():
 
 
 def decomposition_bars():
-    p = np.array([0.7, 0.2, 0.1])
-    qs = [p, np.array([0.65, 0.25, 0.10]), np.array([0.4, 0.4, 0.2])]
-    names = ["$q=p$", "close model", "poor model"]
+    p = np.array([0.75, 0.20, 0.05])
+    qs = [p, np.array([0.60, 0.28, 0.12]), np.array([0.45, 0.35, 0.20])]
+    names = ["$q=p$", "nearby model", "forecast $q$"]
     h = entropy(p)
     ce = np.array([cross_entropy(p, q) for q in qs])
     kl = ce - h

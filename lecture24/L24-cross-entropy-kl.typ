@@ -4,6 +4,7 @@
 
 #import "../common/metropolis.typ": *
 #import "../common/mldiag.typ": *
+#let IA = "https://nipunbatra.github.io/interactive-articles/"
 #show: metropolis-deck.with(
   title: [Cross-Entropy and KL Divergence],
   subtitle: [The cost of using the wrong probability model],
@@ -13,6 +14,19 @@
 
 // ═══════════════════ 1 · wrong code ═══════════════════
 = A code built for the wrong weather
+
+== The loss curve every language model reports #V
+
+#align(center, lines(fn: t => 2.1 + 8.72 / calc.pow(1 + t, 1.2),
+  domain: (0, 50), samples: 160, markers: false,
+  x-label: [training steps (thousands)], y-label: [loss (nats/token)],
+  size: (100mm, 40mm)))
+
+#pause
+The training curve of a GPT-style model plots *cross-entropy*: the average of $-ln q("next token")$. At initialization the model is near uniform over its $50257$-token vocabulary, so the loss starts near $ln 50257 approx 10.8$ nats.
+
+#pause
+This lecture defines that loss, proves that minimizing it is maximum likelihood, and returns to read this curve's final value.
 
 == True weather and forecast model
 
@@ -35,6 +49,9 @@ $ -log_2 q(x). $
 == Model probabilities determine lengths #V
 
 #fig("/lecture24/figures/wrong_weather_model.svg", w: 76%)
+
+#pause
+Sun's codeword costs $-log_2 0.45 approx 1.15$ bits; rain's costs $-log_2 0.20 approx 2.32$ bits.
 
 #pause
 The average uses true frequencies $p$, but the lengths come from model probabilities $q$.
@@ -125,7 +142,7 @@ For a fixed source $p$, only the KL term depends on $q$.
 #fig("/lecture24/figures/cross_entropy_decomposition.svg", w: 63%)
 
 #pause
-The source entropy is unchanged. A poorer model increases only the mismatch term.
+The teal band $H(p) approx 0.992$ bits never moves. The forecast $q$ from the opening pays $1.283$ bits; the entire difference is the orange mismatch term.
 
 == Weather KL calculation
 
@@ -139,6 +156,22 @@ $ approx 0.291 " bits". $
 
 #pause
 Some individual terms are negative; their weighted sum is never negative.
+
+== The machine agrees · three sums, one identity
+
+#codebox[```python
+import numpy as np
+p = np.array([0.75, 0.20, 0.05])      # true weather
+q = np.array([0.45, 0.35, 0.20])      # forecast model
+H  = -(p * np.log2(p)).sum()          # entropy
+CE = -(p * np.log2(q)).sum()          # cross-entropy
+KL =  (p * np.log2(p / q)).sum()      # KL divergence
+print(f"{H:.3f} {CE:.3f} {KL:.3f}")   # 0.992 1.283 0.291
+print(np.isclose(CE, H + KL))         # True
+```]
+
+#pause
+The decomposition holds to machine precision, not only on the slide.
 
 == Question: perfect model #Q
 
@@ -237,12 +270,15 @@ A model that declares a possible observation impossible receives infinite ideal 
 #pause
 This is one reason probability smoothing matters.
 
-== Direction matters under approximation #OPT
+== Two directions, two failure modes #V
 
-#fig("/lecture24/figures/kl_directions.svg", w: 77%)
+#fig("/lecture24/figures/kl_directions.svg", w: 68%)
 
 #pause
-When a single Gaussian approximates a bimodal target, the two KL directions penalize different failures. This is a property of the approximation problem, not a general synonym for “wide” versus “narrow.”
+Fit one Gaussian $q$ to a bimodal target $p$. Minimizing the *forward* direction $D_"KL"(p||q)$ averages $log(p\/q)$ under $p$, so $q$ must put probability wherever $p$ has mass — the fit is *mass-covering*.
+
+#pause
+Minimizing the *reverse* direction $D_"KL"(q||p)$ averages under $q$, so $q$ avoids regions where $p approx 0$ and settles on one mode — *mode-seeking*, also called zero-forcing.
 
 == Which direction appears in supervised learning?
 
@@ -251,7 +287,7 @@ Data are drawn from an unknown source $p$. A model supplies $q_theta$.
 #pause
 Expected log loss is
 
-$ EE_(X tilde p)[-log q_theta(X)]=H(p,q_theta). $
+$ EE_(X tilde p)[-log q_theta (X)]=H(p,q_theta). $
 
 #pause
 Therefore the relevant mismatch is
@@ -259,7 +295,7 @@ Therefore the relevant mismatch is
 $ D_"KL"(p||q_theta). $
 
 #pause
-The source distribution supplies the average.
+The source distribution supplies the average: training on log loss minimizes the forward, mass-covering direction.
 
 // ═══════════════════ 4 · maximum likelihood ═══════════════════
 = Cross-entropy is negative log-likelihood
@@ -268,12 +304,12 @@ The source distribution supplies the average.
 
 For independent observations $x_1,dots,x_n$ under model $q_theta$,
 
-$ L(theta)=product_(i=1)^n q_theta(x_i). $
+$ L(theta)=product_(i=1)^n q_theta (x_i). $
 
 #pause
 Negative log-likelihood is
 
-$ "NLL"(theta)=-sum_(i=1)^n log q_theta(x_i). $
+$ "NLL"(theta)=-sum_(i=1)^n log q_theta (x_i). $
 
 #pause
 Divide by $n$ to compare datasets of different sizes.
@@ -283,10 +319,10 @@ Divide by $n$ to compare datasets of different sizes.
 Let $n_x$ be the count of symbol $x$, and $hat(p)(x)=n_x/n$.
 
 #pause
-$ 1/n "NLL"(theta)=-1/n sum_x n_x log q_theta(x). $
+$ 1/n "NLL"(theta)=-1/n sum_x n_x log q_theta (x). $
 
 #pause
-$ =-sum_x hat(p)(x)log q_theta(x). $
+$ =-sum_x hat(p)(x)log q_theta (x). $
 
 #pause
 #result[$1/n "NLL"(theta)=H(hat(p),q_theta)$.]
@@ -302,7 +338,7 @@ $ =arg min_theta [H(hat(p))+D_"KL"(hat(p)||q_theta)] $
 $ =arg min_theta D_"KL"(hat(p)||q_theta) $
 
 #pause
-$ =arg max_theta sum_i log q_theta(x_i). $
+$ =arg max_theta sum_i log q_theta (x_i). $
 
 #pause
 The empirical entropy is constant with respect to model parameters.
@@ -407,11 +443,25 @@ $ log q_k=z_k-"logsumexp"(bold(z)). $
 #pause
 This avoids overflow and underflow from L2. Practical libraries combine `log_softmax` with NLL loss.
 
-== Gradient with respect to logits #OPT
+== `F.cross_entropy` verified
+
+#codebox[```python
+import torch, torch.nn.functional as F
+logits = torch.tensor([[2.0, -1.0, 0.5]])  # raw scores, 3 classes
+y = torch.tensor([0])                      # correct class: index 0
+q = F.softmax(logits, dim=1)               # (0.7856, 0.0391, 0.1753)
+print(-torch.log(q[0, 0]))                 # tensor(0.2413)
+print(F.cross_entropy(logits, y))          # tensor(0.2413)
+```]
+
+#pause
+`F.cross_entropy` takes raw logits and computes $-log q_c$ with log-sum-exp inside — L14 named this loss; L2 explained why it wants logits, not probabilities.
+
+== Gradient with respect to logits
 
 For one-hot target $bold(y)$ and softmax probabilities $bold(q)$,
 
-$ partial "CE"/partial z_k=q_k-y_k. $
+$ (partial "CE")/(partial z_k)=q_k-y_k. $
 
 #pause
 The gradient has a direct interpretation:
@@ -490,6 +540,19 @@ Its exponential is token-level perplexity.
 #pause
 Comparisons require the same tokenization and evaluation data; otherwise the unit “token” has changed.
 
+== Read the opening loss curve
+
+The curve from the first slide flattens near $2.2$ nats/token.
+
+#pause
+$ "perplexity"=exp(2.2) approx 9.0. $
+
+#pause
+After training, the model is as uncertain as a uniform choice among about $9$ tokens per step; at initialization it was uniform over $50257$.
+
+#pause
+A further drop from $2.2$ to $1.5$ nats reads as perplexity $9.0 arrow.r 4.5$: small differences in loss are large differences in behaviour.
+
 == Perplexity is not accuracy
 
 Accuracy checks whether the top predicted class is correct.
@@ -503,7 +566,7 @@ Two models can have the same top-1 accuracy but different calibration and theref
 // ═══════════════════ 7 · mutual information ═══════════════════
 = How much does one variable reveal about another?
 
-== Dependence as a KL divergence #OPT
+== Dependence as a KL divergence
 
 Mutual information compares the joint distribution with the product of marginals:
 
@@ -515,7 +578,10 @@ If $X$ and $Y$ are independent, $p(x,y)=p(x)p(y)$ and $I(X;Y)=0$.
 #pause
 If observing $Y$ changes predictions about $X$, mutual information is positive.
 
-== Entropy reduction #OPT
+#pause
+#notebox[L23's noisy-channel limit is this quantity: a channel's capacity is the maximum of $I("input";"output")$ over input distributions.]
+
+== Entropy reduction
 
 The same quantity can be written
 
@@ -529,7 +595,7 @@ Mutual information is symmetric:
 
 $ I(X;Y)=I(Y;X). $
 
-== Two binary examples #OPT
+== Two binary examples
 
 Let $X$ be a fair bit.
 
@@ -557,6 +623,23 @@ $ H(p,q)=H(p)+D_"KL"(p||q). $
 
 #pause
 The same calculation is read in four different ways.
+
+== The L14 loss table, completed
+
+L14 derived the first two rows and deferred the third to this lecture.
+
+#align(center, table(
+  columns: (auto, auto, 1fr, auto), stroke: 0.5pt + MUTED.lighten(40%),
+  inset: (x: 10pt, y: 7pt), align: (left, left, left, center),
+  table.header([*You observe*], [*Model*], [*NLL per example*], [*Its famous name*]),
+  [a real $y$], [Gaussian], [$(y - hat(y))^2 \/ 2 sigma^2 + c$], [*MSE* #text(fill: GREEN, size: 16pt)[✓ L14]],
+  [yes / no], [Bernoulli], [$-[y log p + (1 - y) log(1 - p)]$], [*BCE* #text(fill: GREEN, size: 16pt)[✓ L14]],
+  [1 of $K$ classes], [Categorical], [$-log q_c$], [*cross-entropy* #text(fill: GREEN, size: 16pt)[✓ today]],
+  [$y$ with outliers], [Laplace], [$abs(y - hat(y)) \/ b + c$], [*MAE* #text(fill: MUTED, size: 16pt)[L14 bonus]],
+))
+
+#pause
+#result[Every row is one construction: an observation model's negative log-likelihood — and mean NLL is the cross-entropy $H(hat(p), q_theta)$.]
 
 == Summary
 
@@ -593,6 +676,15 @@ The same calculation is read in four different ways.
 
 4. $exp(2) approx 7.389$.
 
+== Interactive and reading #I
+
+#interbox(link-to: IA + "info-theory")[
+  The *info-theory* article recomputes $H(p)$, $H(p,q)$, and $D_"KL"(p||q)$ as you drag probability bars. Set $p$ to today's weather and drag $q$ away from it; the KL readout is the extra cost.
+]
+
+#pause
+#notebox[*Read before L25* — MacKay Ch. 2.6 (KL divergence) · Ch. 8 (mutual information, skim) · *Assigned:* Olah, _Visual Information Theory_ — today's wrong-code story, drawn as pictures. *T12* pairs with this lecture; *A3* (compressor + n-gram LM) goes out.]
+
 == Next: dependence across time
 
 So far, most examples treated observations as independent. Sequences have structure:
@@ -607,4 +699,9 @@ $ p(x_t|x_(<t)) approx p(x_t|x_(t-1)). $
 #pause
 Next lecture turns this assumption into a transition matrix.
 
-#focus-slide[Minimize cross-entropy, maximize likelihood, and reduce coding cost: the same optimization.]
+#focus-slide[
+  Cross-entropy is the price of believing the wrong distribution.
+  #v(12pt)
+  #set text(size: 22pt)
+  Next: *Markov Chains* — when the next state depends only on the current one, the whole process is a matrix.
+]
