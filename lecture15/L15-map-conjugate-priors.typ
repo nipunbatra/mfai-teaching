@@ -171,9 +171,9 @@ Three heads moved the posterior probability of "rigged" from *10% to 39%*. The u
 
 #two(
   bars((0.9, 0.1), labels: ([fair], [rigged]), annotate: true, digits: 2,
-    size: (46mm, 26mm), title: [before: #text(fill: TEAL)[prior]]),
+    color: TEAL, size: (46mm, 26mm), title: [before: #text(fill: TEAL)[prior]]),
   bars((0.607, 0.393), labels: ([fair], [rigged]), annotate: true, digits: 3,
-    size: (46mm, 26mm), title: [after 3 heads: #text(fill: ACC)[posterior]]),
+    color: ACC, size: (46mm, 26mm), title: [after 3 heads: #text(fill: ACC)[posterior]]),
 )
 
 #pause
@@ -221,10 +221,13 @@ Take $p(theta) = 1$ on $[0, 1]$. Then $log p(theta) = 0$:
 $ theta_"MAP" = amax_theta [ log P(D | theta) + 0 ] = theta_"MLE" $
 
 #pause
-#result[In this bounded parameterization, a uniform prior makes the MAP and MLE optimizers coincide. This does not mean that MLE assumes a prior: MLE and MAP are distinct procedures, and a density uniform in one parameterization need not be uniform after reparameterization.]
+#result[A uniform prior on $[0, 1]$ adds nothing to the log-posterior: $theta_"MAP" = theta_"MLE"$.]
 
 #pause
-A prior changes the posterior and MAP estimate most visibly in small samples. For fixed regular priors with support near the data-generating parameter, its influence on the MAP estimate typically diminishes as $n$ grows.
+#notebox[This does not mean MLE assumes a prior: MLE and MAP are distinct procedures, and a density uniform in one parameterization need not stay uniform after reparameterization.]
+
+#pause
+A prior changes the posterior and MAP estimate most visibly in small samples. For a fixed regular prior with support near the data-generating parameter, its influence on the MAP estimate typically diminishes as $n$ grows.
 
 // ═══════════════════════════ 3 · the coin, worked ═══════════════════════════
 = The coin gets a prior
@@ -339,7 +342,7 @@ $ "Beta"(theta; alpha, beta) = (theta^(alpha - 1) (1 - theta)^(beta - 1)) / (B(a
 
 == The shape gallery #V
 
-All dials from ${0.5, 1, 2, 5}$ — one family, five personalities:
+All dials from ${0.5, 1, 2, 5}$ — one family, six personalities:
 
 #grid(columns: 3, gutter: 14pt, row-gutter: 6pt,
   lines(fn: beta-pdf(0.5, 0.5), domain: (0.004, 0.996), markers: false, samples: 120,
@@ -376,11 +379,14 @@ For $alpha, beta > 1$ the peak sits at $"mode" = (alpha - 1) \/ (alpha + beta - 
 )
 
 #pause
-#result[For MAP, $alpha - 1$ and $beta - 1$ act like added head and tail counts. This is a mode mnemonic; the posterior update itself adds observations directly to $alpha$ and $beta$.]
+#result[For MAP, $alpha - 1$ and $beta - 1$ act like added head and tail counts.]
+
+#pause
+This is a mode mnemonic. The posterior update itself (next section) adds the raw counts $n_H, n_T$ directly to $alpha$ and $beta$.
 
 == Concentration is controlled by $alpha + beta$
 
-Same center, different bankroll: mean $= alpha \/ (alpha + beta)$ fixes _where_; the total $alpha + beta$ fixes _how firmly_.
+Same center, different confidence: mean $= alpha \/ (alpha + beta)$ fixes _where_; the total $alpha + beta$ fixes _how firmly_.
 
 #align(center, lines(
   fn: (beta-pdf(2, 2), beta-pdf(50, 50)),
@@ -551,7 +557,7 @@ $ "sd" approx sqrt( (hat(theta) (1 - hat(theta))) / n ) $
 #pause
 - Quadruple the flips → *halve* the uncertainty — the same $sqrt(n)$ law you met in L13's CLT demo, now running _inside_ the posterior.
 #pause
-- By $n = 100$, the prior's 4 pseudo-flips are 4 votes in an electorate of 104: present, out-voted, and fading.
+- By $n = 100$, the prior's $alpha + beta = 4$ pseudo-observations are 4 votes in an electorate of $n + alpha + beta = 104$: present, out-voted, and fading.
 
 == Order cannot matter
 
@@ -586,7 +592,10 @@ $ theta_"MAP" = (n_H + alpha - 1) / (n + alpha + beta - 2) arrow.r n_H / n = the
 - With a fixed regular prior and a growing i.i.d. sample, MLE and MAP typically converge to the same value.
 
 #pause
-#result[For this fixed Beta prior, the difference between MAP and MLE is of order $1\/n$. Priors with zero support near the truth or priors that change with $n$ need not wash out this way.]
+#result[For this fixed Beta prior, the gap between MAP and MLE shrinks like $1\/n$.]
+
+#pause
+#notebox[The washout needs a *fixed* prior with *positive density near the truth*. A prior with zero support there, or pseudo-counts that grow with $n$, need not wash out.]
 
 == Posterior inference for the opening coin example
 
