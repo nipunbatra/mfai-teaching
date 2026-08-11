@@ -26,7 +26,7 @@ Some feasible choices:
 
 #table(
   columns: (1fr, 1fr, 1fr),
-  inset: 8pt,
+  inset: 5pt,
   stroke: 0.5pt + MUTED.lighten(40%),
   table.header([$x$], [$y$], [$x y$]),
   [$0$], [$1$], [$0$],
@@ -41,13 +41,17 @@ The equal split looks best. We need a method that still works when substitution 
 
 == Where this form appears in ML
 
+"Maximize engagement subject to fairness" is the same shape: prefer one quantity while another is pinned.
+
 #table(
   columns: (1.1fr, 1.25fr, 1.25fr),
-  inset: 8pt,
+  inset: 6pt,
   stroke: 0.5pt + MUTED.lighten(40%),
   table.header([*choice*], [*objective*], [*equality*]),
   [probabilities $p_i$], [entropy or likelihood], [$sum_i p_i = 1$],
+  [recommender $bold(theta)$], [engagement], [fairness statistic $=0$],
   [portfolio weights $w_i$], [predicted return], [$sum_i w_i = 1$],
+  [weights $bold(w)$ after a step], [$norm(bold(w)-bold(z))^2$ (stay close)], [$norm(bold(w))^2 = r^2$ (norm ball)],
   [model parameters $bold(theta)$], [training loss], [$A bold(theta) = bold(b)$],
   [resource allocation $x_i$], [utility], [$sum_i x_i = B$],
 )
@@ -74,7 +78,7 @@ The gradient points uphill, but that direction leaves the line $x+y=1$.
 
 == The feasible set is part of the problem #V
 
-#fig("/lecture19/figures/budget_contours.svg", w: 60%)
+#fig("/lecture19/figures/budget_contours.svg", w: 40%)
 
 #pause
 The orange line contains every feasible point. The best contour that touches it does so at $(0.5,0.5)$.
@@ -138,7 +142,7 @@ Since $h(bold(x))=0$, first-order feasibility requires
 $ nabla h(bold(x))^top bold(v)=0. $
 
 #pause
-For $x+y=1$, one tangent direction is $bold(v)=(1,-1)$ because $(1,1)^top(1,-1)=0$.
+For $x+y=1$, one tangent direction is $bold(v)=(1,-1)$ because $(1,1)^top (1,-1)=0$.
 
 == Stationarity only along the feasible set
 
@@ -171,7 +175,7 @@ This is the Lagrange multiplier condition. “Regular” means $nabla h(bold(x)^
 
 == The running example at the optimum #V
 
-#fig("/lecture19/figures/gradient_alignment.svg", w: 60%)
+#fig("/lecture19/figures/gradient_alignment.svg", w: 40%)
 
 #pause
 At $(0.5,0.5)$,
@@ -185,12 +189,12 @@ The feasible tangent direction is $bold(v)=(1,-1)$.
 #pause
 At the candidate $(0.5,0.5)$,
 
-$ nabla f^top bold(v) = (0.5,0.5)^top(1,-1)=0. $
+$ nabla f^top bold(v) = (0.5,0.5)^top (1,-1)=0. $
 
 #pause
 At the feasible point $(0.2,0.8)$,
 
-$ nabla f^top bold(v) = (0.8,0.2)^top(1,-1)=0.6. $
+$ nabla f^top bold(v) = (0.8,0.2)^top (1,-1)=0.6. $
 
 #pause
 Moving a little toward increasing $x$ and decreasing $y$ improves the product there.
@@ -243,7 +247,7 @@ $ cal(L)(bold(x),lambda)=f(bold(x))-lambda h(bold(x)). $
 Stationarity with respect to both arguments gives
 
 $ nabla_bold(x) cal(L)=nabla f-lambda nabla h=bold(0), $
-$ partial cal(L) / partial lambda=-h(bold(x))=0. $
+$ (partial cal(L)) / (partial lambda)=-h(bold(x))=0. $
 
 #pause
 The last equation puts the solution back on the constraint.
@@ -272,9 +276,9 @@ There are now three unknowns and three stationarity equations.
 
 == ⭐ Step 2 — differentiate #D
 
-$ partial cal(L) / partial x = y-lambda=0, $
-$ partial cal(L) / partial y = x-lambda=0, $
-$ partial cal(L) / partial lambda = -(x+y-1)=0. $
+$ (partial cal(L)) / (partial x) = y-lambda=0, $
+$ (partial cal(L)) / (partial y) = x-lambda=0, $
+$ (partial cal(L)) / (partial lambda) = -(x+y-1)=0. $
 
 #pause
 The first two equations say
@@ -352,13 +356,13 @@ The point vector $(0.8,1.6)$ is parallel to the line normal $(1,2)$, as the geom
 import numpy as np
 
 x = np.array([0.8, 1.6])
-print(x @ x / 2)              # 1.6
-print(np.array([1, 2]) @ x)   # 4.0
+print(round(x @ x / 2, 3))     # 1.6
+print(np.array([1, 2]) @ x)    # 4.0
 
 # nearby feasible direction v=(2,-1)
 for t in [-0.2, 0.0, 0.2]:
     z = x + t*np.array([2, -1])
-    print(t, z @ z / 2)
+    print(t, round(z @ z / 2, 3))
 # -0.2 1.7; 0.0 1.6; 0.2 1.7
 ```]
 
@@ -397,7 +401,7 @@ $ V(b)=b^2/4. $
 
 == The derivative of the optimal value #V
 
-#fig("/lecture19/figures/shadow_price.svg", w: 62%)
+#fig("/lecture19/figures/shadow_price.svg", w: 52%)
 
 #pause
 At $b=1$,
@@ -415,7 +419,7 @@ $ cal(L)(x,y,lambda;b)=x y-lambda(x+y-b). $
 #pause
 At the optimum, the derivatives through $x^*(b)$ and $y^*(b)$ vanish by stationarity. The remaining direct derivative is
 
-$ (dif V)/(dif b) = partial cal(L)/partial b = lambda^*. $
+$ (dif V)/(dif b) = (partial cal(L)) / (partial b) = lambda^*. $
 
 #pause
 #result[The multiplier is the local change in optimal value per unit relaxation of the constraint.]
@@ -472,14 +476,17 @@ The sign depends on how the constraint was written; the magnitude and units carr
 
 == Three probabilities live on a triangle #V
 
-#fig("/lecture19/figures/probability_simplex.svg", w: 58%)
+#two(
+  fig("/lecture19/figures/probability_simplex.svg", w: 96%),
+  [
+    Every distribution over three outcomes satisfies
 
-#pause
-Every distribution over three outcomes satisfies
+    $ p_1+p_2+p_3=1, quad p_i>=0. $
 
-$ p_1+p_2+p_3=1, quad p_i>=0. $
-
-The equality removes one degree of freedom, so the feasible set is two-dimensional.
+    #pause
+    The equality removes one degree of freedom, so the feasible set is two-dimensional.
+  ],
+)
 
 == Entropy rewards spread
 
@@ -516,7 +523,7 @@ The inequality $p_i>=0$ will be handled systematically by KKT conditions in L20.
 
 For each $i$,
 
-$ partial cal(L)/partial p_i = -(log p_i+1)-lambda=0. $
+$ (partial cal(L)) / (partial p_i) = -(log p_i+1)-lambda=0. $
 
 #pause
 Hence
@@ -542,6 +549,9 @@ $ sum_(i=1)^K p_i=K c=1 quad arrow.r.double quad c=1/K. $
 #pause
 For $K=3$, the solution is the centre of the triangle in the previous figure.
 
+#pause
+The multiplier comes from $log p_i=-1-lambda$: here $lambda^*=log K-1$ — the sensitivity of the maximal entropy to the total-probability budget, exactly as $V'(b)=lambda^*$ before.
+
 == Check the entropy calculation in code
 
 #codebox[```python
@@ -550,7 +560,7 @@ import numpy as np
 def entropy(p):
     p = np.asarray(p)
     p = p[p > 0]
-    return -(p*np.log(p)).sum()
+    return (p*np.log(1/p)).sum()
 
 for p in ([1, 0, 0], [.8, .1, .1], [1/3]*3):
     print(round(entropy(p), 3))
@@ -570,24 +580,10 @@ The probability simplex appears whenever a model produces categorical probabilit
 #pause
 + *Maximum entropy* chooses the least concentrated distribution consistent with known constraints.
 #pause
-+ Extra moment constraints lead to exponential-family distributions.
++ Extra moment constraints lead to exponential-family distributions (⭐⭐⭐ slide at the end).
 
 #pause
 This calculation will return in the information-theory module.
-
-== Add one expected-value constraint #OPT
-
-Suppose outcomes have values $a_i$, and we also require $sum_i p_i a_i=mu$.
-
-$ cal(L)=-sum_i p_i log p_i-lambda(sum_i p_i-1)-beta(sum_i p_i a_i-mu). $
-
-#pause
-Stationarity gives
-
-$ p_i=exp(-1-lambda-beta a_i) prop exp(-beta a_i). $
-
-#pause
-Normalization determines the missing constant. This is the basic exponential-family form.
 
 // ═══════════════════ 6 · several equalities ═══════════════════
 = Several equality constraints
@@ -596,17 +592,17 @@ Normalization determines the missing constant. This is the basic exponential-fam
 
 For
 
-$ min_bold(x) f(bold(x)) quad "subject to" quad h_j(bold(x))=0, quad j=1,dots,m, $
+$ min_bold(x) f(bold(x)) quad "subject to" quad h_j (bold(x))=0, quad j=1,dots,m, $
 
 define
 
-$ cal(L)(bold(x),bold(lambda))=f(bold(x))+sum_(j=1)^m lambda_j h_j(bold(x)). $
+$ cal(L)(bold(x),bold(lambda))=f(bold(x))+sum_(j=1)^m lambda_j h_j (bold(x)). $
 
 #pause
 Stationarity becomes
 
-$ nabla f(bold(x)^*)+sum_j lambda_j^* nabla h_j(bold(x)^*)=bold(0), $
-$ h_j(bold(x)^*)=0 quad "for every" j. $
+$ nabla f(bold(x)^*)+sum_j lambda_j^* nabla h_j (bold(x)^*)=bold(0), $
+$ h_j (bold(x)^*)=0 quad "for every" j. $
 
 == The gradient lies in a span
 
@@ -615,7 +611,7 @@ With one equality, $nabla f$ is parallel to one constraint gradient.
 #pause
 With several equalities,
 
-$ -nabla f(bold(x)^*) in "span"{nabla h_1(bold(x)^*),dots,nabla h_m(bold(x)^*)}. $
+$ -nabla f(bold(x)^*) in "span"{nabla h_1 (bold(x)^*),dots,nabla h_m (bold(x)^*)}. $
 
 #pause
 The multipliers are the coordinates of $-nabla f$ in this normal space.
@@ -627,7 +623,7 @@ The multipliers are the coordinates of $-nabla f$ in this normal space.
 
 For $A bold(x)=bold(b)$,
 
-$ cal(L)(bold(x),bold(lambda))=f(bold(x))+bold(lambda)^top(A bold(x)-bold(b)). $
+$ cal(L)(bold(x),bold(lambda))=f(bold(x))+bold(lambda)^top (A bold(x)-bold(b)). $
 
 #pause
 The stationarity equations are
@@ -647,7 +643,7 @@ $ min_bold(x) quad 1/2 norm(bold(x)-bold(z))^2 quad "subject to" quad A bold(x)=
 #pause
 Its Lagrangian is
 
-$ cal(L)=1/2 norm(bold(x)-bold(z))^2+bold(lambda)^top(A bold(x)-bold(b)). $
+$ cal(L)=1/2 norm(bold(x)-bold(z))^2+bold(lambda)^top (A bold(x)-bold(b)). $
 
 == ⭐ Solve the projection equations #D
 
@@ -673,7 +669,7 @@ $ bold(lambda)=(A A^top)^(-1)(A bold(z)-bold(b)). $
 #pause
 Therefore
 
-#result[$bold(x)^*=bold(z)-A^top(A A^top)^(-1)(A bold(z)-bold(b))$.]
+#result[$bold(x)^*=bold(z)-A^top (A A^top)^(-1)(A bold(z)-bold(b))$.]
 
 #pause
 The correction lies in the row space of $A$—normal to the feasible affine set.
@@ -766,11 +762,11 @@ KKT conditions decide which case applies. That is L20.
 For a smooth equality-constrained problem:
 
 #pause
-1. Write every equality as $h_j(bold(x))=0$.
+1. Write every equality as $h_j (bold(x))=0$.
 #pause
 2. Form $cal(L)=f+sum_j lambda_j h_j$; record the sign convention.
 #pause
-3. Solve $nabla_bold(x) cal(L)=bold(0)$ and $h_j(bold(x))=0$ together.
+3. Solve $nabla_bold(x) cal(L)=bold(0)$ and $h_j (bold(x))=0$ together.
 #pause
 4. Check feasibility and compare all candidates.
 #pause
@@ -802,19 +798,39 @@ For a smooth equality-constrained problem:
 #pause
 4. For maximum entropy with $K=5$, find $bold(p)^*$ and $H(bold(p)^*)$.
 
+#pause
+#notebox[*Read before L20* — MML §7.2 (equality constraints); Boyd & Vandenberghe §5.1, gently — the pictures and boxed statements first.]
+
 == Practice answers #A
 
 1. $(x^*,y^*)=(3,3)$ and $lambda^*=-6$.
 
 2. $(x^*,y^*,z^*)=(4,4,4)$ and the maximum product is $64$.
 
-3. $A=(2,-1)$, so $bold(x)^*=bold(z)-A^top(A A^top)^(-1)A bold(z)=(0.6,1.2)$.
+3. $A=(2,-1)$, so $A bold(z)=5$, $A A^top=5$, and $bold(x)^*=bold(z)-A^top (A A^top)^(-1)A bold(z)=(1,2)$.
 
 4. $p_i^*=1/5$ and $H=log 5$ nats.
+
+== ⭐⭐⭐ Add one expected-value constraint #OPT
+
+Suppose outcomes have values $a_i$, and we also require $sum_i p_i a_i=mu$.
+
+$ cal(L)=-sum_i p_i log p_i-lambda(sum_i p_i-1)-beta(sum_i p_i a_i-mu). $
+
+#pause
+Stationarity gives
+
+$ p_i=exp(-1-lambda-beta a_i) prop exp(-beta a_i). $
+
+#pause
+Normalization determines the missing constant. This is the basic exponential-family form.
 
 == Next: inequalities
 
 The probability simplex already contained $p_i>=0$, which we temporarily set aside.
+
+#pause
+L20 keeps the running example — maximize $x y$ with the budget as an *inequality*, $x+y<=1$ — and asks when a constraint actually binds.
 
 #pause
 Next lecture:
@@ -824,4 +840,9 @@ $ "primal feasibility" + "dual feasibility" + "stationarity" + "complementary sl
 #pause
 Together these are the Karush–Kuhn–Tucker conditions.
 
-#focus-slide[Equality constraints add normals. Inequalities add a decision: active or inactive.]
+#focus-slide[
+  At the optimum, the objective and the constraint pull in the same direction.
+  #v(12pt)
+  #set text(size: 22pt)
+  Next: *Duality & KKT* — inequality constraints, and a certificate that no better feasible point exists.
+]
