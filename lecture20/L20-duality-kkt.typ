@@ -14,6 +14,20 @@
 // ═══════════════════ 1 · inequalities ═══════════════════
 = When a constraint may or may not bind
 
+== How do you certify "no better solution exists"?
+
+An optimizer returns a feasible $bold(x)$ with $f(bold(x))=10.003$. Is it optimal? Checking every other feasible point is impossible.
+
+#pause
+This lecture builds a second problem — the *dual* — whose value is a guaranteed lower bound on the best possible objective.
+
+#pause
++ If the dual reports $10.000$, no feasible point can beat $10.000$.
++ The pair certifies: $bold(x)$ is within $0.003$ of optimal.
+
+#pause
+#notebox[Support vector machines are trained through exactly this dual problem. The bound needs inequality constraints done right — we start there.]
+
 == One boundary, two outcomes
 
 Compare these problems:
@@ -36,7 +50,7 @@ The same inequality appears in both. In the first problem it does nothing; in th
 
 We will write a minimization problem as
 
-$ min_bold(x) f(bold(x)) quad "subject to" quad g_i(bold(x))<=0, quad h_j(bold(x))=0. $
+$ min_bold(x) f(bold(x)) quad "subject to" quad g_i (bold(x))<=0, quad h_j (bold(x))=0. $
 
 #pause
 For $x<=1$, use
@@ -241,11 +255,11 @@ The solution is within $0.003$ of optimal, even if we do not know $p^*$ exactly.
 For
 
 $ min_bold(x) f(bold(x)) $
-$ "subject to" quad g_i(bold(x))<=0, quad h_j(bold(x))=0, $
+$ "subject to" quad g_i (bold(x))<=0, quad h_j (bold(x))=0, $
 
 define
 
-$ cal(L)(bold(x),bold(lambda),bold(nu))=f(bold(x))+sum_i lambda_i g_i(bold(x))+sum_j nu_j h_j(bold(x)). $
+$ cal(L)(bold(x),bold(lambda),bold(nu))=f(bold(x))+sum_i lambda_i g_i (bold(x))+sum_j nu_j h_j (bold(x)). $
 
 #pause
 Inequality multipliers satisfy $lambda_i>=0$. Equality multipliers $nu_j$ may have either sign.
@@ -254,7 +268,7 @@ Inequality multipliers satisfy $lambda_i>=0$. Equality multipliers $nu_j$ may ha
 
 The candidate must obey the original problem:
 
-$ g_i(bold(x)^*)<=0, quad h_j(bold(x)^*)=0. $
+$ g_i (bold(x)^*)<=0, quad h_j (bold(x)^*)=0. $
 
 #pause
 No amount of stationarity can rescue an infeasible point.
@@ -280,7 +294,7 @@ There is no sign restriction on equality multipliers.
 
 The Lagrangian must be stationary in the primal variables:
 
-$ nabla f(bold(x)^*)+sum_i lambda_i^* nabla g_i(bold(x)^*)+sum_j nu_j^* nabla h_j(bold(x)^*)=bold(0). $
+$ nabla f(bold(x)^*)+sum_i lambda_i^* nabla g_i (bold(x)^*)+sum_j nu_j^* nabla h_j (bold(x)^*)=bold(0). $
 
 #pause
 The objective gradient is balanced by normals from the active constraints.
@@ -292,7 +306,7 @@ This is L19's gradient-alignment equation with more possible normals.
 
 For every inequality,
 
-$ lambda_i^* g_i(bold(x)^*)=0. $
+$ lambda_i^* g_i (bold(x)^*)=0. $
 
 #pause
 Two permitted cases:
@@ -301,7 +315,7 @@ Two permitted cases:
   columns: (1fr, 1fr, 1fr),
   inset: 8pt,
   stroke: 0.5pt + MUTED.lighten(40%),
-  table.header([*state*], [$g_i(bold(x)^*)$], [$lambda_i^*$]),
+  table.header([*state*], [$g_i (bold(x)^*)$], [$lambda_i^*$]),
   [inactive], [$<0$], [$=0$],
   [active], [$=0$], [$>=0$],
 )
@@ -312,10 +326,10 @@ Two permitted cases:
   columns: (1.1fr, 1.9fr),
   inset: 8pt,
   stroke: 0.5pt + MUTED.lighten(40%),
-  [*primal feasibility*], [$g_i(bold(x)^*)<=0, quad h_j(bold(x)^*)=0$],
+  [*primal feasibility*], [$g_i (bold(x)^*)<=0, quad h_j (bold(x)^*)=0$],
   [*dual feasibility*], [$lambda_i^*>=0$],
   [*stationarity*], [$nabla_bold(x) cal(L)(bold(x)^*,bold(lambda)^*,bold(nu)^*)=bold(0)$],
-  [*complementary slackness*], [$lambda_i^* g_i(bold(x)^*)=0$],
+  [*complementary slackness*], [$lambda_i^* g_i (bold(x)^*)=0$],
 )
 
 #pause
@@ -433,10 +447,64 @@ $ 2(0.2-0.2)+0=0. $
 #pause
 Moving the boundary slightly has no effect on the optimum.
 
+== L19's example, now with an inequality budget
+
+L19 maximized $x y$ on the line $x+y=1$. Keep the budget but allow spending less of it:
+
+$ max_(x,y) quad x y quad "subject to" quad x+y<=1, quad x>=0, quad y>=0. $
+
+#pause
+In this deck's standard form: minimize $f(x,y)=-x y$ with
+
+$ g_1=x+y-1<=0, quad g_2=-x<=0, quad g_3=-y<=0. $
+
+#pause
+$ cal(L)=-x y+lambda(x+y-1)-mu_1 x-mu_2 y, quad lambda,mu_1,mu_2>=0. $
+
+#pause
+#notebox[L19 wrote $cal(L)=x y-lambda(x+y-1)$ for the maximization. Minimizing $-x y$ with $+lambda$ is the same bookkeeping; the numbers below agree.]
+
+== Does the budget bind?
+
+Stationarity:
+
+$ -y+lambda-mu_1=0, quad -x+lambda-mu_2=0. $
+
+#pause
+Suppose $x>0$ and $y>0$. Complementary slackness gives $mu_1=mu_2=0$, so
+
+$ x=y=lambda. $
+
+#pause
++ Budget inactive: $lambda=0$ forces $x=y=0$, contradicting $x>0$.
++ Budget active: $x+y=1$ gives $x=y=1/2$ and $lambda=1/2$.
+
+#pause
+The product is $x y=1/4$, exactly L19's answer — the inequality binds, so the equality solution carries over.
+
+== Verify KKT at $(1\/2,1\/2)$
+
+#table(
+  columns: (1.2fr, 1.7fr, 0.5fr),
+  inset: 8pt,
+  stroke: 0.5pt + MUTED.lighten(40%),
+  table.header([*condition*], [*at $(x,y)=(1/2,1/2)$, $lambda=1/2$, $bold(mu)=bold(0)$*], [*check*]),
+  [primal feasibility], [$1/2+1/2-1=0<=0$, $quad -1/2<=0$], [✓],
+  [dual feasibility], [$lambda=1/2>=0$, $quad mu_1=mu_2=0$], [✓],
+  [stationarity], [$(-1/2+1/2, -1/2+1/2)=(0,0)$], [✓],
+  [complementary slackness], [$lambda dot 0=0$, $quad mu_i x_i=0$], [✓],
+)
+
+#pause
+The budget's price is $lambda=1/2$, the same shadow price L19 computed: raising the budget by $delta$ raises the best product by about $delta\/2$.
+
+#pause
+#notebox[$(0,0)$ also satisfies KKT with every multiplier zero — $-x y$ is not convex, so KKT points are candidates. Compare values: $1\/4$ beats $0$.]
+
 == Question: an inactive constraint #Q
 
 #mcq(
-  [If $g_i(bold(x)^*)<0$, what must complementary slackness imply?],
+  [If $g_i (bold(x)^*)<0$, what must complementary slackness imply?],
   [$lambda_i^*<0$],
   [$lambda_i^*=0$],
   [$lambda_i^*=1$],
@@ -445,7 +513,7 @@ Moving the boundary slightly has no effect on the optimum.
 
 == Answer #A
 
-#mcq-answer("B", [$lambda_i^*=0$], [The product $lambda_i^*g_i(bold(x)^*)$ can vanish with nonzero slack only when its multiplier is zero.])
+#mcq-answer("B", [$lambda_i^*=0$], [The product $lambda_i^* g_i (bold(x)^*)$ can vanish with nonzero slack only when its multiplier is zero.])
 
 // ═══════════════════ 5 · allocation ═══════════════════
 = A non-negative allocation problem
@@ -468,7 +536,7 @@ This is Euclidean projection onto a simplex-like set.
 
 Use $-x_i<=0$ with multipliers $mu_i>=0$, and multiplier $nu$ for the equality:
 
-$ cal(L)=1/2 sum_i(x_i-a_i)^2 + nu(sum_i x_i-B)-sum_i mu_i x_i. $
+$ cal(L)=1/2 sum_i (x_i-a_i)^2 + nu(sum_i x_i-B)-sum_i mu_i x_i. $
 
 #pause
 Stationarity in coordinate $i$ gives
@@ -517,12 +585,10 @@ $ nu=0.75. $
 
 == The allocation #V
 
-#fig("/lecture20/figures/water_filling.svg", w: 66%)
+#fig("/lecture20/figures/water_filling.svg", w: 56%)
 
 #pause
-$ bold(x)^*=(2.25,0.25,0). $
-
-The third coordinate is clipped at zero because its preferred amount lies below the common threshold.
+$bold(x)^*=(2.25,0.25,0)$ — the third coordinate is clipped at zero because its preferred amount lies below the common threshold.
 
 == Verify KKT numerically
 
@@ -580,8 +646,8 @@ For convex problems satisfying a constraint qualification such as Slater's condi
 
 For a convex problem, look for a point satisfying
 
-$ g_i(bold(x))<0 quad "for every inequality," $
-$ h_j(bold(x))=0 quad "for every equality." $
+$ g_i (bold(x))<0 quad "for every inequality," $
+$ h_j (bold(x))=0 quad "for every equality." $
 
 #pause
 Such a point is *strictly feasible*.
@@ -673,4 +739,12 @@ Next lecture:
 + linear objective + linear constraints $arrow.r$ linear program,
 + quadratic objective + linear constraints $arrow.r$ quadratic program.
 
-#focus-slide[The duality gap turns “this looks optimal” into a numerical certificate.]
+#pause
+#notebox[*Read before L21* — Boyd & Vandenberghe Ch 5 (guided: 5.1–5.5, pictures and boxed statements first); MML §7.2.]
+
+#focus-slide[
+  KKT is Lagrange with inequalities and receipts.
+  #v(12pt)
+  #set text(size: 22pt)
+  Next: *Linear & Quadratic Programming* — the two constrained shapes with industrial-strength solvers.
+]
