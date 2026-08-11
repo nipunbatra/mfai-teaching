@@ -95,19 +95,16 @@ Both of these minimize a loss — L14 taught us that's what "fitting" is:
 #table(
   columns: (auto, 1fr, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
-  inset: 8pt,
+  inset: 7pt,
   table.header([], [*fit a linear model*], [*train a deep network*]),
   [the code], [`np.linalg.lstsq(X, y)`], [loop of `loss.backward(); opt.step()`],
-  [knobs to tune], [none], [learning rate, schedule, warmup, init, clipping, batch size, …],
+  [knobs to tune], [none], [learning rate, schedule, init, batch size, …],
   [rerun on the same data], [same answer, every time], [depends on the seed],
   [failure modes], [—], [divergence, plateaus, `nan` at step 617 (L2!)],
 )
 
 #pause
-Both tasks *minimize a function of the parameters*, but the two objectives have different geometry.
-
-#pause
-#notebox[*Question.* Which differences come from the algorithm, and which come from the function being minimized?]
+#notebox[Both tasks *minimize a function of the parameters*. Which differences come from the algorithm, and which from the function's geometry?]
 
 == Convex and non-convex objectives #V
 
@@ -177,7 +174,7 @@ $ min_(theta in RR^d) f(theta) $
 #pause
 - a *minimizer* $theta^star$: an input where the smallest value is reached — $theta^star = amin_theta f(theta)$; the *minimum* $f(theta^star)$ is the value there
 #pause
-- maximizing is the same craft upside-down: $max f = -min(-f)$ — L14 already negated log-likelihoods for exactly this reason, so *everything from now on is a minimization*
+- maximizing is the same problem upside-down: $max f = -min(-f)$ — L14 already negated log-likelihoods for exactly this reason, so *everything from now on is a minimization*
 
 #pause
 #result[The optimization problem is $min_theta f(theta)$; the following lectures differ in how they use information about $f$.]
@@ -198,7 +195,7 @@ $ min_(theta in RR^d) f(theta) $
     (0.62, 1.75, text(size: 14pt, fill: INK)[you are here: $f(theta)$, $nabla f(theta)$]),
     (-0.95, -1.05, text(size: 14pt, fill: MUTED)[the valley you *cannot see*]),
   ),
-  size: (128mm, 47mm), x-label: $theta$, y-label: $f(theta)$,
+  size: (122mm, 40mm), x-label: $theta$, y-label: $f(theta)$,
 ))
 
 #pause
@@ -207,7 +204,7 @@ At a current parameter value $theta$, an optimizer can evaluate three kinds of l
 #table(
   columns: (auto, 1fr, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
-  inset: 7pt,
+  inset: 6pt,
   table.header([*probe*], [*what it is in ML*], [*cost*]),
   [$f(theta)$], [run the model, read the loss], [cheap],
   [$nabla f(theta)$], [backprop (L8–L11)], [cheap — one backward pass],
@@ -236,7 +233,7 @@ Because $theta$ lives in $RR^d$, and $d$ is not 2. Grid-search with a modest 10 
 
 == Taylor models use local information
 
-L9 built "the formula every optimizer lives on" — today it starts living:
+L9 built "the formula every optimizer lives on" — today it goes to work:
 
 $ f(theta + bold(delta)) thin approx thin underbrace(f(theta), "probe 1") + underbrace(nabla f(theta)^top bold(delta), "probe 2: the local plane") + underbrace(1/2 bold(delta)^top H(theta) thin bold(delta), "probe 3: the local bowl or saddle") $
 
@@ -255,7 +252,7 @@ $ f(theta + bold(delta)) thin approx thin underbrace(f(theta), "probe 1") + unde
 While $nabla f(theta) eq.not bold(0)$, the Taylor plane is tilted; a sufficiently small step against the gradient lowers $f$ (L17 makes this precise).
 
 #pause
-$ "it can only park where" quad nabla f(theta) = bold(0) quad "— a" bold("stationary point") $
+$ "the search can stop only where" quad nabla f(theta) = bold(0) quad "— a" bold("stationary point") $
 
 #pause
 - Also called a *critical point*; the first-order model is flat there
@@ -365,13 +362,13 @@ Consider the non-convex function $w(x) = (x^2 - 1)^2 + x\/2$. Every marked value
     (XL, dw(XL), [local min $(#fmt(XL, d: 2), #fmt(dw(XL), d: 2))$]),
     (XM, dw(XM), [local max]),
   ),
-  size: (122mm, 45mm), x-label: $theta$, y-label: $w(theta)$,
+  size: (116mm, 38mm), x-label: $theta$, y-label: $w(theta)$,
 ))
 
 #pause
-- *Local minimum*: no better point in some ball around it. *Global minimum*: no better point anywhere.
+- *Local min*: no better point in some ball around it. *Global min*: none anywhere.
 #pause
-- A walker started at $theta = 1.5$ parks at $#fmt(XL, d: 2)$ — flat, curving up, *fully convinced* — and is wrong by $#fmt(dw(XL) - dw(XG), d: 2)$ in loss.
+- Descend from $theta = 1.5$ and you park at $#fmt(XL, d: 2)$ — flat, curving up — yet $#fmt(dw(XL) - dw(XG), d: 2)$ above the global minimum.
 
 #pause
 #alertbox[The values of $f$, $nabla f$, and $H$ at $#fmt(XL, d: 2)$ do not reveal the lower minimum at $#fmt(XG, d: 2)$.]
@@ -388,7 +385,7 @@ Consider the non-convex function $w(x) = (x^2 - 1)^2 + x\/2$. Every marked value
 == Answer: local derivatives certify a local minimum #A
 
 #mcq-answer("A", [a local minimum — and nothing more],
-  [Both eigenvalues positive $arrow.r$ PD $arrow.r$ a genuine local min (L9). But *global* (B) is a claim about all of $RR^2$, and local probes at one point can't reach that far — our two-valley mascot just demonstrated it. (D) reverses today's logic: curvature at *one* point never certifies convexity — $x^3$ has $f''(1) = 6 > 0$ yet isn't convex. Turning "local min" into "global min" needs a *property of $f$*, not a better probe. Enter convexity.])
+  [Both eigenvalues positive $arrow.r$ PD $arrow.r$ a genuine local min (L9). But *global* (B) is a claim about all of $RR^2$, and local probes at one point can't reach that far — the two-valley example $w(x)$ just demonstrated it. (D) reverses today's logic: curvature at *one* point never certifies convexity — $x^3$ has $f''(1) = 6 > 0$ yet isn't convex. Turning "local min" into "global min" needs a *property of $f$*, not a better probe. Enter convexity.])
 
 // ═══════════════════════════ 4 · convex sets ═══════════════════════════
 = Convex sets: segments that never leave
@@ -419,7 +416,7 @@ That property is *convexity*, and it comes in two pieces, buildable in one lectu
     $ t bold(x) + (1 - t) bold(y) in C $
 
     #pause
-    - $t bold(x) + (1-t) bold(y)$ is a point *on the segment* from $bold(y)$ to $bold(x)$ — $t$ is the slider
+    - $t bold(x) + (1-t) bold(y)$ is a point *on the segment*: $t = 0$ gives $bold(y)$, $t = 1$ gives $bold(x)$
     #pause
     - Convex = "walk between any two members and you never step outside"
   ],
@@ -433,11 +430,11 @@ That property is *convexity*, and it comes in two pieces, buildable in one lectu
     })
     #v(1mm)
     #panel({
-      place(dx: 0mm, dy: 0mm, curve(fill: RED.lighten(90%), stroke: 1.2pt + RED,
+      place(dx: 0mm, dy: 0mm, curve(fill: RED.lighten(90%), stroke: (paint: RED, thickness: 1.2pt, join: "round", cap: "round"),
         curve.move((26mm, 2mm)),
         curve.quad((2mm, 16mm), (26mm, 30mm)),
         curve.quad((18mm, 16mm), (26mm, 2mm)),
-        curve.close()))
+        curve.close(mode: "straight")))
       seg(23mm, 5.5mm, 23mm, 26.5mm, col: RED.darken(15%))
       dotm(23mm, 5.5mm); dotm(23mm, 26.5mm)
       place(dx: 25mm, dy: 13mm, text(size: 12.5pt, fill: RED.darken(10%))[escapes!])
@@ -446,7 +443,7 @@ That property is *convexity*, and it comes in two pieces, buildable in one lectu
 )
 
 #pause
-#result[One definition, one picture: *no shortcut between members ever leaves the club*.]
+#result[A set is convex exactly when it contains every segment between two of its members.]
 
 == Numbers: walking the segment
 
@@ -495,11 +492,11 @@ Take $bold(x) = (4, 1)$ and $bold(y) = (0, 3)$. The mix $t bold(x) + (1 - t) bol
     dotm(24mm, 9mm); dotm(14mm, 27mm)
   }),
   panel({
-    place(dx: 0mm, dy: 0mm, curve(fill: RED.lighten(90%), stroke: 1.2pt + RED,
+    place(dx: 0mm, dy: 0mm, curve(fill: RED.lighten(90%), stroke: (paint: RED, thickness: 1.2pt, join: "round", cap: "round"),
       curve.move((26mm, 2mm)),
       curve.quad((2mm, 16mm), (26mm, 30mm)),
       curve.quad((18mm, 16mm), (26mm, 2mm)),
-      curve.close()))
+      curve.close(mode: "straight")))
     seg(23mm, 5.5mm, 23mm, 26.5mm, col: RED.darken(15%))
     dotm(23mm, 5.5mm); dotm(23mm, 26.5mm)
   }),
@@ -513,35 +510,35 @@ Take $bold(x) = (4, 1)$ and $bold(y) = (0, 3)$. The mix $t bold(x) + (1 - t) bol
 ))
 
 #pause
-One escaped segment is enough to convict: convexity is a *for-all* claim, non-convexity needs one witness.
+One escaped segment settles it: convexity is a *for-all* claim; refuting it needs only one counterexample.
 
 == The convex sets ML lives on
 
 #table(
   columns: (1fr, 1fr, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
-  inset: 7pt,
+  inset: 6pt,
   table.header([*set*], [*where you meet it*], [*convex?*]),
   [$RR^d$ — all of parameter space], [unconstrained training], [✓],
   [box $[0, 1]^d$], [valid pixel intensities], [✓],
   [half-space ${bold(x) : bold(a)^top bold(x) <= b}$], [one side of a flat wall], [✓],
   [norm ball ${theta : norm(theta) <= r}$ (L3)], [weight constraints, regularization], [✓],
-  [simplex ${bold(p) : p_i >= 0, sum_i p_i = 1}$], [probability vectors — softmax outputs live here], [✓ (L19 optimizes over it)],
-  [sphere ${bold(x) : norm(bold(x)) = 1}$ — the *skin* only], [normalized embeddings], [#text(fill: RED)[✗]],
+  [simplex ${bold(p) : p_i >= 0, sum_i p_i = 1}$], [probability vectors (softmax)], [✓ (L19)],
+  [sphere ${bold(x) : norm(bold(x)) = 1}$ — *skin* only], [normalized embeddings], [#text(fill: RED)[✗]],
 )
 
 #pause
-The sphere fails beautifully: mix two antipodes at $t = 1\/2$ and land at $bold(0)$ — the center, off the skin. *Ball convex, shell not.*
+The sphere fails the test: mix two antipodes at $t = 1\/2$ and you land at $bold(0)$ — the center, off the skin. *Ball convex, shell not.*
 
 #pause
-#notebox[*Intersections preserve convexity* — clip convex sets together and the result stays convex (each fence is respected). L21's LP feasible regions are exactly such stacks of half-spaces. Unions, as the two islands showed, do not.]
+#notebox[*Intersections preserve convexity* (every fence respected) — L21's LP feasible regions are stacks of half-spaces. Unions, as the two islands showed, are not.]
 
 // ═══════════════════════════ 5 · convex functions ═══════════════════════════
 = Convex functions: the chord test
 
 == Lift the segment to the graph #V
 
-A function is *convex* when every chord — the segment joining two points *on the graph* — sits on or above the graph:
+A function is *convex* when every chord — a segment joining two points *on the graph* — sits on or above it:
 
 #align(center, lines(
   (
@@ -551,14 +548,14 @@ A function is *convex* when every chord — the segment joining two points *on t
   colors: (TEAL, ACC),
   markers: (false, true),
   points: ((1.0, 1.0, [graph: $1$]), (1.0, 5.0, [chord: $5$]),),
-  size: (118mm, 46mm), x-label: $x$, y-label: $f(x)$,
+  size: (100mm, 30mm), x-label: $x$, y-label: $f(x)$,
 ))
 
 #pause
 $ f(underbrace(t x_1 + (1-t) x_2, "mix the inputs")) <= underbrace(t f(x_1) + (1-t) f(x_2), "mix the outputs = chord height") quad forall x_1, x_2, thin t in [0, 1] $
 
 #pause
-#result[Convex: *the graph hangs below its chords.* (Domain must be a convex set — now you know why sets came first.)]
+#result[Convex: *the graph hangs below its chords* — on a convex domain.]
 
 == Reading the inequality with numbers
 
@@ -578,7 +575,7 @@ $f(x) = x^2$, endpoints $x_1 = -1$, $x_2 = 3$. Mixed input: $t x_1 + (1-t) x_2 =
 Graph $<=$ chord in every column — with equality exactly at the endpoints. That is the definition, felt in integers.
 
 #pause
-#notebox[*Mnemonic:* conve*x* like a cu*p* — no. Try this instead: convex holds water ($union$-shaped), concave is a cave ($inter$-shaped). Crude, universal, effective.]
+#notebox[*Mnemonic:* convex holds water ($union$-shaped); concave is a cave ($inter$-shaped).]
 
 == Two checks that need no calculus
 
@@ -652,7 +649,7 @@ $ underbrace(max_theta thin ell(theta), "maximize log-likelihood (L14)") quad = 
 #pause
 #result[Maximizing a concave likelihood is equivalent to minimizing its convex negative log-likelihood.]
 
-== One idea, two costumes: the epigraph
+== The epigraph ties sets and functions together
 
 The two halves of today are the same object. The *epigraph* of $f$ is everything on or above the graph:
 
@@ -663,7 +660,7 @@ The two halves of today are the same object. The *epigraph* of $f$ is everything
       curve.quad((32mm, 65mm), (58mm, 9mm)),
       curve.line((58mm, 3mm)),
       curve.line((6mm, 3mm)),
-      curve.close()))
+      curve.close(mode: "straight")))
     place(dx: 0mm, dy: 0mm, curve(stroke: 2pt + TEAL,
       curve.move((6mm, 9mm)),
       curve.quad((32mm, 65mm), (58mm, 9mm))))
@@ -681,7 +678,7 @@ The two halves of today are the same object. The *epigraph* of $f$ is everything
 )
 
 #pause
-#notebox[This is Boyd's favourite bridge (Ch 3.1.7) — one segment test runs the entire theory. Nothing new to memorize.]
+#notebox[Boyd covers this bridge in Ch 3.1.7 — one segment test runs the entire theory. Nothing new to memorize.]
 
 // ═══════════════════════════ 6 · the toolkit ═══════════════════════════
 = Recognizing convexity without chords
@@ -704,7 +701,7 @@ The gallery, re-certified in one line each:
   [$e^x$], [$e^x > 0$], [convex on $RR$],
   [$ln x$], [$-1\/x^2 < 0$], [concave on $(0, infinity)$],
   [$x^3$], [$6x$ — changes sign], [convex on $[0, infinity)$ only],
-  [$abs(x)$], [undefined at $0$], [test silent — the chord already convicted ✓ convex],
+  [$abs(x)$], [undefined at $0$], [test silent — the chord test already certified it convex ✓],
 )
 
 == In $d$ dimensions: the Hessian test
@@ -729,7 +726,7 @@ Convex pieces snap together — for $f, g$ convex:
 #table(
   columns: (auto, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
-  inset: 8pt,
+  inset: 7pt,
   table.header([*rule*], [*why (one breath)*]),
   [$alpha f$ for $alpha >= 0$], [scaling both sides of the chord inequality preserves it],
   [$f + g$], [add the two chord inequalities],
@@ -738,49 +735,49 @@ Convex pieces snap together — for $f, g$ convex:
 )
 
 #pause
-#alertbox[Products and general compositions do not preserve convexity. For example, $(x-1)^2 dot (x+1)^2 = (x^2 - 1)^2$: two convex parabolas multiply to form a non-convex double well.]
+#alertbox[Products and general compositions do not preserve convexity: $(x-1)^2 dot (x+1)^2 = (x^2 - 1)^2$ — two convex parabolas multiply into a non-convex double well.]
 
 == Assemble the objectives you'll actually meet
 
 #table(
-  columns: (1fr, 1fr, auto),
+  columns: (1fr, auto, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
-  inset: 7pt,
+  inset: 6pt,
   table.header([*objective*], [*build*], [*convex?*]),
-  [$norm(X theta - bold(y))^2$ — least squares], [affine $theta arrow.bar X theta - bold(y)$ into $norm(dot)^2$], [✓ (⭐ proof next section)],
+  [$norm(X theta - bold(y))^2$ — least squares], [affine into $norm(dot)^2$], [✓ (⭐ next)],
   [$norm(X theta - bold(y))^2 + lambda norm(theta)^2$ — ridge], [sum of two convex terms], [✓],
-  [$norm(X theta - bold(y))^2 + lambda sum_i abs(theta_i)$ — lasso], [sum; $abs(dot)$ of an affine map], [✓],
-  [$max(0, 1 - z(theta))$, $z$ affine — hinge], [max of affine and constant], [✓ (SVMs, ML course)],
-  [deep net loss], [compositions upon compositions], [#text(fill: RED)[✗ in general]],
+  [$norm(X theta - bold(y))^2 + lambda sum_i abs(theta_i)$ — lasso], [sum; $abs(dot)$ of affine], [✓],
+  [$max(0, 1 - z(theta))$, $z$ affine — hinge], [max(affine, constant)], [✓ (SVMs)],
+  [deep net loss], [compositions of compositions], [#text(fill: RED)[✗ in general]],
 )
 
 #pause
-Adding a *convex* penalty with a nonnegative coefficient preserves convexity. A non-convex regularizer can destroy it.
+A *convex* penalty with a nonnegative weight preserves convexity; a non-convex regularizer can destroy it.
 
 #pause
-#result[You will almost never chord-check a real objective. You will *assemble* it from certified parts — this table is how convexity scales.]
+#result[Real objectives are rarely chord-checked: *assemble* them from certified parts — that is how convexity scales.]
 
 == Log-sum-exp is convex
 
-L2 derived $"LSE"(bold(x)) = log sum_i e^(x_i)$ for numerical survival. It is also *convex* — here in 1-D against the max it approximates:
+L2 derived $"LSE"(bold(x)) = log sum_i e^(x_i)$ for numerical survival. It is also *convex*:
 
 #align(center, lines(
   fn: (x => calc.max(x, 0.0), softp),
   domain: (-3.6, 3.6),
   colors: (MUTED, ACC), dashes: ("dashed", "solid"), markers: false,
-  labels: ($max(x, 0)$, $log(e^0 + e^x)$),
-  size: (100mm, 37mm), x-label: $x$,
+  labels: ($max(x, 0)$, $log(e^0 + e^x)$), legend: "tl",
+  size: (92mm, 29mm), x-label: $x$,
 ))
 
 #pause
-- A *smooth max*: hugs $max(x, 0)$, never kinks — max's convexity survives the smoothing
+- A *smooth max*: hugs $max(x, 0)$ without the kink — max's convexity survives the smoothing
 #pause
-- Why convex: its Hessian is $H = "diag"(bold(p)) - bold(p) bold(p)^top$ with $bold(p) = "softmax"(bold(x))$, and $bold(v)^top H bold(v) = "Var"_(i tilde bold(p))[v_i] >= 0$ — *a variance* (L12) cannot be negative
+- Why convex: $H = "diag"(bold(p)) - bold(p) bold(p)^top$, $bold(p) = "softmax"(bold(x))$, and $bold(v)^top H bold(v) = "Var"_(i tilde bold(p))[v_i] >= 0$ — a variance (L12) cannot be negative
 
 #pause
-#notebox[Consequence you'll cash in ML: logistic-regression training minimizes $"LSE" - "affine"$, so it is convex — that's why it "just works" like least squares does.]
+#notebox[Logistic regression minimizes $"LSE" - "affine"$ — so it, too, is convex.]
 
-== Checkpoint: certify or convict #Q
+== Checkpoint: certify or refute #Q
 
 #mcq([Which one is *not* convex on all of $RR^2$, $theta = (theta_1, theta_2)$?],
   [$norm(X theta - bold(y))^2 + 5 norm(theta)^2$],
@@ -789,10 +786,10 @@ L2 derived $"LSE"(bold(x)) = log sum_i e^(x_i)$ for numerical survival. It is al
   [$theta_1^2 - theta_2^2$],
 )
 
-== Answer: certify or convict #A
+== Answer: certify or refute #A
 
 #mcq-answer("D", [$theta_1^2 - theta_2^2$ — a saddle, not a bowl],
-  [Its Hessian is $mat(2, 0; 0, -2)$ everywhere — mixed eigenvalue signs, indefinite, the gallery's saddle: not convex (and not concave). The rest assemble from certified parts: (A) sum of convex ✓; (B) max of an affine and a convex ✓; (C) log-sum-exp ✓. Note how you convicted D and certified A–C *without one chord* — the toolkit is the point.])
+  [Its Hessian is $mat(2, 0; 0, -2)$ everywhere — mixed eigenvalue signs, indefinite, the gallery's saddle: not convex (and not concave). The rest assemble from certified parts: (A) sum of convex ✓; (B) max of an affine and a convex ✓; (C) log-sum-exp ✓. Note how you refuted D and certified A–C *without one chord* — the toolkit is the point.])
 
 // ═══════════════════════════ 7 · local and global minima ═══════════════════════════
 = Local and global minima of convex functions
@@ -811,12 +808,12 @@ Proof by picture first — suppose a convex $f$ had a local min $hat(theta)$ *an
   ),
   colors: (TEAL, ACC), markers: (false, true),
   annotations: ((0.15, 0.28, text(size: 14pt, fill: ACC.darken(10%))[the chord *dips below* $f(hat(theta))$ immediately]),),
-  size: (112mm, 42mm), x-label: $theta$,
+  size: (108mm, 36mm), x-label: $theta$,
   points: ((XL, dw(XL), [$hat(theta)$]), (XG, dw(XG), [$bold(z)$])),
 ))
 
 #pause
-The chord from $(hat(theta), f(hat(theta)))$ to $(bold(z), f(bold(z)))$ slopes downward. Convexity keeps the graph below that chord, so points arbitrarily close to $hat(theta)$ have lower values. This contradicts the assumption that $hat(theta)$ is a local minimum.
+The chord from $(hat(theta), f(hat(theta)))$ to $(bold(z), f(bold(z)))$ slopes downward, and convexity keeps the graph on or below it — so points arbitrarily close to $hat(theta)$ are lower, contradicting local minimality.
 
 == ⭐ The same picture, in four lines of algebra #D
 
@@ -835,9 +832,6 @@ $ f(theta_t) < (1-t) f(hat(theta)) + t f(hat(theta)) = f(hat(theta)) $
 #pause
 *Contradiction.* As $t arrow.r 0$, $theta_t$ enters *every* ball around $hat(theta)$ — yet each $theta_t$ is strictly lower. No ball certifies $hat(theta)$ as a local min. $qed$
 
-#pause
-#result[For a convex function, a local minimum cannot coexist with a point having a lower objective value.]
-
 == ⭐ Least squares is convex #D
 
 The objective L4 set up, L6 solved at scale, L14 crowned as Gaussian NLL:
@@ -847,7 +841,7 @@ $ f(theta) = norm(X theta - bold(y))^2 = (X theta - bold(y))^top (X theta - bold
 #pause
 Differentiate with L9's two earned rules ($nabla thin theta^top A theta = 2 A theta$ for symmetric $A$; $nabla thin bold(b)^top theta = bold(b)$):
 
-$ nabla f(theta) = 2 X^top X theta - 2 X^top bold(y) quad quad quad H = nabla(nabla f) = 2 X^top X quad "— constant: the same bowl everywhere" $
+$ nabla f(theta) = 2 X^top X theta - 2 X^top bold(y) quad quad quad H = nabla(nabla f) = 2 X^top X quad "— constant: one bowl everywhere" $
 
 #pause
 Convexity now hangs on one question: is $X^top X$ *positive semi-definite for every possible data matrix* $X$?
@@ -859,10 +853,10 @@ Take any direction $bold(v) in RR^d$ and test the quadratic form (L9's definitio
 $ bold(v)^top (X^top X) thin bold(v) = (X bold(v))^top (X bold(v)) = norm(X bold(v))^2 >= 0 quad checkmark $
 
 #pause
-#result[A squared length cannot be negative. Hence $H = 2 X^top X succ.eq 0$ for any data, so least squares is convex; every stationary point, when one exists, is a global minimizer.]
+#result[A squared length cannot be negative, so $H = 2 X^top X succ.eq 0$ for any data: least squares is convex, and every stationary point is a global minimizer.]
 
 #pause
-On our tiny dataset $x = (0, 1, 2)$, $y = (1, 2, 4)$ — everything below computed live in-slide:
+On the tiny dataset $x = (0, 1, 2)$, $y = (1, 2, 4)$ (computed in-slide):
 
 $ X^top X = #m2(XtX, d: 0), quad lambda = #fmt(lamLS.at(0), d: 2), #fmt(lamLS.at(1), d: 2) > 0, quad nabla f = bold(0) arrow.r.double theta^star = #v2(THS, d: 2) $
 
@@ -906,7 +900,7 @@ $f(b, w) = sum_i (b + w x_i - y_i)^2$ over the whole parameter plane — one bas
 
 == Several features of a non-convex objective #V
 
-Our mascot's 2-D sibling, $R(x, y) = (x^2 - 1)^2 + x\/2 + 1.2 y^2$ — all three flavors of flat spot in one place (marks placed by the in-slide Newton solver):
+The double well's 2-D sibling, $R(x, y) = (x^2 - 1)^2 + x\/2 + 1.2 y^2$ — all three flavors of flat spot in one place (marks placed by the in-slide Newton solver):
 
 #align(center, contour(
   R2,
@@ -950,30 +944,30 @@ Toy model only: suppose the $d$ Hessian eigenvalue signs were independent fair c
 #align(center, lines(
   (pts(x => 1.0 - calc.exp(-x * x), -3.9, 3.9, n: 120),),
   colors: (TEAL,), markers: false,
-  points: ((0.0, 0.0, [true min]), (3.0, 1.0 - calc.exp(-9.0), [$f' approx 0.0007$ — "flat", says the probe]),),
-  size: (108mm, 36mm), x-label: $theta$, y-label: $f(theta)$,
+  points: ((0.0, 0.0, [true min]), (3.0, 1.0 - calc.exp(-9.0), [$f' approx 0.0007$ — nearly flat]),),
+  size: (100mm, 29mm), x-label: $theta$, y-label: $f(theta)$,
 ))
 
 #pause
-- On a *plateau*, $nabla f approx bold(0)$ with no minimum anywhere near: steps shrink to a crawl — the failure mode behind "training is stuck" (and behind saturated activations, as the DL course will show)
+- On a *plateau*, $nabla f approx bold(0)$ with no minimum nearby: steps shrink to a crawl — the failure mode behind "training is stuck" and saturated activations (DL course)
 #pause
-- Neural-network training can nevertheless find useful parameters. Explaining when and why requires assumptions beyond this lecture; initialization, normalization, and architecture all affect the landscape and optimization dynamics.
+- Neural-network training still finds useful parameters; explaining when and why needs assumptions beyond this lecture.
 
 #pause
-#notebox[Convex objectives support global optimality certificates. For non-convex objectives, local derivative tests remain local.]
+#notebox[Convex objectives support global certificates; for non-convex ones, local tests remain local.]
 
 == Lecture 16 — summary
 
-- *One problem shape*: $min_theta f(theta)$ — evaluated through $f$, $nabla f$, and sometimes $H$ at the current $theta$.
-- *Stationary points* $nabla f = bold(0)$: classified locally by the signs of $H$'s eigenvalues (L9) — minimum, maximum, or saddle.
-- *Convex set*: segments never leave. *Convex function*: chords never dip below the graph; epigraph ties the two.
-- *Certify fast*: $f'' >= 0$ / $H succ.eq 0$ everywhere; or assemble from rules — scale, sum, affine composition, max; log-sum-exp is convex (a variance says so).
+- *One problem shape*: $min_theta f(theta)$ — probed through $f$, $nabla f$, sometimes $H$.
+- *Stationary points* $nabla f = bold(0)$: $H$'s eigenvalue signs classify them (L9).
+- *Convex set*: segments never leave. *Convex function*: chords never dip below.
+- *Certify fast*: $f'' >= 0$ / $H succ.eq 0$ everywhere, or assemble — scale, sum, affine, max.
 - ⭐ *Convex $arrow.r.double$ local = global* — the four-line chord contradiction.
 - ⭐ *Least squares is convex*: $H = 2 X^top X$ and $bold(v)^top X^top X bold(v) = norm(X bold(v))^2 >= 0$ — for any data.
-- *Without convexity*: saddle points and plateaus can occur, and local optimality need not imply global optimality.
+- *Without convexity*: saddles and plateaus; local need not be global.
 
 #pause
-#notebox[*Read before L17* — MML §7.3 to 7.3.1 (convexity, ~4 pages, our notation) · Boyd & Vandenberghe, _Convex Optimization_ (free PDF): *skim* §2.1–2.3 for set pictures and §3.1.1–3.1.5 + 3.2 for the function tests and operation rules — read figures and boxed statements, skip proofs on a first pass. The Distill momentum article waits for L17.]
+#notebox[*Read before L17* — MML §7.3–7.3.1 (convexity, about 4 pages) · Boyd & Vandenberghe, _Convex Optimization_ (free PDF): *skim* §2.1–2.3 and §3.1.1–3.1.5 + 3.2 — figures and boxed statements first. Distill's momentum article waits for L17.]
 
 == Practice problems
 
