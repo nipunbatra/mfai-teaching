@@ -28,7 +28,7 @@
   let N(p, top, bottom, c, bg) = node(p,
     align(center)[#text(size: 15pt, weight: 700, fill: INK)[#top] \ #text(size: 12.5pt, fill: MUTED)[#bottom]],
     shape: fletcher.shapes.rect, fill: bg, stroke: 1.0pt + c, corner-radius: 3pt, inset: 8pt)
-  N((0, 0), [simple noise], [$z tilde$ something dumb], TEAL, TEAL.lighten(91%))
+  N((0, 0), [simple noise], [$z tilde cal(N)(0, I)$ — cheap to draw], TEAL, TEAL.lighten(91%))
   N((1.6, 0), [a transformation $f$], [learned, expensive], INK, white)
   N((3.2, 0), [sample $x = f(z)$], [a face · a voice · a molecule], ACC, ACC.lighten(90%))
   edge((0, 0), (1.6, 0), "-|>", stroke: 0.9pt + INK)
@@ -148,7 +148,7 @@ $ P(x <= X <= x + delta) approx p(x) dot delta quad quad "(height × width = a s
 #pause
 - The units are real: our height curve peaks at $p approx 0.21$ *per inch*.
 #pause
-- Probability of a *point*: width $delta -> 0$, so $P(X = x) = 0$ — the paradox is now a feature, not a bug.
+- Probability of a *point*: width $delta -> 0$, so $P(X = x) = 0$ — the paradox dissolves: zero width, zero area.
 
 == Zero probability is not "impossible"
 
@@ -182,7 +182,7 @@ The height is $p(x) = 2$ — *bigger than 1* — yet nothing is wrong: area $= 2
 
 == Density values and interval probabilities
 
-A second offender: $cal(N)(0, sigma = 0.1)$, a Gaussian squeezed tight —
+A second example: $cal(N)(0, sigma = 0.1)$, a Gaussian squeezed tight —
 
 #align(center, lines(
   fn: x => dist.pdf(dist.normal(mu: 0.0, sigma: 0.1), x),
@@ -195,7 +195,7 @@ A second offender: $cal(N)(0, sigma = 0.1)$, a Gaussian squeezed tight —
 Peak value $1\/(0.1 sqrt(2 pi)) approx 3.99$. Shrink $sigma$ and the peak grows *without bound* — the area stays exactly 1.
 
 #pause
-#notebox[Spot-the-bug skill for later courses: a "probability" of $2.7$ in your log output is *fine* if it is a density (`log_prob` of a narrow Gaussian, say) — and a catastrophe if it is supposed to be a probability. Know which one you are holding.]
+#notebox[Spot-the-bug skill for later courses: a *positive* `log_prob` in a training log is fine — a narrow Gaussian's density exceeds 1, so its log exceeds 0. A *probability* above 1 is always a bug.]
 
 == Numbers: three questions on $cal(U)(0, 1\/2)$
 
@@ -270,7 +270,7 @@ norm(0, 0.1).pdf(0.0)                # 3.989 — the squeezed Gaussian's peak
 
 == One function sidesteps the whole paradox
 
-$ F(x) = P(X <= x) quad quad "— the *cumulative distribution function*" $
+$ F(x) = P(X <= x) quad quad #[— the *cumulative distribution function*] $
 
 #pause
 - $F(x)$ is a *genuine probability* for every $x$ — the event $X <= x$ has width, no paradox.
@@ -346,7 +346,7 @@ Worked on $"Exp"(1)$ — the chance the wait lands between 1 and 2:
 $ F(2) - F(1) = (1 - e^(-2)) - (1 - e^(-1)) = e^(-1) - e^(-2) = 0.368 - 0.135 = 0.233 $
 
 #pause
-No new integral was computed — the CDF pre-paid it. This is why libraries ship `.cdf` and let you subtract.
+No new integral was computed — the CDF already stores it. This is why libraries ship `.cdf` and let you subtract.
 
 #pause
 #notebox[Whether you write $<$ or $<=$ changes nothing here: the endpoints carry probability 0. (For discrete variables it *does* matter — the staircase jumps.)]
@@ -365,7 +365,7 @@ marks.cdf(80) - marks.cdf(60)    # 0.7887 → ~79% land in [60, 80]
 ```]
 
 #pause
-Three managerial questions, three CDF calls, zero integrals by hand — the Gaussian's CDF has no closed formula, so *everyone* routes through the library.
+Three interval questions, three CDF calls, zero integrals by hand — the Gaussian's CDF has no closed formula, so *everyone* routes through the library.
 
 = Expectation & variance, as integrals
 
@@ -443,17 +443,17 @@ Can't integrate? *Sample and average* — the mean of draws approximates $EE[X]$
 rng = np.random.default_rng(0)
 
 x = rng.uniform(0, 1, 1_000_000)
-x.mean(), x.var()          # (0.50002, 0.08333)   = 1/2, 1/12  ✓
+x.mean(), x.var()          # (0.50016, 0.08340)   ≈ 1/2, 1/12  ✓
 
 t = rng.exponential(1.0, 1_000_000)
-t.mean(), t.var()          # (0.99950, 0.99852)   = 1/λ, 1/λ²  ✓
+t.mean(), t.var()          # (1.00004, 0.99786)   ≈ 1/λ, 1/λ²  ✓
 ```]
 
 #pause
-Both hand-derived integrals confirmed to three digits by brute randomness.
+Both hand-derived integrals confirmed to within a few parts in a thousand by brute randomness.
 
 #pause
-#result[Sampling is an integral evaluator. Half of modern ML lives on this one sentence — and it needs a *sampler*, which the last section builds.]
+#result[Sampling is an integral evaluator: averages of draws approximate expectations — provided you have a *sampler*, which the last section builds.]
 
 = The zoo: four cards to know on sight
 
@@ -473,7 +473,7 @@ Choosing a distribution = choosing *where mass is allowed to live* (the support)
 )
 
 #pause
-Support first, always: a Gaussian for waiting times leaks mass into negative time; a Beta can't model heights. Match the room before decorating it.
+Support first, always: a Gaussian for waiting times leaks mass into negative time; a Beta can't model heights.
 
 == Card 1 · Uniform: the raw material
 
@@ -518,7 +518,7 @@ $ X tilde cal(N)(mu, sigma^2) quad quad p(x) = 1/(sigma sqrt(2 pi)) thin e^(-(x 
 ))
 
 #pause
-$mu$ slides, $sigma$ stretches — that is the *entire* family. Tape measure: $approx 68%$ of mass within $1sigma$, $95%$ within $2sigma$, $99.7%$ within $3sigma$.
+$mu$ slides, $sigma$ stretches — that is the *entire* family. Rule of thumb: $approx 68%$ of mass within $1sigma$, $95%$ within $2sigma$, $99.7%$ within $3sigma$.
 
 #pause
 Why everywhere? Standardized sums of many independent effects often approach a Gaussian (CLT — demoed in L13). Among densities with a fixed mean and variance, the Gaussian has maximum entropy (proved in the information module).
@@ -543,7 +543,7 @@ Beta draws live in $[0, 1]$ — so a draw can *be* a probability (a coin's heads
 )
 
 #pause
-#notebox[$p(theta) prop theta^(alpha - 1) (1 - theta)^(beta - 1)$, with $EE[theta] = alpha\/(alpha + beta)$. In L15, $alpha - 1$ and $beta - 1$ become mode-based pseudo-count offsets, while observed counts update $alpha$ and $beta$ directly.]
+#notebox[$p(theta) prop theta^(alpha - 1) (1 - theta)^(beta - 1)$, with $EE[theta] = alpha\/(alpha + beta)$. In L15 the Beta becomes the *prior* for a coin's heads-rate: observing $h$ heads and $t$ tails updates it to Beta$(alpha + h, beta + t)$, so $alpha$ and $beta$ act as pseudo-counts.]
 
 == The four, on one wall #V
 
@@ -559,7 +559,7 @@ Beta draws live in $[0, 1]$ — so a draw can *be* a probability (a coin's heads
 )
 
 #pause
-Flat box, falling slide, bell, and the shape-shifter on $[0,1]$. From these four (plus L13's multivariate bell) you can read 90% of the distributions in ML papers.
+Flat box, falling slide, bell, and the shape-shifter on $[0,1]$. From these four (plus L13's multivariate bell) you can read most of the distributions that appear in ML papers.
 
 == Explore the zoo hands-on #I
 
@@ -572,7 +572,7 @@ Flat box, falling slide, bell, and the shape-shifter on $[0,1]$. From these four
 
 == Transform a standard noise variable
 
-The generative recipe was: $z tilde$ simple noise, $x = f(z)$. For the recipe to be *mathematics* rather than vibes, we must answer:
+The generative recipe was: $z tilde$ simple noise, $x = f(z)$. To make the recipe precise we must answer:
 
 #result[If $X$ has density $p_X$ and $Y = g(X)$ — what is $p_Y$?]
 
@@ -599,7 +599,7 @@ Concrete pilot case: $X tilde cal(U)(0, 1)$ and $Y = 2X$. Before any formula —
 $Y$ lives on $[0, 2]$ — twice the room. Total probability is still 1 — same area. Twice the width forces *half the height*.
 
 #pause
-#result[Stretching the axis by $a$ *dilutes* the density by $a$. Area is conserved; height pays.]
+#result[Stretching the axis by $a$ *dilutes* the density by $a$. Area is conserved, so the height must drop.]
 
 == Numbers: follow one interval through the stretch
 
@@ -655,7 +655,7 @@ $ p_Y (y) = dif / (dif y) F_X ((y - b)/a) = p_X ((y - b)/a) dot underbrace(1/a, 
 If $a < 0$ the inequality flips ($P(X >= dots) = 1 - F_X$), and differentiating brings $-1\/a$ — positive again. Both signs in one formula:
 
 #pause
-#result[$ p_Y (y) = p_X ((y - b)/a) dot 1/abs(a) quad quad "— the stretch factor, paid in density" $]
+#result[$ p_Y (y) = p_X ((y - b)/a) dot 1/abs(a) quad quad "— the stretch factor that repairs the area" $]
 
 == ⭐ Step 3: check the formula #D
 
@@ -667,7 +667,7 @@ If $a < 0$ the inequality flips ($P(X >= dots) = 1 - F_X$), and differentiating 
 $ integral p_X ((y-b)/a) 1/abs(a) dif y = integral p_X (x) 1/abs(a) abs(a) dif x = integral p_X (x) dif x = 1 quad ✓ $
 
 #pause
-The $1\/abs(a)$ is precisely what the substitution rule of integration (Module 2) demands — change of variables for densities *is* change of variables for integrals, wearing a probability costume.
+The $1\/abs(a)$ is precisely what the substitution rule of integration (Module 2) demands — change of variables for densities *is* change of variables for integrals.
 
 == The general 1-D rule
 
@@ -700,9 +700,9 @@ L9 showed that $abs(det J)$ is the local volume-scaling factor of a square map.
 #pause
 For an invertible differentiable map in $d$ dimensions, $p_Y (bold(y)) = p_X (bold(x)) abs(det J)^(-1)$ when $J = dif bold(y)\/dif bold(x)$. This determinant factor is central to normalizing flows; diffusion models generally use different likelihood constructions.
 
-== Build a Gaussian from a standard normal vector
+== Build a Gaussian from a standard normal
 
-Let $Z tilde cal(N)(0, 1)$ — density $phi(z) = e^(-z^2\/2) \/ sqrt(2 pi)$ — and stretch-and-slide: $X = mu + sigma Z$. The toll rule with $a = sigma$, $b = mu$:
+Let $Z tilde cal(N)(0, 1)$ — density $phi(z) = e^(-z^2\/2) \/ sqrt(2 pi)$ — and stretch-and-slide: $X = mu + sigma Z$. The linear rule with $a = sigma$, $b = mu$:
 
 $ p_X (x) = phi((x - mu)/sigma) dot 1/sigma = 1/(sigma sqrt(2 pi)) thin e^(-(x - mu)^2/(2 sigma^2)) $
 
@@ -718,7 +718,7 @@ x = mu + sigma * z           # N(mu, sigma²) — transformation does the rest
 #pause
 This two-line transformation is the reparameterization used in variational autoencoders.
 
-== Checkpoint: pay the toll #Q
+== Checkpoint: transform a uniform #Q
 
 #mcq([$X tilde cal(U)(0, 1)$ and $Y = 3X$. What is $p_Y (1.5)$?],
   [$1$ — uniform densities stay height 1],
@@ -727,10 +727,10 @@ This two-line transformation is the reparameterization used in variational autoe
   [$0$ — $y = 1.5$ is outside the support of $Y$],
 )
 
-== Answer: pay the toll #A
+== Answer: transform a uniform #A
 
 #mcq-answer("C", [$p_Y (1.5) = 1 dot 1\/abs(3) = 1\/3$],
-  [$Y$ lives on $[0, 3]$ (so D is out), and stretching by 3 spreads the same area over triple the width — density *divides* by 3 (so B has the toll backwards, and A forgot the toll entirely). Sanity: height $1\/3$ × width $3$ = area 1. ✓])
+  [$Y$ lives on $[0, 3]$ (so D is out), and stretching by 3 spreads the same area over triple the width — density *divides* by 3 (so B scales the wrong way, and A forgot the factor entirely). Sanity: height $1\/3$ × width $3$ = area 1. ✓])
 
 = Inverse-CDF sampling: uniform → anything
 
@@ -768,7 +768,7 @@ Where the CDF is *steep*, a wide band of $u$-values funnels into a narrow band o
 Where the CDF is *flat*, a narrow band of $u$ spreads over a huge range of $x$ — few darts per unit length: *low density* (the exponential's tail).
 
 #pause
-Steepness of $F$ is $F' = p$ — the density itself. The funnel automatically deals darts in proportion to $p$. That is the entire mechanism; now we make it a theorem.
+Steepness of $F$ is $F' = p$ — the density itself. The funnel automatically concentrates darts in proportion to $p$. That is the entire mechanism; now we make it a theorem.
 
 == ⭐ Correctness, in two lines #D
 
@@ -799,7 +799,7 @@ $ u = 1 - e^(-lambda x) quad => quad e^(-lambda x) = 1 - u quad => quad x = -ln(
 Spot-check $lambda = 1$: $u = 0.5 -> x = ln 2 approx 0.693$ — half the darts land below $0.693$, the exponential's median. The mean (1.0) is further right, dragged by the tail — consistent with the balance-point slide. ✓
 
 #pause
-#notebox[Since $1 - U$ is *also* $cal(U)(0,1)$ (flip the interval), $x = -ln(U)\/lambda$ works too — that symmetry is practice problem 6, and what NumPy actually implements.]
+#notebox[Since $1 - U$ is *also* $cal(U)(0,1)$ (flip the interval), $x = -ln(U)\/lambda$ works too — that symmetry is practice problem 6, and what NumPy's legacy exponential sampler implemented (the modern default uses the faster ziggurat algorithm).]
 
 == Code: five lines, ten thousand samples
 
@@ -810,7 +810,7 @@ rng = np.random.default_rng(0)
 u = rng.random(10_000)           # step 1: the only randomness we own
 x = -np.log(1 - u) / lam         # step 2: F⁻¹ — one deterministic line
 
-x.mean()                         # 1.003  ≈ 1/λ  ✓ (the L12 audit, again)
+x.mean()                         # 1.0000  ≈ 1/λ  ✓ (the Monte Carlo audit, again)
 ```]
 
 #pause
@@ -827,7 +827,7 @@ Works verbatim for any distribution whose $F^(-1)$ you can write: uniform, expon
 The pipeline is now explicit: draw $u tilde cal(U)(0,1)$ and transform it by $F^(-1)$ to obtain exponential samples.
 
 #pause
-The industrial versions upgrade each box, not the idea: the noise goes multivariate Gaussian (L13), the transformation becomes *learned* (ES 667), and the toll $abs(det J)$ prices every step.
+The industrial versions upgrade each box, not the idea: the noise goes multivariate Gaussian (L13), the transformation becomes *learned* (ES 667), and normalizing flows carry the $abs(det J)$ factor through every layer.
 
 #pause
 #notebox[The Gaussian's own $F^(-1)$ has no closed formula — libraries use `erfinv` or the Box–Muller trick. `torch.randn` is still "uniform bits, transformed" under the hood.]
@@ -847,7 +847,7 @@ The industrial versions upgrade each box, not the idea: the noise goes multivari
   [combine], [$sum$], [$integral$ — probability is *area*],
   [CDF], [staircase], [smooth ramp; $F' = p$],
   [$EE[X]$, $"Var"$], [$sum x thin p(x)$, …], [$integral x thin p(x) dif x$, …],
-  [transform $Y = g(X)$], [relabel outcomes], [relabel *and pay* $abs(dif x\/dif y)$],
+  [transform $Y = g(X)$], [relabel outcomes], [relabel *and rescale* by $abs(dif x\/dif y)$],
 )
 
 #pause
@@ -859,7 +859,7 @@ One table, the whole lecture. The left column you owned already; the right colum
 - *CDF*: $F(x) = integral_(-oo)^x p$, and $F' = p$; interval questions are $F(b) - F(a)$.
 - *Moments are integrals*: uniform balances at $(a+b)\/2$; exponential waits $1\/lambda$.
 - *Common families*: uniform, exponential, Gaussian, and Beta.
-- *The toll*: $p_Y (y) = p_X (x) abs(dif x\/dif y)$ — the Gaussian's $1\/sigma$ is a receipt.
+- *Change of variables*: $p_Y (y) = p_X (x) abs(dif x\/dif y)$ — the Gaussian's $1\/sigma$ is this factor at work.
 - *The sampler*: $F^(-1)(U) tilde F$, proved in two lines — uniform darts become anything.
 
 #pause
@@ -886,7 +886,7 @@ Many densities (most Bayesian posteriors!) have no invertible CDF. Two escape ha
 - *Importance sampling* — sample from a wrong-but-easy $q$, then repair the bias by weighting each sample by $p(x)\/q(x)$. Nothing discarded, but weights can degenerate.
 
 #pause
-#notebox[Pointers only, by design: MacKay Ch. 29 is the beautiful reference; the probabilistic-ML course (and MCMC) picks up this thread properly. For this course, inverse-CDF + the toll rule are the samplers you own.]
+#notebox[Pointers only, by design: MacKay Ch. 29 is the beautiful reference; the probabilistic-ML course (and MCMC) picks up this thread properly. For this course, inverse-CDF + the change-of-variables rule are the samplers you own.]
 
 #focus-slide[
   Continuous probability is area, and transformations charge a Jacobian toll.
