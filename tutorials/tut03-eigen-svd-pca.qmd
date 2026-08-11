@@ -1,29 +1,29 @@
 ---
 title: "Tutorial 3 · Eigen, SVD & PCA"
-subtitle: "After L6 · 80 minutes"
+subtitle: "After Lecture 6 · 80 minutes"
 ---
 
 Use repeated multiplication to find a dominant eigenvector, then compress data with SVD and PCA.
 
 ## Part A · Worksheet (~40 min, pen and paper)
 
-### Problem 1 — Eigenpairs
+### Problem 1 — Eigenpairs ⭐
 
 Find the eigenvalues/eigenvectors of $\begin{bmatrix}3 & 1 \\ 1 & 3\end{bmatrix}$. What happens to a generic vector after repeated multiplication and normalization?
 
-### Problem 2 — Power iteration
+### Problem 2 — Power iteration ⭐
 
 Starting at $(1,0)$, perform three normalized power-iteration steps for the same matrix.
 
-### Problem 3 — SVD reconstruction
+### Problem 3 — SVD reconstruction ⭐⭐
 
 For singular values $(5,2,0.5)$, compute rank-1 and rank-2 squared Frobenius errors.
 
-### Problem 4 — Centre before PCA
+### Problem 4 — Centre before PCA ⭐⭐
 
 Explain why PCA on uncentred data can point toward the mean rather than the direction of variation.
 
-### Problem 5 — Variance
+### Problem 5 — Variance ⭐⭐
 
 For covariance $\begin{bmatrix}4 & 3 \\ 3 & 4\end{bmatrix}$, find principal directions and explained-variance fractions.
 
@@ -32,13 +32,13 @@ For covariance $\begin{bmatrix}4 & 3 \\ 3 & 4\end{bmatrix}$, find principal dire
 
 **1.** Eigenpairs: $4$ with $(1,1)$ and $2$ with $(1,-1)$. The normalized iterate approaches $(1,1)/\sqrt{2}$.
 
-**2.** The unnormalized iterates are $(3,1)$, $(10,6)$, $(36,28)$; normalize each to see alignment.
+**2.** The unnormalized iterates are $(3,1)$, $(10,6)$, $(36,28)$. Each multiplication doubles the $(1,1)$ component relative to the $(1,-1)$ component (eigenvalue ratio $4/2$), so the normalized iterate turns toward $(1,1)$.
 
-**3.** Rank-1 error $=2^2+0.5^2=4.25$; rank-2 error $=0.5^2=0.25$.
+**3.** Dropped singular values enter as squared Frobenius error: rank-1 error $=2^2+0.5^2=4.25$; rank-2 error $=0.5^2=0.25$.
 
 **4.** PCA is about deviations from the mean; centring moves the origin to that mean.
 
-**5.** Directions $(1,1)$ and $(1,-1)$ have variances $7$ and $1$, explaining $7/8$ and $1/8$.
+**5.** The covariance eigenvectors $(1,1)$ and $(1,-1)$ carry variances $7$ and $1$ (the eigenvalues), explaining $7/8$ and $1/8$ of the total.
 :::
 
 ## Part B · Notebook (~40 min, laptop)

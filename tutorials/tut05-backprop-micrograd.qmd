@@ -1,44 +1,44 @@
 ---
 title: "Tutorial 5 · Backprop by Hand + micrograd"
-subtitle: "After L11 · 80 minutes"
+subtitle: "After Lecture 11 · 80 minutes"
 ---
 
 Run reverse-mode differentiation on a graph, then implement the small scalar engine behind it.
 
 ## Part A · Worksheet (~40 min, pen and paper)
 
-### Problem 1 — Graph forward pass
+### Problem 1 — Graph forward pass ⭐
 
 For $a=xy$, $b=a+x$, $L=b^2$ at $(x,y)=(2,-3)$, compute every node value.
 
-### Problem 2 — Backward pass
+### Problem 2 — Backward pass ⭐⭐
 
 Starting with $\partial L/\partial L=1$, compute adjoints for $b,a,x,y$. Remember that $x$ has two paths.
 
-### Problem 3 — Topological order
+### Problem 3 — Topological order ⭐⭐
 
 Explain why parents must receive gradients only after all children have contributed.
 
-### Problem 4 — Accumulation
+### Problem 4 — Accumulation ⭐⭐
 
 Give a graph where assigning rather than adding gradients returns a wrong result.
 
-### Problem 5 — Vector–Jacobian product
+### Problem 5 — Vector–Jacobian product ⭐
 
 For $f:\mathbb{R}^n to \mathbb{R}^m$, state the shapes of a seed row vector and the resulting VJP.
 
 ::: {.callout-note collapse="true"}
 ## Solutions — open only after attempting everything
 
-**1.** $a=-6$, $b=-4$, $L=16$.
+**1.** $a=2(-3)=-6$, $b=-6+2=-4$, $L=(-4)^2=16$.
 
-**2.** $\bar{b}=-8$, $\bar{a}=-8$, $\bar{x}=\bar{b}+\bar{a} y=16$, $\bar{y}=\bar{a} x=-16$.
+**2.** $\bar{b}=2b=-8$, $\bar{a}=\bar{b}=-8$, $\bar{x}=\bar{b}+\bar{a} y=-8+24=16$ (the direct path through $b$ plus the path through $a$), and $\bar{y}=\bar{a} x=-16$.
 
 **3.** Reverse mode must sum every downstream contribution before applying a node's local rule.
 
 **4.** $x+x$ or any shared subexpression needs two contributions accumulated at $x$.
 
-**5.** Seed has shape $1 \times m$ and VJP has shape $1 \times n$.
+**5.** Seed has shape $1 \times m$ and the VJP has shape $1 \times n$ — reverse mode carries a row vector backward without ever forming the full Jacobian.
 :::
 
 ## Part B · Notebook (~40 min, laptop)

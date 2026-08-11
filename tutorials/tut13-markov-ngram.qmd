@@ -1,44 +1,44 @@
 ---
 title: "Tutorial 13 · Markov Chains & the n-gram LM"
-subtitle: "After L26 · 80 minutes"
+subtitle: "After Lecture 26 · 80 minutes"
 ---
 
 Compute a stationary distribution, fit smoothed character transitions, score held-out text, and generate a sample.
 
 ## Part A · Worksheet (~40 min, pen and paper)
 
-### Problem 1 — Stationary distribution
+### Problem 1 — Stationary distribution ⭐
 
-For $P=\begin{bmatrix}.8 & .2 \\ .4 & .6\end{bmatrix}$, solve $\pi=\pi P$ and normalize.
+For $P=\begin{bmatrix}.8 & .2 \\ .4 & .6\end{bmatrix}$ over states $(S,R)$, solve $\pi=\pi P$ and normalize.
 
-### Problem 2 — Path probability
+### Problem 2 — Path probability ⭐
 
-With initial $(.6,.4)$, find $P(S,R,R,S)$.
+With states ordered $(S,R)$ and initial distribution $(.6,.4)$, find $P(S,R,R,S)$.
 
-### Problem 3 — Transition MLE
+### Problem 3 — Transition MLE ⭐⭐
 
 Derive the MLE row from counts $n_{ij}$ under the row-sum constraint.
 
-### Problem 4 — Smoothing
+### Problem 4 — Smoothing ⭐
 
 Apply add-one prediction to counts $(8,2,0,0)$.
 
-### Problem 5 — BPC
+### Problem 5 — BPC ⭐⭐
 
 If test transitions receive probabilities $(1/2,1/4,1/8)$, compute total bits, BPC, and perplexity.
 
 ::: {.callout-note collapse="true"}
 ## Solutions — open only after attempting everything
 
-**1.** $\pi=(2/3,1/3)$.
+**1.** Balance the cross-flows: $.2 \pi(S)=.4 \pi(R)$, so $\pi(S)=2 \pi(R)$; normalizing gives $\pi=(2/3,1/3)$.
 
-**2.** $0.6(.2)(.6)(.4)=.0288$.
+**2.** Initial probability times three transition probabilities: $0.6(.2)(.6)(.4)=.0288$.
 
-**3.** $\hat{P}_{ij}=n_{ij}/\sum_j n_{ij}$.
+**3.** Maximizing $\sum_j n_{ij} \log P_{ij}$ with each row summing to one gives the count fractions $\hat{P}_{ij}=n_{ij}/\sum_j n_{ij}$.
 
-**4.** $(9/14,3/14,1/14,1/14)$.
+**4.** Add one to every count and renormalize: $(9,3,1,1)/14$ — unseen transitions get $1/14$ instead of an impossible zero.
 
-**5.** Total 6 bits, BPC 2, perplexity 4.
+**5.** Each transition costs $-\log_2$ of its probability: $1+2+3=6$ bits total, $6/3=2$ BPC, perplexity $2^2=4$.
 :::
 
 ## Part B · Notebook (~40 min, laptop)

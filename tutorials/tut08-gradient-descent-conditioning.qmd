@@ -1,40 +1,40 @@
 ---
 title: "Tutorial 8 · Gradient Descent & Conditioning"
-subtitle: "After L17 · 80 minutes"
+subtitle: "After Lecture 17 · 80 minutes"
 ---
 
 Run gradient descent on quadratic bowls and isolate the roles of learning rate, condition number, scaling, and momentum.
 
 ## Part A · Worksheet (~40 min, pen and paper)
 
-### Problem 1 — Scalar recurrence
+### Problem 1 — Scalar recurrence ⭐
 
 For $f(x)=x^2/2$, derive the GD recurrence and the range of learning rates that converges.
 
-### Problem 2 — Quadratic directions
+### Problem 2 — Quadratic directions ⭐
 
 For $f=(x^2+50y^2)/2$, write the two coordinate recurrences.
 
-### Problem 3 — Safe step
+### Problem 3 — Safe step ⭐⭐
 
 Find the largest stable constant learning rate and explain why the flat direction then moves slowly.
 
-### Problem 4 — Scaling
+### Problem 4 — Scaling ⭐⭐
 
 Rescale $z=\sqrt{50}y$. What happens to the Hessian condition number?
 
-### Problem 5 — Momentum
+### Problem 5 — Momentum ⭐⭐
 
 Explain why a velocity average can reduce zig-zagging in the steep direction while retaining motion along the valley.
 
 ::: {.callout-note collapse="true"}
 ## Solutions — open only after attempting everything
 
-**1.** $x_{k+1}=(1-eta)x_k$; convergence requires $0<eta<2$.
+**1.** $x_{k+1}=x_k-\eta x_k=(1-\eta)x_k$; convergence needs $|1-\eta|<1$, that is $0<\eta<2$.
 
-**2.** $x^+=(1-eta)x$ and $y^+=(1-50eta)y$.
+**2.** The Hessian is diagonal, so the coordinates decouple: $x^+=(1-\eta)x$ and $y^+=(1-50 \eta)y$.
 
-**3.** $eta<2/50=0.04$; then the $x$ contraction is near one.
+**3.** Stability of the steep direction needs $|1-50 \eta|<1$, so $\eta<2/50=0.04$; at that ceiling the flat direction contracts by only $1-\eta \approx 0.96$ per step.
 
 **4.** The Hessian becomes identity and condition number becomes one.
 

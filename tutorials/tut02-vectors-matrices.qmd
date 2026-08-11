@@ -1,40 +1,40 @@
 ---
 title: "Tutorial 2 · Vectors & Matrices"
-subtitle: "After L4 · 80 minutes"
+subtitle: "After Lecture 4 · 80 minutes"
 ---
 
 Represent data as vectors, read matrix multiplication geometrically, and solve a small least-squares problem.
 
 ## Part A · Worksheet (~40 min, pen and paper)
 
-### Problem 1 — Cosine and projection
+### Problem 1 — Cosine and projection ⭐
 
 For $x=(1,2,2)$ and $y=(2,0,1)$, compute $x^Ty$, both norms, cosine similarity, and the projection of $x$ onto $y$.
 
-### Problem 2 — A linear map
+### Problem 2 — A linear map ⭐
 
 For $A=\begin{bmatrix}2 & 1 \\ 0 & 1\end{bmatrix}$, map $e_1$, $e_2$, and the unit square. State the area scale and whether the map is invertible.
 
-### Problem 3 — Column space
+### Problem 3 — Column space ⭐⭐
 
 Solve $Ax=b$ for $A=\begin{bmatrix}1 & 0 \\ 0 & 1 \\ 1 & 1\end{bmatrix}$ and $b=(1,2,4)$ in least-squares form. Write the normal equations.
 
-### Problem 4 — Rank one
+### Problem 4 — Rank one ⭐⭐
 
 Show that every column of $uv^T$ is a multiple of $u$. What is its rank when $u,v$ are nonzero?
 
-### Problem 5 — Conditioning
+### Problem 5 — Conditioning ⭐⭐
 
 Compare solving $Ax=b$ when the columns of $A$ are orthogonal versus nearly parallel. Which geometry amplifies noise?
 
 ::: {.callout-note collapse="true"}
 ## Solutions — open only after attempting everything
 
-**1.** $x^Ty=4$, $\lVert x \rVert=3$, $\lVert y \rVert=\sqrt{5}$, cosine $4/(3\sqrt{5})$, and $\operatorname{proj}_y x=(4/5)y$.
+**1.** $x^Ty=4$, $\lVert x \rVert=3$, $\lVert y \rVert=\sqrt{5}$, so cosine $=4/(3\sqrt{5}) \approx 0.596$. The projection is $(x^Ty/y^Ty)y=(4/5)y$ — the dot product measures overlap, and dividing by $y^Ty$ turns it into a coefficient along $y$.
 
 **2.** $Ae_1=(2,0)$, $Ae_2=(1,1)$; the square becomes their parallelogram. $\det A=2$, so area doubles and the map is invertible.
 
-**3.** $A^TA=\begin{bmatrix}2 & 1 \\ 1 & 2\end{bmatrix}$, $A^Tb=(5,6)$, hence $\hat{x}=(4/3,7/3)$.
+**3.** Normal equations $A^TA \hat{x}=A^Tb$: $A^TA=\begin{bmatrix}2 & 1 \\ 1 & 2\end{bmatrix}$, $A^Tb=(5,6)$, hence $\hat{x}=(4/3,7/3)$. They state exactly that the residual $b-A \hat{x}$ is orthogonal to both columns.
 
 **4.** Column $j$ equals $v_j u$, so the column space is the line through $u$ and the rank is one.
 

@@ -16,7 +16,7 @@ Each tutorial has about 40 minutes of pen-and-paper work followed by 40 minutes 
 | T7 | L15 | MLE, MAP & Bayesian Updating | [worksheet](tut07-mle-map-bayes.qmd) | [notebook](../notebooks/tut07-mle-map-bayes.ipynb) |
 | T8 | L17 | Gradient Descent & Conditioning | [worksheet](tut08-gradient-descent-conditioning.qmd) | [notebook](../notebooks/tut08-gradient-descent-conditioning.ipynb) |
 | T9 | L18 | Newton & Curve Fitting | [worksheet](tut09-newton-curve-fitting.qmd) | [notebook](../notebooks/tut09-newton-curve-fitting.ipynb) |
-| T10 | L20 | Lagrange & KKT | [worksheet](tut10-lagrange-kkt.qmd) | [notebook](../notebooks/tut10-lagrange-kkt.ipynb) |
+| T10 | L20 | Lagrange Multipliers & KKT | [worksheet](tut10-lagrange-kkt.qmd) | [notebook](../notebooks/tut10-lagrange-kkt.ipynb) |
 | T11 | L21 | LP/QP with CVXPY | [worksheet](tut11-lp-qp-cvxpy.qmd) | [notebook](../notebooks/tut11-lp-qp-cvxpy.ipynb) |
 | T12 | L24 | Entropy, Huffman & KL | [worksheet](tut12-entropy-huffman-kl.qmd) | [notebook](../notebooks/tut12-entropy-huffman-kl.ipynb) |
 | T13 | L26 | Markov Chains & the n-gram LM | [worksheet](tut13-markov-ngram.qmd) | [notebook](../notebooks/tut13-markov-ngram.ipynb) |

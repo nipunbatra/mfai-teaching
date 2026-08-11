@@ -1,44 +1,44 @@
 ---
 title: "Tutorial 10 · Lagrange Multipliers & KKT"
-subtitle: "After L20 · 80 minutes"
+subtitle: "After Lecture 20 · 80 minutes"
 ---
 
 Solve equality and inequality constrained problems, then verify every KKT condition numerically.
 
 ## Part A · Worksheet (~40 min, pen and paper)
 
-### Problem 1 — Equality
+### Problem 1 — Equality ⭐
 
 Maximize $xy$ subject to $x+y=1$. Solve for the point and multiplier using $L=xy-\lambda(x+y-1)$.
 
-### Problem 2 — Sensitivity
+### Problem 2 — Sensitivity ⭐⭐
 
 Replace 1 by budget $b$. Derive the optimal value and confirm that its derivative equals the multiplier.
 
-### Problem 3 — Active inequality
+### Problem 3 — Active inequality ⭐⭐
 
 Minimize $(x-2)^2$ subject to $x\le 1$. Solve both complementary-slackness cases.
 
-### Problem 4 — Inactive inequality
+### Problem 4 — Inactive inequality ⭐
 
 Minimize $(x-.2)^2$ subject to $x\le 1$. Find the multiplier and slack.
 
-### Problem 5 — Simplex projection
+### Problem 5 — Simplex projection ⭐⭐⭐
 
 Project $(3,1,.5)$ onto non-negative vectors summing to 2.5. Find the threshold and result.
 
 ::: {.callout-note collapse="true"}
 ## Solutions — open only after attempting everything
 
-**1.** $x=y=\lambda=1/2$, objective $1/4$.
+**1.** Stationarity gives $y=\lambda$ and $x=\lambda$, so $x=y$; the constraint then forces $x=y=1/2$, $\lambda=1/2$, objective $1/4$.
 
-**2.** $x=y=b/2$, $V(b)=b^2/4$, and $V'(b)=b/2=\lambda$.
+**2.** $x=y=b/2$, $V(b)=b^2/4$, and $V'(b)=b/2=\lambda$ — the multiplier prices the constraint.
 
 **3.** Inactive gives infeasible $x=2$; active gives $x=1$, $\lambda=2$.
 
-**4.** $x=.2$, slack $.8$, multiplier zero.
+**4.** The unconstrained minimizer $x=.2$ is already feasible, so it is optimal with slack $.8$; complementary slackness then forces the multiplier to zero.
 
-**5.** Threshold $.75$ gives $(2.25,.25,0)$.
+**5.** Subtract a common threshold and clip at zero: threshold $.75$ gives $(2.25,.25,0)$, which is non-negative and sums to the budget $2.5$.
 :::
 
 ## Part B · Notebook (~40 min, laptop)

@@ -1,44 +1,44 @@
 ---
 title: "Tutorial 12 · Entropy, Huffman & KL"
-subtitle: "After L24 · 80 minutes"
+subtitle: "After Lecture 24 · 80 minutes"
 ---
 
 Compute surprise and entropy, build a Huffman code, and measure the excess cost of a wrong model.
 
 ## Part A · Worksheet (~40 min, pen and paper)
 
-### Problem 1 — Entropy
+### Problem 1 — Entropy ⭐
 
 Compute entropy of $(.4,.2,.15,.15,.1)$ in bits.
 
-### Problem 2 — Kraft
+### Problem 2 — Kraft ⭐
 
 Check whether lengths $(1,3,3,3,3)$ form a complete binary prefix tree.
 
-### Problem 3 — Huffman
+### Problem 3 — Huffman ⭐⭐
 
-Run the merge weights for probabilities proportional to $(40,20,15,15,10)$.
+Run the Huffman merges for weights $(40,20,15,15,10)$, listing the combined weight at each step.
 
-### Problem 4 — Cross-entropy
+### Problem 4 — Cross-entropy ⭐⭐
 
 For $p=(.75,.2,.05)$ and $q=(.45,.35,.2)$, compute $H(p)$, $H(p,q)$, and KL.
 
-### Problem 5 — Perplexity
+### Problem 5 — Perplexity ⭐
 
 Convert 2.5 bits/symbol and 2.5 nats/symbol to their matching perplexities.
 
 ::: {.callout-note collapse="true"}
 ## Solutions — open only after attempting everything
 
-**1.** $H \approx 2.146$ bits.
+**1.** $H=-\sum_i p_i \log_2 p_i \approx 2.146$ bits, just under the $\log_2 5 \approx 2.322$ of a uniform five-symbol source.
 
 **2.** $1/2+4/8=1$, so it exactly fills a binary tree.
 
-**3.** Merge $10+15$, $15+20$, $25+35$, then $40+60$ (ties may change codewords, not expected length).
+**3.** Merge $10+15$, $15+20$, $25+35$, then $40+60$ (ties may change codewords, not expected length). The resulting depths $(1,3,3,3,3)$ are exactly Problem 2's lengths; average length $2.2$ bits against entropy $\approx 2.146$.
 
-**4.** $H(p)\approx.992$, $H(p,q)\approx 1.283$, KL $\approx.291$ bits.
+**4.** $H(p)\approx.992$, $H(p,q)\approx 1.283$, so KL $=H(p,q)-H(p)\approx.291$ bits — the price of coding $p$ with a code built for $q$.
 
-**5.** $2^{2.5}\approx 5.657$ and $e^{2.5}\approx 12.182$.
+**5.** Perplexity exponentiates in the matching base: $2^{2.5}\approx 5.657$ and $e^{2.5}\approx 12.182$.
 :::
 
 ## Part B · Notebook (~40 min, laptop)
