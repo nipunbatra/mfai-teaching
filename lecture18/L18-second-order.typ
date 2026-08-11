@@ -400,9 +400,9 @@ Same function, same start: GD ($eta = 0.3$) vs Newton, error per iteration — l
 
 #align(center, lines((gd-hist, newton-hist.map(((k, xv, e)) => (k, e))),
   log-y: true, legend: "tr",
-  labels: ([gradient descent, $eta = 0.3$], [Newton]),
+  labels: ([gradient descent], [Newton]),
   colors: (TEAL, ACC), markers: true,
-  size: (105mm, 47mm), x-label: [iteration $k$], y-label: [$|x_k - x^*|$],
+  size: (105mm, 47mm), x-label: [iteration], y-label: [error],
 ))
 
 #pause

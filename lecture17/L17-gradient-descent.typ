@@ -283,10 +283,10 @@ Plot the iterate $x_t$ itself against the step count:
   (gd-seq(1.0, 0.05, 2.4, 12), gd-seq(1.0, 0.8, 2.4, 12),
    gd-seq(1.0, 1.7, 2.4, 12), gd-seq(1.0, 2.15, 2.4, 12, clip: 5.2)),
   colors: (TEAL, GREEN, ACC, RED),
-  labels: ([$eta = 0.05$], [$eta = 0.8$], [$eta = 1.7$], [$eta = 2.15$]),
-  legend: "tr", hlines: ((0,),),
-  x-label: [step], y-label: $x_t$, size: (102mm, 46mm),
+  hlines: ((0,),),
+  x-label: [step], y-label: [iterate], size: (102mm, 46mm),
 ))
+#align(center, text(size: 15pt, fill: MUTED)[colors as before: #text(fill: TEAL)[$eta = 0.05$] · #text(fill: GREEN)[$eta = 0.8$] · #text(fill: ACC)[$eta = 1.7$] · #text(fill: RED)[$eta = 2.15$]])
 
 #pause
 - #text(fill: TEAL)[crawl] and #text(fill: GREEN)[converge] stay on one side; #text(fill: ACC)[overshoot] *crosses the minimum every step* and still converges; #text(fill: RED)[diverge] crosses and *grows* (clipped at $plus.minus 5.2$).
