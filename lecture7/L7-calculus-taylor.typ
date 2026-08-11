@@ -115,7 +115,7 @@ The response shrinks with the nudge — but the *ratio* stabilizes: $7, 6.1, 6.0
 #pause
 #result[The ratio is heading somewhere: *6*. That destination is the derivative $f'(3)$.]
 
-== The nudge machine, in code
+== The nudge table, in code
 
 #codebox[```python
 f = lambda x: x**2
@@ -131,7 +131,7 @@ for h in [1, 0.1, 0.01, 0.001]:
 *L2 callback* — see the garbage digits (`…012`, `…849`)? That's floating-point rounding leaking into $Delta f slash h$. Shrink $h$ too far and the noise *wins*.
 
 #pause
-#notebox[The full war — truncation error vs rounding error in numerical derivatives — is L10's opening act. Today we take the *exact* route instead: limits.]
+#notebox[The full tradeoff — truncation error vs rounding error in numerical derivatives — is worked out in L10. Today we take the *exact* route instead: limits.]
 
 == The picture: secants tilting into the tangent #V
 
@@ -142,6 +142,7 @@ for h in [1, 0.1, 0.01, 0.001]:
   labels: ([$f(x) = x^2$], [secant $h = 2$ · slope $8$], [secant $h = 1$ · slope $7$], [tangent · slope $6$]),
   colors: (INK, MUTED, TEAL, ACC),
   markers: (false, true, true, false),
+  legend: "tl",
   points: ((3.0, 9.0, [$x_0 = 3$]),),
   size: (98mm, 50mm), x-label: $x$,
 ))
@@ -222,9 +223,9 @@ This is a *trade*: swap a function you can't handle for the line you can.
 #pause
 #result[Near $x_0$, *replace* $f$ by the line through $(x_0, f(x_0))$ with slope $f'(x_0)$. That replacement is what "derivative" is _for_.]
 
-== Test drive: $sqrt(4.1)$ with no calculator
+== Estimate $sqrt(4.1)$ with the local line
 
-$f(x) = sqrt(x)$, base point $x_0 = 4$ (where life is easy): $f(4) = 2$, $f'(x) = 1 slash (2 sqrt(x))$, so $f'(4) = 0.25$.
+$f(x) = sqrt(x)$, base point $x_0 = 4$ (where $sqrt(x)$ is exact): $f(4) = 2$, $f'(x) = 1 slash (2 sqrt(x))$, so $f'(4) = 0.25$.
 
 #pause
 $ sqrt(4.1) approx 2 + 0.25 times 0.1 = 2.025 $
@@ -337,7 +338,8 @@ $ f'(x) = 3x^2 - 3 = 0 quad arrow.r.double quad x = -1 "or" x = 1 $
 
 #align(center, lines(fn: x => calc.pow(x, 3) - 3 * x, domain: (-2.5, 2.5),
   markers: false, colors: (INK,),
-  points: ((-1.0, 2.0, [flat: max]), (1.0, -2.0, [flat: min])),
+  points: ((-1.0, 2.0), (1.0, -2.0)),
+  annotations: ((-1.0, 4.4, [flat: max]), (1.5, -4.3, [flat: min])),
   size: (92mm, 42mm), x-label: $x$, y-label: $f(x)$))
 
 #pause
@@ -410,17 +412,17 @@ The tangent matches $f$'s *value* and *slope* at $x_0$. Next upgrade: also match
 #pause
 The parabola hugs the curve visibly longer than the line. At $x = 1$: truth $2.718$, line $2$, parabola $2.5$ — each order *halves the miss and more*.
 
-== The matching game
+== Matching $n$ derivatives
 
 *Order-$n$ Taylor polynomial*: the polynomial that agrees with $f$ at $x_0$ in value and the first $n$ derivatives — $n + 1$ conditions, $n + 1$ coefficients, one winner.
 
 #pause
-Why the coefficient of $(x - x_0)^k$ is $f^((k))(x_0) slash k!$: differentiate $(x - x_0)^k$ exactly $k$ times and the powers rain down:
+Why the coefficient of $(x - x_0)^k$ is $f^((k))(x_0) slash k!$: differentiate $(x - x_0)^k$ exactly $k$ times and the exponents come down as factors:
 
-$ (dif^k) / (dif x^k) thin (x - x_0)^k = k dot (k - 1) dot dots dot 1 = k! quad arrow.r.double quad "coefficient" = f^((k))(x_0) / k! $
+$ (dif^k) / (dif x^k) thin (x - x_0)^k = k dot (k - 1) dot dots dot 1 = k! quad arrow.r.double quad "coefficient" = (f^((k))(x_0)) / k! $
 
 #pause
-The $k!$ is a *repair factor*: it cancels the rain so the $k$-th derivatives match exactly.
+The $k!$ in the denominator is a *repair factor*: it cancels exactly this $k!$, so the $k$-th derivatives match.
 
 #pause
 #notebox[Your checkpoint's $1/2$ was this factor at $k = 2$: coefficient $= f''(x_0) slash 2! = f'' slash 2$.]
@@ -465,7 +467,7 @@ Test at $x = 0.5$, where we can check everything by hand:
 $ 1 - (0.25) / 2 = 0.875 quad "vs" quad cos(0.5) = 0.87758dots quad arrow.r quad "error" = 0.00258 $
 
 #pause
-Now the suspicious part. The *next* Taylor term would be $x^4 slash 24$, and at $x = 0.5$ that term equals $(0.5)^4 slash 24 = 0.00260$.
+Compare with the first term we dropped: the *next* Taylor term is $x^4 slash 24$, and at $x = 0.5$ it equals $(0.5)^4 slash 24 = 0.00260$.
 
 #pause
 #result[Here the error is almost the first omitted term, $x^4 slash 24$. This numerical check is consistent with the Taylor remainder bound.]
@@ -478,7 +480,8 @@ $abs(cos x - (1 - x^2 slash 2))$ against the dropped term $x^4 slash 24$ — log
   fn: (x => calc.abs(calc.cos(x) - (1 - x * x / 2)), x => calc.pow(x, 4) / 24),
   domain: (0.1, 3), samples: 120, markers: false, log-y: true,
   colors: (ACC, MUTED), dashes: ("solid", "dashed"),
-  points: ((0.5, 0.00258, [$x = 0.5$]), (1.0, 0.0403, [$x = 1$])),
+  points: ((0.5, 0.00258), (1.0, 0.0403)),
+  annotations: ((0.64, 0.00042, [$x = 0.5$]), (1.22, 0.0062, [$x = 1$])),
   size: (100mm, 46mm), x-label: $x$,
 ))
 #align(center, text(size: 16pt)[#text(fill: ACC)[error of $1 - x^2 slash 2$] · #text(fill: MUTED)[dashed: $x^4 slash 24$] — glued together until $x approx 1.5$])
@@ -511,17 +514,17 @@ def T(x, n):                       # order-n Taylor of cos at 0
     return sum((-1)**k * x**(2*k) / factorial(2*k)
                for k in range(n // 2 + 1))
 for n in [0, 2, 4, 6]:
-    print(n, T(1.0, n), abs(cos(1.0) - T(1.0, n)))
+    print(n, T(1.0, n), f"{abs(cos(1.0) - T(1.0, n)):.4g}")
 # 0  1.0                 0.4597
 # 2  0.5                 0.0403
-# 4  0.5416666666666666  0.00136
-# 6  0.5402777777777777  2.45e-05
+# 4  0.5416666666666666  0.001364
+# 6  0.5402777777777777  2.453e-05
 ```]
 
 #pause
-At $x = 1$, every two orders buy roughly a factor *30* of accuracy. Six terms already give $cos(1)$ to $4$ digits. Real libraries combine polynomial approximations with *range reduction* rather than summing this Taylor series at arbitrary inputs.
+At $x = 1$, each added pair of terms cuts the error by a growing factor: #box[$times 11$], #box[$times 30$], #box[$times 56$]. Six terms already give $cos(1)$ to $4$ digits. Real libraries combine polynomial approximations with *range reduction* rather than summing this Taylor series at arbitrary inputs.
 
-== Checkpoint: how fast does the error die? #Q
+== Checkpoint: how the error scales #Q
 
 #mcq([The order-2 error of $cos$ at $x = 0.2$ is about $6.7 times 10^(-5)$. Doubling to $x = 0.4$ makes the error roughly…],
   [$2 times$ bigger],
@@ -530,14 +533,14 @@ At $x = 1$, every two orders buy roughly a factor *30* of accuracy. Six terms al
   [$16 times$ bigger],
 )
 
-== Answer: how fast does the error die? #A
+== Answer: how the error scales #A
 
 #mcq-answer([D], [$16 times$ — quartic scaling],
   [Error $approx x^4 slash 24$, so doubling $x$ multiplies it by $2^4 = 16$. (Check: at $0.4$ the true error is $1.06 times 10^(-3) approx 15.9 times$ bigger.) General rule: drop terms above order $n$, and the error scales like $h^(n+1)$.])
 
 = Where the local approximation breaks
 
-== $log(1 + x)$: a series with a boundary
+== $ln(1 + x)$: a series with a boundary
 
 Same game, new function: $ln(1 + x)$ at $0$ has the series $x - x^2/2 + x^3/3 - x^4/4 + dots$ #h(4pt) Watch its partial sums at two inputs:
 
@@ -552,7 +555,7 @@ Same game, new function: $ln(1 + x)$ at $0$ has the series $x - x^2/2 + x^3/3 - 
 )
 
 #pause
-At $x = 0.5$ the sums settle beautifully. At $x = 2$ they *oscillate harder with every term* — the series diverges, even though $ln 3$ is a perfectly innocent number.
+At $x = 0.5$ the sums settle beautifully. At $x = 2$ they *oscillate harder with every term* — the series diverges, even though $ln 3$ itself is perfectly finite.
 
 == Watch it break #V
 
@@ -566,11 +569,11 @@ At $x = 0.5$ the sums settle beautifully. At $x = 2$ they *oscillate harder with
 ))
 
 #pause
-Inside $abs(x) < 1$: higher order = better, everywhere. Past $x = 1$ the orders *disagree violently* — order 9 rockets up, order 4 dives — while the truth ambles along.
+Inside $abs(x) < 1$: higher order = better, everywhere. Past $x = 1$ the orders *disagree violently* — order 9 rockets up, order 4 dives — while $ln(1 + x)$ itself barely changes.
 
 == The radius of convergence
 
-Why $1$? The series was built entirely from data *at $x = 0$* — and $ln(1 + x)$ has a disaster at $x = -1$ (it plunges to $-oo$).
+Why $1$? The series was built entirely from data *at $x = 0$* — and $ln(1 + x)$ blows up at $x = -1$ (it plunges to $-oo$).
 
 #pause
 #result[For $ln(1+x)$ about $0$, the singularity at $x=-1$ gives radius $1$: the series converges for $abs(x)<1$ and diverges for $abs(x)>1$.]
@@ -583,7 +586,7 @@ Why $1$? The series was built entirely from data *at $x = 0$* — and $ln(1 + x)
 
 == And $cos$ never breaks
 
-$cos$ has no disaster anywhere — its radius is $oo$. The mechanism: *factorials beat powers*. Terms $x^k slash k!$ at the distant point $x = 10$:
+$cos$ has no singularity anywhere — its radius is $oo$. The mechanism: *factorials beat powers*. Terms $x^k slash k!$ at the distant point $x = 10$:
 
 #table(
   columns: (auto, auto, auto, auto, auto),
@@ -597,7 +600,7 @@ $cos$ has no disaster anywhere — its radius is $oo$. The mechanism: *factorial
 The terms *rise first* — then $k!$ catches up and crushes them. Enough terms deliver $cos(10)$ to any accuracy you like.
 
 #pause
-#notebox[So both endings exist: $e^x$, $sin$, $cos$ converge everywhere; $ln(1 + x)$ and $1/(1 - x)$ have a finite horizon. Always ask _where_ a local replacement is licensed — in ML we stay close to $x_0$, which is why Taylor serves us so well.]
+#notebox[Both behaviours occur: $e^x$, $sin$, $cos$ converge everywhere; $ln(1 + x)$ and $1/(1 - x)$ have a finite radius. Always ask _where_ a local replacement is valid — in ML we stay close to $x_0$, which is why Taylor serves us so well.]
 
 = What this buys ML
 
@@ -690,7 +693,7 @@ $f(x) = e^(-1 slash x^2)$ (with $f(0) = 0$) is *smooth everywhere* — yet at $0
 Its Taylor series at $0$ is $0 + 0 x + 0 x^2 + dots equiv 0$ — it converges beautifully, *to the wrong function*. The curve is flatter at $0$ than any polynomial; Taylor is blind to it.
 
 #pause
-#notebox[Moral: _smooth_ #sym.eq.not _analytic_ (faithfully told by its Taylor series). Our losses never hit the distinction — but honest mathematics keeps the receipt.]
+#notebox[Moral: _smooth_ #sym.eq.not _analytic_ (faithfully told by its Taylor series). Our losses never hit the distinction — but it is why the radius slide said _analytic_, not just _smooth_.]
 
 #focus-slide[
   Calculus is the art of replacing a function with a line.

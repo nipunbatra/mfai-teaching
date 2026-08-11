@@ -41,7 +41,7 @@ def f_loss_zoom():
     t2 = np.linspace(*windows[2], 300)
     axes[2].plot(t2, LSTAR + 0.5*KSTAR*(t2-TSTAR)**2, color=ACC, ls='--', lw=2.0)
     axes[2].plot([TSTAR], [LSTAR], 'o', color=ACC, ms=6)
-    axes[2].text(TSTAR, LSTAR+0.012, 'dashed: a pure parabola', color=ACC,
+    axes[2].text(TSTAR, LSTAR+0.062, 'dashed: a pure parabola', color=ACC,
                  fontsize=10.5, ha='center')
     # dashed pure line at the generic point
     t3 = np.linspace(*windows[3], 300)
