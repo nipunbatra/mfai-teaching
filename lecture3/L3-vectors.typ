@@ -15,16 +15,16 @@
 
 = Word embeddings as vectors
 
-== The word-embedding example from Lecture 1 #V
+== Example 3 from Lecture 1: word-embedding arithmetic #V
 
-Lecture 2 explained the `nan` loss. The learning-rate example returns in L17. We now study the vector relation:
+L2 explained Example 1 (the `nan` loss); Example 2 returns in L17. Today is Example 3:
 
 $ "king" - "man" + "woman" approx "queen" $
 
-#fig("/lecture1/figures/embedding_arithmetic.svg", w: 38%)
+#fig("/lecture1/figures/embedding_arithmetic.svg", w: 36%)
 
 #pause
-The relation is a statement about vector displacement and direction; we will verify both numerically.
+Recall from L1: an *embedding* stores each word as a vector of learned numbers — "king" is a point in $RR^50$. The relation is then a claim about displacement and direction; we verify both numerically today.
 
 == A second example · "people like you"
 
@@ -42,7 +42,7 @@ Every streaming app claims to know "people like you". But taste isn't a number �
 )
 
 #pause
-Who is more "like you" — Priya or Rohan? *By how much?* And should the app pitch you _Chak De!_? Within the hour you'll compute all three answers — with the same formula that explains king − man + woman.
+Who is more "like you" — Priya or Rohan? *By how much?* And should the app recommend you _Chak De!_? By the end of the lecture you will compute all three answers — with the same formula that handles king − man + woman.
 
 == Today's one idea
 
@@ -242,7 +242,7 @@ The running pair for the rest of this lecture: $bold(x) = (3, 2)$, $bold(y) = (4
 $ bold(x)^top bold(y) = 3 dot 4 + 2 dot 2 = 16 $
 
 #pause
-Two vectors in, *one number* out. But what does "16" mean? Hold that thought.
+Two vectors in, *one number* out. But what does "16" mean? The next two readings answer that.
 
 #pause
 One meaning is already ours — pair $bold(x)$ with itself: $bold(x)^top bold(x) = 9 + 4 = 13 = norm(bold(x))^2$.
@@ -261,7 +261,7 @@ Check it against the running pair: $norm(bold(x)) norm(bold(y)) = sqrt(13) sqrt(
 $ cos theta = 16 / 16.12 approx 0.992 quad => quad theta approx 7.1 degree quad "— two nearly parallel arrows." $
 
 #pause
-Pause on how strange this is: pure multiply–add on coordinates apparently *knows the angle*. No protractor was consulted. We will demand proof shortly.
+Note what just happened: multiply–add on raw coordinates determined an angle, though nothing geometric was ever measured. That claim needs proof — the next section derives it.
 
 == Reading 3 · the shadow #V
 
@@ -373,11 +373,11 @@ Cancel the squared lengths, divide by $-2$:
 Check on the running pair: $16 = 16.12 times 0.992$ ✓ ($theta approx 7.1 degree$, as promised).
 
 #pause
-Free corollary: $|cos theta| <= 1$ forces $|bold(x)^top bold(y)| <= norm(bold(x)) norm(bold(y))$ — that's *Cauchy–Schwarz*, bought for nothing.
+Free corollary: $|cos theta| <= 1$ forces $|bold(x)^top bold(y)| <= norm(bold(x)) norm(bold(y))$ — that is the *Cauchy–Schwarz inequality*.
 
 = Cosine similarity: geometry becomes meaning
 
-== Angles in $RR^300$, by decree
+== Angles in $RR^300$ · the formula becomes the definition
 
 In $RR^2$ we *saw* $theta$ and proved the formula. In $RR^300$ nobody sees anything — so flip the logic and let the formula *define* the angle:
 
@@ -445,8 +445,8 @@ Coordinate 17 of "king" is usually not interpretable on its own. The useful sign
   domain: (0, 180), samples: 120, markers: false, colors: (INK,),
   points: (
     (38.4, 0.784, [king · queen]),
-    (79.4, 0.184, [king · python]),
-    (135.4, -0.711, [king · "rules-based"]),
+    (79.4, 0.185, [king · python]),
+    (135.4, -0.712, [king · "rules-based"]),
   ),
   hlines: ((0.0,),),
   x-label: [angle between GloVe vectors (degrees)], y-label: [$cos theta$],
@@ -574,7 +574,7 @@ A *basis* = a set of vectors that is (1) independent and (2) spans the space. Co
 #pause
 Same arrow, two grids, two addresses: $(3, 2)$ vs $(3.54, -0.71)$. *The arrow is real; the numbers are an artifact of the grid you chose.*
 
-== Orthonormal grids read themselves
+== Coordinates in an orthonormal basis
 
 If $bold(b)_1, bold(b)_2$ are *unit length* and *mutually perpendicular* (orthonormal), addresses come free — each coordinate is a projection:
 
@@ -646,7 +646,7 @@ Try on paper; verify in NumPy.
 - ⭐ The *law of cosines* turns multiply–add into an angle meter — and *defines* angles in $RR^300$.
 - *Cosine similarity* ranks words, films, and people; `king − man + woman ≈ queen` compares approximately parallel displacement vectors.
 - *Projection* = closest point on a line; the residual is orthogonal — the germ of least squares and PCA.
-- *Span* is where your moves reach; a *basis* is the grid you narrate coordinates in; orthonormal grids read coordinates by dot products.
+- *Span* is where your moves reach; a *basis* is the grid coordinates are written in; orthonormal bases read coordinates by dot products.
 
 #focus-slide[
   Similarity is an angle.
