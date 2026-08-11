@@ -25,9 +25,9 @@ One PDF per lecture, one page per slide (handout build). The full schedule with 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
 | 7 | Univariate Calculus & Taylor Series | [PDF](slides-pdf/L7.pdf) |
-| 8 | Gradients & the Geometry of Surfaces | *soon* |
-| 9 | Jacobian, Hessian & Multivariate Taylor | *soon* |
-| 10 | Differentiation on a Computer I: Finite Differences → Forward Mode | *soon* |
+| 8 | Gradients & the Geometry of Surfaces | [PDF](slides-pdf/L8.pdf) |
+| 9 | Jacobian, Hessian & Multivariate Taylor | [PDF](slides-pdf/L9.pdf) |
+| 10 | Differentiation on a Computer I: Finite Differences → Forward Mode | [PDF](slides-pdf/L10.pdf) |
 | 11 | Differentiation on a Computer II: Reverse Mode & Backprop | [PDF](slides-pdf/L11.pdf) |
 
 ## Module 3 · Probability & Estimation

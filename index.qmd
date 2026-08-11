@@ -63,9 +63,9 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
 | 7 | Univariate Calculus & Taylor Series | MML 5.1 | [PDF](slides-pdf/L7.pdf) | |
-| 8 | Gradients & the Geometry of Surfaces | MML 5.2–5.3 | *soon* | |
-| 9 | Jacobian, Hessian & Multivariate Taylor | MML 5.4–5.7 | *soon* | |
-| 10 | Differentiation on a Computer I: Finite Differences → Forward Mode | MML 5.6 | *soon* | |
+| 8 | Gradients & the Geometry of Surfaces | MML 5.2–5.3 | [PDF](slides-pdf/L8.pdf) | |
+| 9 | Jacobian, Hessian & Multivariate Taylor | MML 5.4–5.7 | [PDF](slides-pdf/L9.pdf) | |
+| 10 | Differentiation on a Computer I: Finite Differences → Forward Mode | MML 5.6 | [PDF](slides-pdf/L10.pdf) | |
 | 11 | Differentiation on a Computer II: Reverse Mode & Backprop | MML 5.6 | [PDF](slides-pdf/L11.pdf) | |
 
 > **Quiz 2** · Module 2 · **A1 (micrograd)** out
