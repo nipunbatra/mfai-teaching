@@ -15,14 +15,14 @@
 
 = A softmax computation that returns `nan`
 
-== The numerical failure from Lecture 1 #V
+== Example 1 from Lecture 1: the `nan` loss #V
 
-617 steps of beautiful training, then `nan` forever:
+L1's Example 1: the loss fell for 617 steps, then read `nan` at every step after.
 
-#fig("/lecture1/figures/nan_loss.svg", w: 68%)
+#fig("/lecture1/figures/nan_loss.svg", w: 62%)
 
 #pause
-Today we solve it — and derive the stable log-softmax computation used by major ML frameworks.
+The `nan` comes from a *softmax* — the function that turns a network's raw output scores (its *logits*) into probabilities. In L1, the three scores $[1000, 1001, 1002]$ made it return `nan`. Today we find the failure and derive the stable version used by major ML frameworks.
 
 == A decimal calculation worth checking
 
@@ -40,7 +40,7 @@ False
 Not a Python bug. The same happens in C, Java, Rust, JavaScript, Excel, your calculator app…
 
 #pause
-#notebox[*Guess before we continue:* is `0.5 + 0.25 == 0.75` also `False`? Commit to an answer — we'll resolve it (and you'll see _exactly why_) within the hour.]
+#notebox[*Guess before we continue:* is `0.5 + 0.25 == 0.75` also `False`? Write down an answer — we return to it at the checkpoint, with the tools to see exactly why.]
 
 == Learning outcomes
 
@@ -105,7 +105,7 @@ One training run of one neural network routinely contains, *simultaneously*:
 
 == Quantized ML uses many local scales
 
-Fixed point remains useful when the program does *not* rely on one global scale:
+Fixed point remains useful when the program does *not* rely on one global scale. *Quantized inference* — running a trained network in low-bit integer arithmetic (e.g. int8) to save memory and time — does exactly this:
 
 - assign a scale and zero-point to each tensor or channel,
 - perform fast integer matrix products,
@@ -114,7 +114,7 @@ Fixed point remains useful when the program does *not* rely on one global scale:
 #pause
 #result[Quantized inference works around fixed point's narrow range by using many locally chosen scales. General training still usually relies on floating point or mixed precision.]
 
-== The rescue idea is 400 years old · scientific notation
+== Scientific notation · precision and range, separated
 
 Chemists never write Avogadro's number as $602,214,076,000,000,000,000,000$. They write:
 
@@ -170,9 +170,9 @@ $ "value" = (-1)^"sign" times underbrace(1."mantissa", "24 significant bits") ti
 #result[$0 quad 10000001 quad 10010000000000000000000 = #raw("0x40C80000")$]
 
 #pause
-Tutorial 1's worksheet has you do this by hand for $-0.75$, $13.5$, and one nasty one…
+Tutorial 1's worksheet has you encode $-0.75$ and $13.5$ by hand the same way. The next number is harder.
 
-== Worked encoding · 0.1 — and the wheels come off #D
+== Worked encoding · 0.1 has no finite binary form #D
 
 Multiply by 2, harvest the integer bit, repeat:
 
@@ -191,7 +191,7 @@ Decimal('0.100000001490116119384765625')
 ```]
 
 #pause
-#result[There is *no 0.1* in floating point. There never was.]
+#result[No binary floating-point number equals 0.1. Every format stores a nearby rounded value.]
 
 == Why `0.1 + 0.2 != 0.3`
 
@@ -255,21 +255,21 @@ True
 #pause
 #alertbox[A float32 counter that increments by 1 *stops counting at 16.7 million* — silently. Count in integers; accumulate long sums (losses, metrics) in float64.]
 
-== Rounding · one tiny lie per operation
+== Rounding · one bounded error per operation
 
 Each arithmetic result is computed exactly, then *rounded* to the nearest float:
 
 $ "fl"(a compose b) = (a compose b)(1 + delta), quad abs(delta) <= epsilon / 2 $
 
-This standard relative-error model applies when the exact result is a finite normal number; underflow, overflow, and subnormals need separate treatment.
+#text(size: 16pt, fill: MUTED)[(valid when the exact result is a finite normal number; underflow and overflow need separate treatment)]
 
 #pause
-- Default mode: *round to nearest, ties to even* — ties go to the even last bit, so up/down rounds don't accumulate a bias
+- Default mode *round to nearest, ties to even*: no systematic up/down bias
 #pause
-- Other IEEE modes exist (toward $0$, toward $plus.minus infinity$) — used for interval arithmetic, not our concern
+- Other modes (toward $0$, toward $plus.minus infinity$) exist for interval arithmetic — not our concern
 
 #pause
-#result[One operation = one tiny, _bounded_ lie ($10^(-8)$ relative in float32). The drama is never one lie — it's how lies *compound*.]
+#result[Each operation adds one _bounded_ relative error ($approx 10^(-8)$ in float32); the danger is how errors *compound*.]
 
 == When arithmetic escapes the range · `inf` and `nan`
 
@@ -290,7 +290,7 @@ IEEE-754 doesn't crash on impossible arithmetic — it returns special values:
 #pause
 #alertbox[Most arithmetic with `nan` produces `nan`, so one invalid value can spread quickly through a computation graph. Comparisons are different: `nan == nan` is `False` (`x != x` is the classic test; prefer `np.isnan`).]
 
-== Overflow arrives shockingly early
+== Overflow arrives early
 
 The range boundary isn't some astronomical corner case. For `exp`:
 
@@ -307,11 +307,11 @@ The range boundary isn't some astronomical corner case. For `exp`:
 )
 
 #pause
-#result[In float32, $e^z$ overflows for $z$ near $89$; the opening logits around $1000$ therefore overflow.]
+#result[In float32, $e^z$ overflows for $z$ near $89$; Example 1's logits around $1000$ overflow by a huge margin.]
 
 = Catastrophic cancellation
 
-== Subtraction of near-equals is a digit shredder
+== Subtracting near-equals destroys significant digits
 
 Work in 8 significant decimal digits (like a float32-ish machine):
 
@@ -321,14 +321,14 @@ $ 1.2345678 - 1.2345677 = 0.0000001 $
 Both inputs had *8* correct digits. The result has *1* — and if the inputs were themselves rounded (they always are), that surviving digit is _pure noise_.
 
 #pause
-#result[Adding same-sign numbers keeps relative error tame. *Subtracting nearly equal numbers* cancels the trustworthy leading digits and promotes the rounded-off garbage to the front.]
+#result[Adding same-sign numbers keeps relative error tame. *Subtracting nearly equal numbers* cancels the trustworthy leading digits and leaves the rounding error in front.]
 
 #pause
 Nothing "overflows" — the answer is just quietly wrong.
 
 == Worked example 1: the quadratic formula #D
 
-Solve $x^2 - 10000x + 1 = 0$ in float32. The small root, two algebraically identical ways:
+Solve $x^2 - 10000x + 1 = 0$ in float32; write $b = 10000$. The small root, two algebraically identical ways:
 
 #pause
 *Naive* (subtract near-equals: $b approx sqrt(b^2 - 4)$):
@@ -357,7 +357,7 @@ Textbooks give two equal formulas for variance. Try both on `[10000.0, 10000.1, 
 #pause
 *One-pass* $EE[X^2] - (EE[X])^2$: two huge, nearly equal numbers —
 
-$ 100001992.0 - 100002011.7 = #text(fill: RED)[$bold(-19.7)$] quad #text(fill: RED)[(a _negative_ variance!)] $
+$ 100001992.0 - 100002008.0 = #text(fill: RED)[$bold(-16.0)$] quad #text(fill: RED)[(a _negative_ variance!)] $
 
 #pause
 *Two-pass* $EE[(X - macron(X))^2]$: subtract _first_, while numbers are small —
@@ -378,14 +378,14 @@ $ P("text") = product_(i=1)^1000 p_i approx 0.03^1000 approx 10^(-1523) arrow.r.
 #pause
 *In log-space* — products become sums, tiny becomes ordinary:
 
-$ log P("text") = sum_(i=1)^1000 log p_i approx 1000 times (-3.51) = -3507 quad #text(fill: GREEN)[✓ a boring, safe float] $
+$ log P("text") = sum_(i=1)^1000 log p_i approx 1000 times (-3.51) = -3507 quad #text(fill: GREEN)[✓ comfortably inside float64 range] $
 
 #pause
 #result[Multiply probabilities → *add log-probabilities*. Many probabilistic objectives are negative log-likelihoods (L14); other losses need not be.]
 
 == Fix 2 · log-sum-exp, derived in three lines #D
 
-In log-space we still must _normalize_: compute $log sum_i e^(x_i)$ — but the $e^(x_i)$ overflow! Pull out the max $m = max_i x_i$:
+In log-space we still must _normalize_: compute $log sum_i e^(x_i)$ (the log of softmax's denominator, next slide) — but the $e^(x_i)$ overflow! Pull out the max $m = max_i x_i$:
 
 #pause
 $ log sum_i e^(x_i) = log sum_i e^m e^(x_i - m) = log (e^m sum_i e^(x_i - m)) = m + log sum_i e^(x_i - m) $
@@ -394,7 +394,7 @@ $ log sum_i e^(x_i) = log sum_i e^m e^(x_i - m) = log (e^m sum_i e^(x_i - m)) = 
 Every exponent $x_i - m <= 0$, so every $e^(x_i - m) in (0, 1]$: *nothing can overflow* — and the largest term is exactly $1$, so no total underflow either.
 
 #pause
-*Check* on the opening scores $[1000, 1001, 1002]$:
+*Check* on Example 1's logits $[1000, 1001, 1002]$:
 
 $ "LSE" = 1002 + log(e^(-2) + e^(-1) + e^0) = 1002 + log(1.503) = 1002.41 quad ✓ $
 
@@ -417,7 +417,7 @@ Choose $c = max_j z_j$. For $bold(z) = [1000, 1001, 1002]$:
 )
 
 #pause
-Identical mathematics. One works on real hardware; the other burned down a training run.
+Identical mathematics. One runs on real hardware; the other produced the `nan` in L1's Example 1.
 
 == The fix, in pictures #V
 
@@ -448,9 +448,9 @@ array([0.09003057, 0.24472847, 0.66524096])
 #pause
 Five lines you will reuse in Tutorial 1, in L14 (MLE), in L24 (cross-entropy), and in L26's language model.
 
-== Stable softmax avoids the overflow
+== Step 618, explained
 
-What actually happened at step 618:
+What actually happened in Example 1 at step 618:
 
 #pause
 + The model got confident → logits grew past *±89* in float32
@@ -460,7 +460,7 @@ What actually happened at step 618:
 + NaN loss → NaN gradients → NaN weights, *everywhere, permanently*
 
 #pause
-#notebox[This is why PyTorch's `CrossEntropyLoss` takes *raw logits*, not probabilities: it fuses log-softmax into the loss and applies _exactly_ the subtract-the-max trick you just derived. The fix for a billion-dollar training run is one line of first-year algebra.]
+#notebox[This is why PyTorch's `CrossEntropyLoss` takes *raw logits*, not probabilities: it fuses log-softmax into the loss and applies _exactly_ the subtract-the-max shift you just derived. One line of algebra prevents the `nan`.]
 
 = Precision in deep learning
 
@@ -509,7 +509,7 @@ Low-precision training is not "make every number bfloat16":
 #pause
 #result[bfloat16 keeps float32's range; float16 keeps more fraction bits. Mixed precision chooses where each trade-off is acceptable.]
 
-== Checkpoint: you are now floating-point literate #Q
+== Checkpoint: predict three outputs #Q
 
 #mcq([Predict all three, then commit.],
   [`np.exp(np.float16(12.0))` returns…?],
@@ -518,9 +518,9 @@ Low-precision training is not "make every number bfloat16":
   [(bonus) why is `nan == nan` `False`?],
 )
 
-== Answers: floating-point literacy #A
+== Answers: the three outputs #A
 
-*A.* `inf` — $e^12 approx 162,755 > 65,504$, float16's ceiling. (bfloat16 shrugs: $approx 1.6 times 10^5$.)
+*A.* `inf` — $e^12 approx 162,755 > 65,504$, float16's ceiling. (bfloat16 stores it: $approx 1.6 times 10^5$.)
 
 #pause
 *B.* `16777216.0` — unchanged. At $2^24$ the float32 gap is 2, so $+1$ rounds back down.
@@ -561,7 +561,7 @@ for x in xs:
     s = t
 ```]
 
-== What compensated summation guarantees
+== What compensated summation guarantees #OPT
 
 Kahan's variable `c` carries low-order bits that the running sum lost. This greatly reduces first-order accumulation error, especially when many same-sign terms are added.
 
@@ -584,7 +584,7 @@ The smallest _normal_ float32 is $2^(-126) approx 1.18 times 10^(-38)$. Without 
 - *IEEE-754 float32* = sign + biased exponent (127) + mantissa with a free leading 1; 6.25 encodes exactly, 0.1 _cannot_ — hence `0.1 + 0.2 != 0.3`.
 - *The float line is unevenly spaced*: gaps double at each power of 2; $epsilon_32 approx 10^(-7)$; at $2^24$, $x + 1 == x$.
 - *Special values*: overflow → `inf`, indeterminate → `nan`; NaN propagates and `nan != nan`.
-- *Catastrophic cancellation*: subtracting near-equals shreds digits — rewrite the formula.
+- *Catastrophic cancellation*: subtracting near-equals destroys leading digits — rewrite the formula.
 - *The ML fixes*: log-space probabilities, log-sum-exp, subtract-the-max softmax.
 - *bfloat16* = float32's range at half the bits: DL trades precision for range.
 
