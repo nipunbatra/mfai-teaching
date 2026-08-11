@@ -34,10 +34,10 @@ One PDF per lecture, one page per slide (handout build). The full schedule with 
 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
-| 12 | Continuous Distributions | *soon* |
-| 13 | Multivariate Gaussians | *soon* |
-| 14 | Maximum Likelihood Estimation | *soon* |
-| 15 | MAP & Conjugate Priors | *soon* |
+| 12 | Continuous Distributions | [PDF](slides-pdf/L12.pdf) |
+| 13 | Multivariate Gaussians | [PDF](slides-pdf/L13.pdf) |
+| 14 | Maximum Likelihood Estimation | [PDF](slides-pdf/L14.pdf) |
+| 15 | MAP & Conjugate Priors | [PDF](slides-pdf/L15.pdf) |
 
 ## Module 4 · Optimization
 

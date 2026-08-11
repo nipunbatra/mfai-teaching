@@ -30,7 +30,12 @@
     s + "." + frac
   }
 }
-#let m2(M, d: 4) = $mat(#fmt(M.at(0).at(0), d: d), #fmt(M.at(0).at(1), d: d); #fmt(M.at(1).at(0), d: d), #fmt(M.at(1).at(1), d: d))$
+// build mat() from code: a `;` straight after a #fmt(..) interpolation is
+// swallowed as a code-statement terminator and flattens the matrix to one row
+#let m2(M, d: 4) = math.mat(
+  (fmt(M.at(0).at(0), d: d), fmt(M.at(0).at(1), d: d)),
+  (fmt(M.at(1).at(0), d: d), fmt(M.at(1).at(1), d: d)),
+)
 #let v2(v, d: 4) = $vec(#fmt(v.at(0), d: d), #fmt(v.at(1), d: d))$
 
 // the lecture's one matrix, its eigen-pieces, and the power-iteration run

@@ -74,10 +74,10 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
-| 12 | Continuous Distributions | MML 6.1–6.4, 6.7 | *soon* | |
-| 13 | Multivariate Gaussians | MML 6.5–6.6 | *soon* | |
-| 14 | Maximum Likelihood Estimation | MML 8.3; MacKay Ch 2 | *soon* | |
-| 15 | MAP & Conjugate Priors | MML 6.6.1, 8.3.2 | *soon* | |
+| 12 | Continuous Distributions | MML 6.1–6.4, 6.7 | [PDF](slides-pdf/L12.pdf) | |
+| 13 | Multivariate Gaussians | MML 6.5–6.6 | [PDF](slides-pdf/L13.pdf) | |
+| 14 | Maximum Likelihood Estimation | MML 8.3; MacKay Ch 2 | [PDF](slides-pdf/L14.pdf) | |
+| 15 | MAP & Conjugate Priors | MML 6.6.1, 8.3.2 | [PDF](slides-pdf/L15.pdf) | |
 
 > **Quiz 3 / Midsem** · Modules 0–3
 
