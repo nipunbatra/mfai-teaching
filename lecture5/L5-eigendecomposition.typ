@@ -101,7 +101,7 @@ L1 demoed the teaching contract — picture, numbers, code, symbols — on *this
 #fig("/lecture1/figures/eigenvector_demo.svg", w: 62%)
 
 #pause
-Almost every direction gets turned. Two refuse. Today we go deep: where they come from, what they cost to find, and why they quietly run modern AI.
+Almost every direction gets turned. Two refuse. Today we go deep: where these directions come from, what they cost to find, and why so much of ML runs on them.
 
 == 1998 · the web has a ranking problem
 
@@ -179,19 +179,19 @@ Not turned — not even stretched. Stretch factor exactly $1$.
 
 #codebox[```python
 >>> A = np.array([[2., 1.], [1., 2.]])
->>> vals, vecs = np.linalg.eig(A)
+>>> vals, vecs = np.linalg.eigh(A)   # eigh: eig for symmetric matrices (L1)
 >>> vals
-array([3., 1.])
->>> vecs                        # eigenvectors are the COLUMNS
-array([[ 0.70710678, -0.70710678],
+array([1., 3.])
+>>> vecs                             # eigenvectors are the COLUMNS
+array([[-0.70710678,  0.70710678],
        [ 0.70710678,  0.70710678]])
 ```]
 
 #pause
-Column $k$ pairs with `vals[k]`. Column 0 is $(1,1)$ normalized to unit length.
+Column $k$ pairs with `vals[k]`, sorted ascending — so the *last* column, $(0.7071, 0.7071)$, is $(1,1)$ normalized to unit length.
 
 #pause
-#notebox[Column 1 is $(-0.707, 0.707)$ — that is $(1,-1)$ times $-1\/sqrt(2)$. Same line, so same eigenvector: NumPy just picked a different scale and sign.]
+#notebox[Column 0 is $(-0.707, 0.707)$ — that is $(1,-1)$ times $-1\/sqrt(2)$. Same line, so same eigenvector: NumPy just picked a different scale and sign. (The general solver `np.linalg.eig` gives the same answer in complex dtype — `array([3.+0.j, 1.+0.j])`; `eigh` knows a symmetric matrix keeps everything real. Why it may know that: end of this lecture.)]
 
 == Symbols, at last: the definition
 
@@ -207,7 +207,7 @@ $ A bold(v) = #text(fill: ACC)[$lambda$] bold(v) $
 #pause
 #result[An eigenvector is a direction $A$ cannot turn. \ The eigenvalue is what $A$ does *instead* of turning it.]
 
-== The rules of the club
+== Edge cases of the definition
 
 - *$bold(v) = 0$ is banned.* $A dot 0 = lambda dot 0$ holds for every $lambda$ — no information.
 #pause
@@ -304,12 +304,12 @@ $ bold(v) = vec(1, 1) quad #text(fill: MUTED)[(or any multiple — it's a direct
 $ (A - I) bold(w) = mat(1, 1; 1, 1) vec(w_1, w_2) = vec(0, 0) quad arrow.r.double quad w_2 = -w_1 quad arrow.r.double quad bold(w) = vec(1, -1) $
 
 #pause
-Look at those two matrices: at $lambda = 3$ and $lambda = 1$ the rows became *copies of each other* — rank collapsed from 2 to 1 (L4's rank, on duty). At any other $lambda$, the only solution would be $bold(v) = 0$.
+Look at those two matrices: at $lambda = 3$ and $lambda = 1$ the rows became *copies of each other* — rank collapsed from 2 to 1 (L4's rank test at work). At any other $lambda$, the only solution would be $bold(v) = 0$.
 
 #pause
 #result[2×2 recipe: $det(A - lambda I) = 0$ → quadratic → two $lambda$'s → back-substitute each → two directions.]
 
-== Two instant sanity checks (2×2 gold)
+== Two instant sanity checks: trace and det
 
 For any 2×2 (in fact any $n times n$) matrix:
 
@@ -319,7 +319,7 @@ $ "trace"(A) = a_(11) + a_(22) = lambda_1 + lambda_2 quad quad det(A) = lambda_1
 Our $A$: trace $= 2 + 2 = 4 = 3 + 1$ ✓ #h(1.5em) det $= 4 - 1 = 3 = 3 dot 1$ ✓
 
 #pause
-#notebox[Ten-second exam armor: after *any* eigenvalue computation, check the sum against the trace and the product against the determinant. Catches most slips.]
+#notebox[Ten-second check: after *any* eigenvalue computation, compare the sum against the trace and the product against the determinant. Catches most slips.]
 
 == Checkpoint: read the eigenvalues #Q
 
@@ -414,7 +414,7 @@ $ P^(-1) = #m2(P2i, d: 1) $
 
 #pause
 
-$ P D P^(-1) = mat(1, 1; 1, -1) mat(3, 0; 0, 1) #m2(P2i, d: 1) = #m2(la.matmul(la.matmul(P2, D2), P2i), d: 0) quad #text(fill: GREEN)[= $A$ ✓] $
+$ P D P^(-1) = mat(1, 1; 1, -1) mat(3, 0; 0, 1) #m2(P2i, d: 1) = #m2(la.matmul(la.matmul(P2, D2), P2i), d: 0) quad #text(fill: GREEN)[$= A$ ✓] $
 
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[computed, not typed — change $P$ or $D$ in the source and this slide would catch the lie])
@@ -483,7 +483,7 @@ $ A^(10) = #m2({ let R = la.identity(2); for _ in range(10) { R = la.matmul(R, A
 $ P mat(3^10, 0; 0, 1) P^(-1) = #m2(la.matmul(la.matmul(P2, ((calc.pow(3.0, 10), 0.0), (0.0, 1.0))), P2i), d: 0) quad #text(fill: GREEN)[same matrix ✓] $
 
 #pause
-Every entry is $approx 3^(10)\/2$: after ten applications, the $lambda = 3$ direction has utterly buried the $lambda = 1$ direction.
+Every entry is $approx 3^(10)\/2$: after ten applications, the $lambda = 3$ direction has swamped the $lambda = 1$ direction.
 
 == Watch a vector under repeated application #V
 
@@ -514,7 +514,7 @@ $ bold(x)_(k+1) = (A bold(x)_k) / (norm(A bold(x)_k)) quad quad #text(fill: MUTE
 
 == Eight iterations, computed inside this slide
 
-Start at $bold(x)_0 = (1, 0)$ — pointing due east, $45°$ away from the answer:
+Start at $bold(x)_0 = (1, 0)$ — pointing due east, $45°$ from the target $bold(v)_1 = (1,1)\/sqrt(2)$:
 
 #text(size: 15.5pt)[
   #table(
@@ -549,7 +549,7 @@ Start at $bold(x)_0 = (1, 0)$ — pointing due east, $45°$ away from the answer
 #pause
 A straight line on a log axis = *geometric* decay: the error divides by almost exactly $3$ every step. Where does the $3$ come from? Time for this lecture's one real proof.
 
-== ⭐ Why it converges · step 1: change glasses #D
+== ⭐ Why it converges · step 1: switch to the eigen-basis #D
 
 Write the start vector in the *eigen-basis* (we can — eigenvectors span the plane):
 
@@ -587,7 +587,7 @@ $ (lambda_2 / lambda_1)^k = (1/3)^k arrow.r 0 quad quad #text(fill: MUTED)[the $
 #pause
 #result[Power iteration converges to the top eigenvector, and the error shrinks by the factor $abs(lambda_2 \/ lambda_1)$ per step — here $1\/3$, exactly the slope the live plot measured.]
 
-== The fine print (three honest conditions)
+== The fine print (three conditions)
 
 + *An eigen-basis and a gap:* the derivation assumes the start can be expanded in eigenvectors (as for our symmetric matrix) and $abs(lambda_1) > abs(lambda_2)$ strictly. The closer the ratio to 1, the slower the convergence.
 #pause
@@ -595,7 +595,7 @@ $ (lambda_2 / lambda_1)^k = (1/3)^k arrow.r 0 quad quad #text(fill: MUTED)[the $
 #pause
 + *Normalize:* not for correctness — for survival. Un-normalized, $norm(A^k bold(x)) tilde 3^k$ overflows float32 near $k approx 81$.
 
-== The code: six honest lines
+== The code: six lines
 
 #codebox[```python
 A = np.array([[2., 1.], [1., 2.]])
@@ -603,12 +603,12 @@ x = np.array([1., 0.])
 for k in range(8):
     x = A @ x                    # multiply: let A pull
     x = x / np.linalg.norm(x)    # normalize: keep the direction
-print(x)                         # [0.70718 0.70703]  -> v1
+print(x)                         # [0.70721455 0.706999  ]  -> v1
 ```]
 
 #pause
 #codebox[```python
->>> np.linalg.eig(A).eigenvectors[:, 0]     # the library agrees
+>>> np.linalg.eigh(A).eigenvectors[:, -1]   # the library agrees
 array([0.70710678, 0.70710678])
 ```]
 
@@ -680,7 +680,7 @@ Start fair — a quarter each — and let the votes flow:
 ]
 
 #pause
-#align(center, text(size: 16pt, fill: MUTED)[no normalization needed — each column of $M$ sums to 1, so the total importance stays exactly #fmt(prhist.at(12).sum(), d: 2). Suspicious? Hold that thought.])
+#align(center, text(size: 16pt, fill: MUTED)[no normalization needed — each column of $M$ sums to 1, so the total importance stays exactly #fmt(prhist.at(12).sum(), d: 2) (this conservation gets a name two slides ahead)])
 
 == Power iteration on the four-page graph #V
 
@@ -707,7 +707,7 @@ Our convergence theory says the error decays by $abs(lambda_2 \/ lambda_1)$. For
 #pause
 #notebox[A complex-conjugate pair represents a rotation combined with scaling, so the error spirals toward zero. Its magnitude decreases by $abs(lambda_2\/lambda_1) = 1\/2$ per step.]
 
-== One slide of honesty: this matrix is a Markov matrix
+== This matrix is a Markov matrix
 
 $M$'s columns are nonnegative and sum to $1$ — a *stochastic (Markov) matrix*. Equivalent view: a "random surfer" clicks a uniformly random outgoing link forever; $r_j$ becomes the fraction of time spent on page $j$.
 
@@ -729,12 +729,12 @@ $A = mat(2, 1; 1, 2)$ equals its own transpose: $A = A^top$ — *symmetric*. Now
 $ bold(v) = vec(1, 1), quad bold(w) = vec(1, -1), quad quad bold(v) dot bold(w) = 1 - 1 = 0 quad #text(fill: ACC)[— orthogonal!] $
 
 #pause
-Perpendicular eigen-directions, real eigenvalues, no drama. Coincidence?
+Perpendicular eigen-directions, real eigenvalues. Coincidence?
 
 #pause
 #result[Not a coincidence. For symmetric matrices, *all of it is guaranteed*.]
 
-== The spectral theorem (stated, savored, not proved)
+== The spectral theorem (stated, not proved)
 
 *Theorem.* Every real symmetric matrix $A = A^top$ has:
 
@@ -745,7 +745,7 @@ Perpendicular eigen-directions, real eigenvalues, no drama. Coincidence?
 + hence the clean factorization $A = Q Lambda Q^top$, with $Q$'s columns orthonormal ($Q^(-1) = Q^top$ — inverting it is free).
 
 #pause
-#notebox[Stated with a straight face, used forever, proved in MML §4.2 for the curious — the proof is not our derivation today. What you must own is the *picture*, next slide.]
+#notebox[Stated without proof: MML §4.2 proves it, and it is not our ⭐ derivation today. What you must own is the *picture*, next slide.]
 
 == The picture: symmetric matrices act along a perpendicular grid #V
 
@@ -804,7 +804,7 @@ Symmetric matrices are not a corner case — ML manufactures them:
 
 == Practice problems
 
-Try on paper; then check yourself with `np.linalg.eig` and your six-line power iteration.
+Try on paper; then check yourself with `np.linalg.eigh` (`eig` for problem 4's non-symmetric matrix) and your six-line power iteration.
 
 + Eigenvalues and eigenvectors of $mat(3, 1; 1, 3)$, by hand. Verify trace and det.
 + For $mat(0, 2; 2, 0)$: predict the eigenvalues' *signs* from the det, then compute.
