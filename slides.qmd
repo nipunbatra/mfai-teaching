@@ -54,9 +54,9 @@ One PDF per lecture, one page per slide (handout build). The full schedule with 
 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
-| 22 | Surprise & Entropy | *soon* |
-| 23 | Compression & Optimal Codes | *soon* |
-| 24 | KL Divergence & the Grand Unification | *soon* |
+| 22 | Surprise & Entropy | [PDF](slides-pdf/L22.pdf) |
+| 23 | Compression & Optimal Codes | [PDF](slides-pdf/L23.pdf) |
+| 24 | KL Divergence & the Grand Unification | [PDF](slides-pdf/L24.pdf) |
 
 ## Module 6 · Markov Chains & the Payoff
 

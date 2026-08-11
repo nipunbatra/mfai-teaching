@@ -98,9 +98,9 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
-| 22 | Surprise & Entropy | MacKay Ch 2, 4 | *soon* | |
-| 23 | Compression & Optimal Codes | MacKay Ch 4–5 | *soon* | |
-| 24 | KL Divergence & the Grand Unification | MacKay 2.6; [Olah](https://colah.github.io/posts/2015-09-Visual-Information/) | *soon* | |
+| 22 | Surprise & Entropy | MacKay Ch 2, 4 | [PDF](slides-pdf/L22.pdf) | |
+| 23 | Compression & Optimal Codes | MacKay Ch 4–5 | [PDF](slides-pdf/L23.pdf) | |
+| 24 | KL Divergence & the Grand Unification | MacKay 2.6; [Olah](https://colah.github.io/posts/2015-09-Visual-Information/) | [PDF](slides-pdf/L24.pdf) | |
 
 > **A3 (Huffman compressor + n-gram LM)** out
 
