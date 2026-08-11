@@ -33,7 +33,7 @@
   adjs: (:),      // dict key → content, adjoints
   hi: (),         // node keys highlighted (the node firing this step)
   back: (),       // ((from, to), …) orange backward arrows for this step
-  sp: (24mm, 8mm),
+  sp: (23mm, 7.5mm),
 ) = {
   let P  = (x: (0, 0.1), y: (0, 1.55), b: (1.15, -0.72), a: (1.15, 0.85), f: (2.3, 0.1))
   let TT = (x: $x$, y: $y$, b: $b = x^2$, a: $a = x + y$, f: $f = a dot b$)
@@ -56,8 +56,9 @@
         rows.push(text(size: 11.5pt, weight: 700, fill: ACC, adjs.at(k)))
       }
       node(pos, align(center, stack(spacing: 3pt, ..rows)),
-        fill: if ishi { c.lighten(80%) } else if c == INK { white } else { c.lighten(91%) },
-        stroke: (if ishi { 1.6pt } else { 0.9pt }) + c,
+        shape: fletcher.shapes.rect,
+        fill: if ishi { ACC.lighten(87%) } else if c == INK { white } else { c.lighten(91%) },
+        stroke: if ishi { 1.6pt + ACC } else { 0.9pt + c },
         corner-radius: 3pt, inset: 5.5pt)
     }
   }))
@@ -85,6 +86,27 @@
   edge((0, 0.5), (1, 1.3), "-|>", stroke: 0.8pt + MUTED)
   edge((1, -0.3), (2, 0.5), "-|>", stroke: 0.8pt + MUTED)
   edge((1, 1.3), (2, 0.5), "-|>", stroke: 0.8pt + MUTED)
+}))
+
+// the finale neuron o = tanh(w1 x1 + w2 x2 + b), drawn as a computation graph
+#let neurongraph = align(center, diagram(spacing: (15mm, 5.2mm), {
+  let N(p, lbl, c: INK, bg: white) = node(p, text(size: 12.5pt, weight: 600, fill: INK, lbl),
+    shape: fletcher.shapes.rect, fill: bg, stroke: 0.9pt + c, corner-radius: 3pt, inset: 5pt)
+  N((0, 0), $x_1 = 2$)
+  N((0, 1), $w_1 = -3$)
+  N((0, 2), $x_2 = 0$)
+  N((0, 3), $w_2 = 1$)
+  N((0, 4), $b = 6.88$)
+  N((1, 0.5), $times$, c: TEAL, bg: TEAL.lighten(91%))
+  N((1, 2.5), $times$, c: TEAL, bg: TEAL.lighten(91%))
+  N((2, 2.2), $+$, c: TEAL, bg: TEAL.lighten(91%))
+  N((3, 2.2), $tanh$, c: TEAL, bg: TEAL.lighten(91%))
+  N((4, 2.2), $o = 0.71$, c: ACC, bg: ACC.lighten(90%))
+  for (u, v) in (((0, 0), (1, 0.5)), ((0, 1), (1, 0.5)), ((0, 2), (1, 2.5)), ((0, 3), (1, 2.5)),
+    ((1, 0.5), (2, 2.2)), ((1, 2.5), (2, 2.2)), ((0, 4), (2, 2.2)),
+    ((2, 2.2), (3, 2.2)), ((3, 2.2), (4, 2.2))) {
+    edge(u, v, "-|>", stroke: 0.8pt + MUTED)
+  }
 }))
 
 // funnel graph seeded two ways: forward mode (one input) vs reverse (the output)
@@ -375,10 +397,10 @@ $y$ has only this one path, so it is done: $overline(y) = 9$.
 #g5(vals: V5, adjs: (f: $overline(f) = 1$, a: $overline(a) = 9$, b: $overline(b) = 4$,
   x: $overline(x) = 24 + 9 = 33$, y: $overline(y) = 9$), hi: ("x",))
 
-Both of $x$'s paths have now reported. The branch rule says *add*:
+Both of $x$'s paths have reported — the branch rule says *add*:
 
 #pause
-$ overline(x) = underbrace(24, "via" b: "the square") + underbrace(9, "via" a: "the sum") = 33 $
+$ overline(x) = underbrace(24, "via " b) + underbrace(9, "via " a) = 33 $
 
 #pause
 #result[$nabla f(3, 1) = (overline(x), overline(y)) = (33, 9)$ — every input's derivative, one sweep.]
@@ -386,7 +408,7 @@ $ overline(x) = underbrace(24, "via" b: "the square") + underbrace(9, "via" a: "
 == The finished graph — photograph this #V
 
 #g5(vals: V5, adjs: (f: $overline(f) = 1$, a: $overline(a) = 9$, b: $overline(b) = 4$,
-  x: $overline(x) = 33$, y: $overline(y) = 9$), sp: (27mm, 9mm))
+  x: $overline(x) = 33$, y: $overline(y) = 9$), sp: (25mm, 8.5mm))
 
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[teal: forward values, flowing right · orange: adjoints, flowing left — same graph, two sweeps])
@@ -395,7 +417,7 @@ $ overline(x) = underbrace(24, "via" b: "the square") + underbrace(9, "via" a: "
 The procedure you just executed has a name: *backpropagation*.
 
 #pause
-#notebox[*Tutorial 5* runs this exact graph with fresh numbers, and a bigger cousin, until it is reflex. *Quiz 2* assumes it is.]
+#notebox[*Tutorial 5* re-runs this exact graph with fresh numbers until it is reflex; *Quiz 2* assumes it is.]
 
 == Does calculus agree? #D
 
@@ -472,7 +494,7 @@ Hand, calculus, Typst engine: three routes, one answer. Two more coming (microgr
 Passes needed to assemble the full gradient of $f: RR^10 -> RR$:
 
 #align(center, bars((10, 1), labels: ("forward", "reverse"),
-  horizontal: true, annotate: true, highlight: 1, size: (95mm, 26mm)))
+  horizontal: true, annotate: true, highlight: 1, size: (125mm, 32mm)))
 
 #pause
 And the gap *scales*:
@@ -753,10 +775,10 @@ One last graph — small algebra, but shaped like the real thing: inputs weighte
 
 $ o = tanh(w_1 x_1 + w_2 x_2 + b) $
 
-#neuron-diagram(d: 2)
+#neurongraph
 
 #pause
-This unit is an (artificial) *neuron* — the atom of every network. To the engine it is nothing special: five leaves, three $times$, two $+$, one $tanh$. Backprop needs no new ideas.
+This unit is an (artificial) *neuron* — the atom of every network. To the engine it is nothing special: five leaves, two $times$, one $+$, one $tanh$. Backprop needs no new ideas.
 
 == The neuron, through the engine
 
@@ -781,33 +803,32 @@ Our Typst engine, live, agrees: $overline(w)_1 = #fnum(gn.at(0))$, $overline(w)_
 
 == The 20 milliseconds, itemized
 
-`loss.backward()`, demystified — every step is one you have now done yourself:
+Every step of `loss.backward()` is now one you have done yourself:
 
 #pause
-+ While the forward pass computed the loss, every primitive *recorded itself* onto the tape (your `_prev` wiring).
++ The forward pass already *recorded the tape* (your `_prev` wiring).
 #pause
 + Topological sort of the tape (your twelve-line `build`).
 #pause
-+ Seed $overline("loss") = 1$; sweep once, each node firing *arriving × local*, `+=` at branches.
++ Seed $overline("loss") = 1$; sweep once: *arriving × local*, `+=` at branches.
 #pause
-+ Adjoints land in `.grad` — one per parameter, millions at a time.
++ Adjoints land in `.grad` — millions at a time.
 
 #pause
-#mlp-diagram((3, 4, 4, 1), labels: ([inputs], [layer 1], [layer 2], [loss]))
+#align(center, scale(66%, reflow: true, mlp-diagram((3, 4, 4, 1), labels: ([inputs], [layer 1], [layer 2], [loss]))))
 
-#result[A network is just a bigger graph with one output. One pass per output. That is why deep learning is possible.]
+#result[Bigger graph, same single pass — why deep learning is possible.]
 
 = Summary & what's next
 
 == Lecture 11 — summary
 
-- *Expressions are DAGs*: primitives wired by "who uses whom"; forward pass fills values.
-- *Adjoint* $overline(v) = partial f slash partial v$; seed $overline(f) = 1$; each node sends *arriving × local*; branches `+=`.
-- *The worked graph*: $f = (x + y) x^2$ at $(3, 1)$ → $f = 36$, $nabla f = (33, 9)$ — by hand, calculus, Typst, micrograd, PyTorch.
-- *Cost asymmetry*: forward = one pass per input; reverse = one pass per output; a loss has *one* output.
-- *The price* is memory: the tape stores forward values — memoization, not magic.
-- *micrograd*: `data / grad / _prev / _backward`, closures per op, topo sort, one sweep.
-- *PyTorch*: `requires_grad` → `.backward()` → `.grad`; gradients accumulate, so `zero_grad()` every step.
+- *Graphs*: an expression is a DAG of primitives; the forward pass fills every value.
+- *Adjoints*: $overline(v) = partial f slash partial v$; seed $overline(f) = 1$; each node sends *arriving × local*; branches `+=`.
+- *The graph*: $f = (x + y) x^2$ at $(3, 1)$: $f = 36$, $nabla f = (33, 9)$ — five methods, one answer.
+- *Asymmetry*: one pass per input (forward) vs one pass per *output* (reverse); a loss has one output.
+- *The price*: the tape stores forward values — memoization; costs memory, not time.
+- *Engines*: `data / grad / _prev / _backward` + topo sort + one sweep; in PyTorch `requires_grad` → `.backward()` → `.grad`, with `zero_grad()` every step.
 
 #pause
 #notebox[*Read before L12* — MML §5.6. *Assigned:* Karpathy, "spelled-out intro to backpropagation" (builds micrograd; watch before starting A1). #sym.star.filled#sym.star.filled#sym.star.filled JAX autodiff cookbook. *This week:* T5 drills today's graph by hand · *Quiz 2* (L7–L11) · *A1 (micrograd)* goes out.]

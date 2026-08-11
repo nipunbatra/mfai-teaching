@@ -147,7 +147,9 @@
   show: metropolis-theme.with(
     aspect-ratio: "16-9",
     align: top,                          // content starts at the SAME vertical position on every slide
-    config-common(handout: HANDOUT),
+    // horizontal-line-to-pagebreak: touying 0.6.1 treats a lone em-dash in prose
+    // as a Markdown-style horizontal rule and silently splits the slide — off.
+    config-common(handout: HANDOUT, horizontal-line-to-pagebreak: false),
     // taller title bar (bigger top band) + a little side breathing room
     config-page(margin: (top: 3.7em, bottom: 1.35em, left: 2.4em, right: 2.4em)),
     config-info(title: title, subtitle: subtitle, author: author, institution: institution),
