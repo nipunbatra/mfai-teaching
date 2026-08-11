@@ -1,5 +1,9 @@
 name: Deploy MFAI Course to GitHub Pages
 
+# Slides are Typst decks compiled locally and committed as PDFs in slides-pdf/
+# (see build-slides-pdf.sh) — CI only renders the Quarto site and deploys it.
+# No Node, no Marp, no Typst step here by design.
+
 on:
   push:
     branches: [master, main]
@@ -22,40 +26,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install Marp CLI
-        run: npm ci
-
-      - name: Build Marp slides (HTML)
-        run: |
-          mkdir -p html
-          for f in slides/*-lecture.md slides/*-tutorial.md; do
-            [ -f "$f" ] || continue
-            filename=$(basename "$f" .md)
-            echo "Building HTML: $f"
-            npx marp "$f" -o "html/${filename}.html" --html --allow-local-files --theme-set slides/mfai-theme.css
-          done
-          # Copy figures so SVG/PNG references resolve under html/
-          if [ -d "figures" ]; then cp -r figures html/; fi
-          if [ -d "slides/images" ]; then cp -r slides/images html/; fi
-
-      - name: Build Marp slides (PDF)
-        env:
-          PUPPETEER_TIMEOUT: 120000
-        run: |
-          mkdir -p pdf
-          npx playwright install chromium
-          ls slides/*-lecture.md slides/*-tutorial.md 2>/dev/null | xargs -P 4 -I {} sh -c '
-            filename=$(basename "{}" .md)
-            echo "Building PDF: {}"
-            npx marp "{}" -o "pdf/${filename}.pdf" --pdf --allow-local-files --theme-set slides/mfai-theme.css || echo "Warning: PDF build failed for {}"
-          '
-
       - name: Setup Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
@@ -70,7 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment

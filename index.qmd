@@ -21,7 +21,7 @@ Every concept arrives **picture → numbers → code → symbols**. The destinat
 
 ::: {.callout-tip}
 ## How to use this site
-Each lecture row links its slides (HTML · PDF), companion notebook, and interactive. Tutorials are hybrid: a pen-and-paper worksheet plus a Jupyter notebook, both published. All four textbooks are **free PDFs** — see [Resources](resources.qmd).
+Each lecture row links its slides (PDF, one page per slide), companion notebook, and interactive. Tutorials are hybrid: a pen-and-paper worksheet plus a Jupyter notebook, both published. All four textbooks are **free PDFs** — see [Resources](resources.qmd).
 :::
 
 ---
@@ -44,8 +44,8 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
-| 1 | Why Math for AI + Course Map | MML Ch 1 | [HTML](html/lec01-why-math-for-ai-lecture.html) · [PDF](pdf/lec01-why-math-for-ai-lecture.pdf) | |
-| 2 | Floating Point: How Machines See Numbers | Solomon Ch 2 | [HTML](html/lec02-floating-point-lecture.html) · [PDF](pdf/lec02-floating-point-lecture.pdf) | [tut01-floating-point](notebooks/tut01-floating-point.ipynb) |
+| 1 | Why Math for AI + Course Map | MML Ch 1 | [PDF](slides-pdf/L1.pdf) | |
+| 2 | Floating Point: How Machines See Numbers | Solomon Ch 2 | [PDF](slides-pdf/L2.pdf) | [tut01-floating-point](notebooks/tut01-floating-point.ipynb) |
 
 ## Module 1 · Linear Algebra Refresher (L3–L6)
 
@@ -66,7 +66,7 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 | 8 | Gradients & the Geometry of Surfaces | MML 5.2–5.3 | *soon* | |
 | 9 | Jacobian, Hessian & Multivariate Taylor | MML 5.4–5.7 | *soon* | |
 | 10 | Differentiation on a Computer I: Finite Differences → Forward Mode | MML 5.6 | *soon* | |
-| 11 | Differentiation on a Computer II: Reverse Mode & Backprop | MML 5.6 | *soon* | |
+| 11 | Differentiation on a Computer II: Reverse Mode & Backprop | MML 5.6 | [PDF](slides-pdf/L11.pdf) | |
 
 > **Quiz 2** · Module 2 · **A1 (micrograd)** out
 

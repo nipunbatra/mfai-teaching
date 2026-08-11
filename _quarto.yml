@@ -1,12 +1,15 @@
 project:
   type: website
-  output-dir: .
+  output-dir: _site
   render:
     - "*.qmd"
     - "tutorials/*.qmd"
     - "tutorials/*.ipynb"
     - "notebooks/*.ipynb"
-    - "!slides/"
+    - "!_marp-archive/"
+  resources:
+    - "slides-pdf/**"
+    - "notebooks/**/*.ipynb"
 
 website:
   title: "Mathematical Foundations for AI"

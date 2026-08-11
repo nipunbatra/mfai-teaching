@@ -2,11 +2,69 @@
 title: "Slides"
 ---
 
-The full schedule with per-lecture slide links lives on the [Home page](index.qmd). Decks built so far:
+One PDF per lecture, one page per slide (handout build). The full schedule with readings sits on the [Home page](index.qmd).
 
-| # | Lecture | HTML | PDF |
-|:---:|---------|:----:|:---:|
-| 1 | Why Math for AI + Course Map | [HTML](html/lec01-why-math-for-ai-lecture.html) | [PDF](pdf/lec01-why-math-for-ai-lecture.pdf) |
-| 2 | Floating Point: How Machines See Numbers | [HTML](html/lec02-floating-point-lecture.html) | [PDF](pdf/lec02-floating-point-lecture.pdf) |
+## Module 0 · Motivation & Machine Numbers
 
-Slides are Marp Markdown, built with `make lecNN` (see the [repo README](https://github.com/nipunbatra/mfai-teaching)).
+| # | Lecture | Slides |
+|:---:|---------|:----:|
+| 1 | Why Math for AI + Course Map | [PDF](slides-pdf/L1.pdf) |
+| 2 | Floating Point: How Machines See Numbers | [PDF](slides-pdf/L2.pdf) |
+
+## Module 1 · Linear Algebra Refresher
+
+| # | Lecture | Slides |
+|:---:|---------|:----:|
+| 3 | Vectors: the Geometry of Data | *soon* |
+| 4 | Matrices as Linear Maps | *soon* |
+| 5 | Eigendecomposition | *soon* |
+| 6 | SVD & PCA | *soon* |
+
+## Module 2 · Multivariate Calculus & Autodiff
+
+| # | Lecture | Slides |
+|:---:|---------|:----:|
+| 7 | Univariate Calculus & Taylor Series | *soon* |
+| 8 | Gradients & the Geometry of Surfaces | *soon* |
+| 9 | Jacobian, Hessian & Multivariate Taylor | *soon* |
+| 10 | Differentiation on a Computer I: Finite Differences → Forward Mode | *soon* |
+| 11 | Differentiation on a Computer II: Reverse Mode & Backprop | [PDF](slides-pdf/L11.pdf) |
+
+## Module 3 · Probability & Estimation
+
+| # | Lecture | Slides |
+|:---:|---------|:----:|
+| 12 | Continuous Distributions | *soon* |
+| 13 | Multivariate Gaussians | *soon* |
+| 14 | Maximum Likelihood Estimation | *soon* |
+| 15 | MAP & Conjugate Priors | *soon* |
+
+## Module 4 · Optimization
+
+| # | Lecture | Slides |
+|:---:|---------|:----:|
+| 16 | The Optimization Landscape | *soon* |
+| 17 | Gradient Descent | *soon* |
+| 18 | Second-Order Methods: Newton & Gauss-Newton | *soon* |
+| 19 | Constrained Optimization: Lagrange Multipliers | *soon* |
+| 20 | Duality & KKT | *soon* |
+| 21 | Linear & Quadratic Programming | *soon* |
+
+## Module 5 · Information Theory ↔ Machine Learning
+
+| # | Lecture | Slides |
+|:---:|---------|:----:|
+| 22 | Surprise & Entropy | *soon* |
+| 23 | Compression & Optimal Codes | *soon* |
+| 24 | KL Divergence & the Grand Unification | *soon* |
+
+## Module 6 · Markov Chains & the Payoff
+
+| # | Lecture | Slides |
+|:---:|---------|:----:|
+| 25 | Markov Chains | *soon* |
+| 26 | Learning Sequences + Course Finale | *soon* |
+
+---
+
+Slides are Typst decks (`lectureN/LN-*.typ`) built on touying's metropolis theme; compile with `make lecN` or `./build-slides-pdf.sh` (see the [repo README](https://github.com/nipunbatra/mfai-teaching)).

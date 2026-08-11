@@ -1,130 +1,64 @@
-.PHONY: all clean help list dirs diagrams
+# MFAI course build — Typst decks + Quarto site
+#
+#   make lec5          compile lecture5's deck (handout) -> slides-pdf/L5.pdf
+#   make lec5-pres     presentation build (each #pause = a page) -> /tmp/L5-presentation.pdf
+#   make lec5-watch    typst watch (handout) -> /tmp/L5.pdf
+#   make figs-lec5     regenerate lecture5's matplotlib figures (if any)
+#   make slides        compile every deck -> slides-pdf/
+#   make audit         visual-quality gate over every committed PDF
+#   make render        quarto render the site -> _site/
+#   make preview       quarto preview
+#
+# Decks live in lectureN/LN-<slug>.typ; figure scripts in lectureN/diagrams/lN_figs.py.
+# Figure paths inside decks are root-absolute, so --root . is mandatory.
 
-# Directories
-SLIDES_DIR := slides
-PDF_DIR := pdf
-HTML_DIR := html
-DIAGRAMS_DIR := diagrams
-FIGURES_DIR := figures
+SHELL := /bin/bash
+PY_FIGS := uv run --no-project --with matplotlib,numpy,scikit-learn python3
 
-# Theme (mfai — cream paper / rust accent, ported from dl-teaching's anthropic theme)
-THEME := $(SLIDES_DIR)/mfai-theme.css
+.PHONY: slides audit render preview clean list
 
-# Find all lecture .md files in slides/
-SLIDES_MD := $(wildcard $(SLIDES_DIR)/*.md)
+slides:
+	./build-slides-pdf.sh
 
-# Extract lecture numbers (e.g., lec01, lec02)
-LECTURES := $(sort $(patsubst $(SLIDES_DIR)/%-lecture.md,%,$(filter %-lecture.md,$(SLIDES_MD))))
+audit:
+	python3 scripts/audit_typst_slides.py slides-pdf/L*.pdf
 
-# Define output files
-PDF_TARGETS := $(patsubst $(SLIDES_DIR)/%.md, $(PDF_DIR)/%.pdf, $(SLIDES_MD))
-HTML_TARGETS := $(patsubst $(SLIDES_DIR)/%.md, $(HTML_DIR)/%.html, $(SLIDES_MD))
+render:
+	quarto render
 
-# Default target
-all: diagrams dirs $(PDF_TARGETS) $(HTML_TARGETS)
-	@echo "Done: all slides built"
+preview:
+	quarto preview
 
-# Convenience: build HTML for lectures 1..N, e.g. `make first N=5`
-first: dirs
-	@echo "Building HTML for L1-L$(N)..."
-	@for n in $$(seq -w 1 $(N)); do \
-		for f in $(SLIDES_DIR)/lec$$n-*.md; do \
-			if [ -f "$$f" ]; then \
-				name=$$(basename "$$f" .md); \
-				echo "  $$f -> $(HTML_DIR)/$$name.html"; \
-				npx marp "$$f" -o "$(HTML_DIR)/$$name.html" --html --allow-local-files --theme-set $(THEME); \
-			fi \
-		done \
-	done
-	@echo "Done: L1-L$(N) HTML"
-
-# Create output directories and copy images
-dirs:
-	@mkdir -p $(PDF_DIR)
-	@mkdir -p $(HTML_DIR)
-	@if [ -d "$(SLIDES_DIR)/images" ]; then \
-		cp -r $(SLIDES_DIR)/images $(HTML_DIR)/; \
-	fi
-	@if [ -d "$(FIGURES_DIR)" ]; then \
-		cp -r $(FIGURES_DIR) $(HTML_DIR)/; \
-	fi
-
-# Generate diagrams
-diagrams:
-	@echo "Generating diagrams..."
-	@python $(DIAGRAMS_DIR)/generate_all.py
-
-# Pattern rule for PDF
-$(PDF_DIR)/%.pdf: $(SLIDES_DIR)/%.md $(THEME) | dirs
-	@echo "Building PDF: $< -> $@"
-	@npx marp $< -o $@ --pdf --allow-local-files --theme-set $(THEME) --html || echo "  (PDF skipped - needs Chrome)"
-
-# Pattern rule for HTML
-$(HTML_DIR)/%.html: $(SLIDES_DIR)/%.md $(THEME) | dirs
-	@echo "Building HTML: $< -> $@"
-	@npx marp $< -o $@ --html --allow-local-files --theme-set $(THEME)
-
-# HTML only for a lecture (faster) - must come before lec% rule
-lec%-html: dirs
-	@echo "Building lec$* HTML only..."
-	@for f in $(SLIDES_DIR)/lec$*-*.md; do \
-		if [ -f "$$f" ]; then \
-			name=$$(basename "$$f" .md); \
-			echo "  $$f -> $(HTML_DIR)/$$name.html"; \
-			npx marp "$$f" -o "$(HTML_DIR)/$$name.html" --html --allow-local-files --theme-set $(THEME); \
-		fi \
-	done
-	@echo "Done: lec$* HTML"
-
-# Build specific lecture (e.g., make lec01)
-lec%: dirs
-	@echo "Building lec$* slides..."
-	@for f in $(SLIDES_DIR)/lec$*-*.md; do \
-		if [ -f "$$f" ]; then \
-			name=$$(basename "$$f" .md); \
-			echo "  HTML: $$f -> $(HTML_DIR)/$$name.html"; \
-			npx marp "$$f" -o "$(HTML_DIR)/$$name.html" --html --allow-local-files --theme-set $(THEME); \
-			echo "  PDF:  $$f -> $(PDF_DIR)/$$name.pdf"; \
-			npx marp "$$f" -o "$(PDF_DIR)/$$name.pdf" --pdf --allow-local-files --theme-set $(THEME) 2>/dev/null || echo "  (PDF skipped - needs Chrome)"; \
-		fi \
-	done
-	@echo "Done: lec$*"
-
-# Build a tutorial deck (e.g., make tut01)
-tut%: dirs
-	@echo "Building tut$* slides..."
-	@for f in $(SLIDES_DIR)/tut$*-*.md; do \
-		if [ -f "$$f" ]; then \
-			name=$$(basename "$$f" .md); \
-			echo "  HTML: $$f -> $(HTML_DIR)/$$name.html"; \
-			npx marp "$$f" -o "$(HTML_DIR)/$$name.html" --html --allow-local-files --theme-set $(THEME); \
-		fi \
-	done
-	@echo "Done: tut$*"
-
-# List available slides
 list:
-	@echo "Available slides:"
-	@for file in $(SLIDES_MD); do \
-		echo "  - $$file"; \
-	done
-	@echo ""
-	@echo "Lectures: $(LECTURES)"
+	@ls lecture*/L*.typ 2>/dev/null | sed 's/^/  /'
 
-# Clean generated files
 clean:
-	@echo "Cleaning generated files..."
-	@rm -rf $(PDF_DIR) $(HTML_DIR)
-	@echo "Done: clean"
+	rm -rf _site
 
-help:
-	@echo "Usage:"
-	@echo "  make lec01       # Build lecture 01 HTML + PDF"
-	@echo "  make lec01-html  # Build lecture 01 HTML only (fast)"
-	@echo "  make first N=5   # Build HTML for lectures 1..5"
-	@echo "  make all         # Build everything"
-	@echo "  make diagrams    # Regenerate all diagrams"
-	@echo "  make list        # List available slides"
-	@echo "  make clean       # Remove generated files"
-	@echo ""
-	@echo "Available lectures: $(LECTURES)"
+# ── per-lecture targets: make lec5 / lec5-pres / lec5-watch / figs-lec5 ──
+lec%: lecture%/
+	@deck=$$(ls lecture$*/L*.typ | head -1); \
+	 out="slides-pdf/L$*.pdf"; \
+	 echo "  $$deck -> $$out (handout)"; \
+	 mkdir -p slides-pdf; \
+	 typst compile --root . --input handout=true "$$deck" "$$out"
+
+lec%-pres: lecture%/
+	@deck=$$(ls lecture$*/L*.typ | head -1); \
+	 out="/tmp/L$*-presentation.pdf"; \
+	 echo "  $$deck -> $$out (presentation)"; \
+	 typst compile --root . "$$deck" "$$out"
+
+lec%-watch: lecture%/
+	@deck=$$(ls lecture$*/L*.typ | head -1); \
+	 echo "  watching $$deck -> /tmp/L$*.pdf"; \
+	 typst watch --root . --input handout=true "$$deck" /tmp/L$*.pdf
+
+figs-lec%: lecture%/
+	@script=$$(ls lecture$*/diagrams/l*_figs.py 2>/dev/null | head -1); \
+	 if [ -z "$$script" ]; then echo "no figure script in lecture$*/diagrams/"; exit 1; fi; \
+	 echo "  running $$script"; \
+	 $(PY_FIGS) "$$script"
+
+# directory prerequisites are just existence checks
+lecture%/: ;

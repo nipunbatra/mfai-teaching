@@ -1,0 +1,168 @@
+// ═══════════════════════════════════════════════════════════════════
+//  Shared metropolis deck theme for Mathematical Foundations for AI (Typst/touying)
+//  Import from a lecture:  #import "../common/metropolis.typ": *
+//  Then:                   #show: metropolis-deck.with(title: [...], subtitle: [...])
+//                          #title-slide()
+//  Handout (one page per slide): typst compile --input handout=true <deck>.typ
+// ═══════════════════════════════════════════════════════════════════
+
+#import "@preview/touying:0.6.1": *
+#import themes.metropolis: *
+#import "@preview/fletcher:0.5.8" as fletcher: diagram, node, edge
+
+// ── palette (matches metropolis defaults: dark-teal + orange) ──
+#let INK   = rgb("#23373B")
+#let ACC   = rgb("#EB811B")
+#let TEAL  = rgb("#2C7A7B")
+#let GREEN = rgb("#14B03D")
+#let BLUE  = rgb("#2B6CB0")
+#let MUTED = rgb("#6E7F82")
+#let RED   = rgb("#D64550")
+
+// ── discipline tags [Q][V][D][I][opt] — seated in the dark header bar, top-right ──
+// A filled chip pops cleanly on the dark ink header; the word rides beside the
+// letter so the tag reads without the legend.
+#let _chip(lbl, word, col) = box(fill: col, inset: (x: 7pt, y: 3.5pt), radius: 4pt, baseline: 0.28em,
+  text(font: "IBM Plex Mono", size: 12pt, fill: white, weight: 700, tracking: 0.4pt,
+    [#lbl#h(5pt)#text(size: 8.5pt, weight: 500, tracking: 1pt)[#upper(word)]]))
+// The leading h(1fr) right-pins the chip: in an inline heading it flushes to the
+// header's right edge.
+#let Q = [#h(1fr)#_chip("Q", "question",    BLUE)]
+#let A = [#h(1fr)#_chip("A", "answer",      GREEN)]
+#let V = [#h(1fr)#_chip("V", "visual",      TEAL)]
+#let D = [#h(1fr)#_chip("D", "derivation",  ACC)]
+#let I = [#h(1fr)#_chip("I", "interactive", GREEN)]
+#let OPT = [#h(1fr)#_chip(sym.star.filled, "optional", MUTED)]
+
+// ── callout blocks ──
+#let bar-block(body, col, bg, head, headcol) = block(width: 100%, fill: bg, inset: 11pt,
+  radius: 3pt, stroke: (top: 3pt + col), {
+    if head != none { text(font: "IBM Plex Mono", size: 11pt, fill: headcol, tracking: 0.5pt, upper(head)); v(4pt) }
+    body
+  })
+#let notebox(body)  = bar-block(body, INK, rgb("#EFEEEB"), none, MUTED)
+#let alertbox(body) = bar-block(body, RED, rgb("#FBEBEC"), none, RED)
+#let interbox(body, link-to: none) = bar-block({
+    if link-to != none { text(font: "IBM Plex Mono", size: 10.5pt, fill: rgb("#1B7A34"))[↗ #link(link-to)[#link-to.replace("https://", "")]]; v(4pt) }
+    body
+  }, GREEN, rgb("#EAF6EC"), "Interactive", rgb("#1B7A34"))
+#let result(body) = align(center, block(fill: white, inset: (x: 15pt, y: 11pt), radius: 5pt,
+  stroke: 2pt + ACC, text(size: 21pt, weight: 600, fill: INK, body)))
+#let codebox(body, size: 15pt) = block(fill: rgb("#F3F2EE"), inset: 10pt, radius: 4pt,
+  width: 100%, stroke: 0.5pt + rgb("#DAD8D2"), text(size: size, body))
+
+// ── retrieval checkpoints ──────────────────────────────────────────
+// Keep a question and its feedback on adjacent slides: students first commit to
+// an option, then see the correct choice and the one-sentence reason.
+#let mcq(prompt, a, b, c, d) = [
+  #text(size: 22pt, weight: 600, fill: INK)[#prompt]
+  #v(14pt)
+  #grid(columns: 2, gutter: 12pt,
+    block(fill: rgb("#EEF4F8"), inset: 10pt, radius: 4pt, stroke: 0.7pt + BLUE)[*A.* #a],
+    block(fill: rgb("#EEF4F8"), inset: 10pt, radius: 4pt, stroke: 0.7pt + BLUE)[*B.* #b],
+    block(fill: rgb("#EEF4F8"), inset: 10pt, radius: 4pt, stroke: 0.7pt + BLUE)[*C.* #c],
+    block(fill: rgb("#EEF4F8"), inset: 10pt, radius: 4pt, stroke: 0.7pt + BLUE)[*D.* #d],
+  )
+]
+#let mcq-answer(letter, choice, why) = [
+  #result[Correct: *#letter* — #choice]
+  #v(14pt)
+  #notebox[*Why:* #why]
+]
+
+// ── figure + layout helpers (Typst reads PNG twins; resvg mangles some mpl SVGs) ──
+#let fig(path, w: 58%) = align(center, image(path.replace(".svg", ".png"), width: w))
+#let two(a, b, r: (1fr, 1fr)) = grid(columns: r, gutter: 20pt, align(horizon, a), align(horizon, b))
+
+// ── native diagrams (fletcher) — vector, no resvg issues ─────────────
+// A single neuron: inputs → [1. weighted sum + bias → 2. activation] → output
+// (used when a lecture points forward at "every network layer is Wx + b")
+#let neuron-diagram(d: 3) = align(center, diagram(
+  spacing: (20mm, 9mm), node-stroke: 0.9pt + INK, node-fill: white,
+  {
+    let xy(i) = (0, i - (d - 1)/2)
+    for i in range(d) {
+      let lbl = if i == d - 1 { $x_d$ } else { [$x_#(i+1)$] }
+      node(xy(i), lbl, radius: 7mm)
+    }
+    let stages = [
+      #align(center)[
+        #text(size: 11pt, weight: 700, fill: TEAL)[ONE NEURON]
+        #v(4pt)
+        #grid(
+          columns: (auto, auto, auto),
+          gutter: 10pt,
+          align: horizon,
+          [#text(size: 10.5pt, weight: 700, fill: INK)[1 · WEIGHTED SUM + BIAS] \
+           #text(size: 15pt)[$z = bold(w)^top bold(x) + b$]],
+          [#text(size: 19pt, fill: MUTED)[$arrow.r$]],
+          [#text(size: 10.5pt, weight: 700, fill: ACC)[2 · ACTIVATION] \
+           #text(size: 15pt)[$a = phi(z)$]],
+        )
+      ]
+    ]
+    node((3.2, 0), stages, shape: fletcher.shapes.rect,
+      fill: rgb("#F7F8F6"), stroke: 1.1pt + TEAL, inset: 10pt)
+    node((6.4, 0), $a$, radius: 7mm, stroke: 0.9pt + ACC)
+    for i in range(d) { edge(xy(i), (3.2, 0), "-|>", stroke: 0.7pt + MUTED) }
+    edge((3.2, 0), (6.4, 0), "-|>", stroke: 0.9pt + INK)
+  }))
+
+// A fully-connected MLP for layer sizes like (3, 4, 4, 2).
+// Optional labels name the symbolic width of each illustrated column.
+#let mlp-diagram(sizes, hl: 1, labels: none) = align(center, diagram(
+  spacing: (20mm, 6.5mm),
+  {
+    let coord(li, i, n) = (li, i - (n - 1)/2)
+    // edges first (behind nodes)
+    for li in range(sizes.len() - 1) {
+      let (n0, n1) = (sizes.at(li), sizes.at(li + 1))
+      for i in range(n0) { for j in range(n1) {
+        edge(coord(li, i, n0), coord(li + 1, j, n1), stroke: 0.35pt + MUTED.lighten(20%))
+      } }
+    }
+    // nodes
+    for (li, n) in sizes.enumerate() {
+      let col = if li == 0 { INK } else if li == sizes.len() - 1 { ACC } else { TEAL }
+      for i in range(n) { node(coord(li, i, n), none, radius: 3.2mm, fill: col, stroke: none) }
+    }
+    if labels != none {
+      assert(labels.len() == sizes.len(), message: "mlp-diagram needs one label per layer")
+      let label-y = calc.max(..sizes) / 2 + 0.9
+      for (li, label) in labels.enumerate() {
+        node((li, label-y), text(size: 11pt, weight: 600, fill: MUTED, label), stroke: none)
+      }
+    }
+  }))
+
+// ── handout flag + the deck wrapper (theme, fonts, margins, footer) ──
+#let HANDOUT = sys.inputs.at("handout", default: "false") == "true"
+
+#let metropolis-deck(
+  title: [], subtitle: [],
+  author: [Prof. Nipun Batra],
+  institution: [Mathematical Foundations for AI · IIT Gandhinagar],
+  body,
+) = {
+  show: metropolis-theme.with(
+    aspect-ratio: "16-9",
+    align: top,                          // content starts at the SAME vertical position on every slide
+    config-common(handout: HANDOUT),
+    // taller title bar (bigger top band) + a little side breathing room
+    config-page(margin: (top: 3.7em, bottom: 1.35em, left: 2.4em, right: 2.4em)),
+    config-info(title: title, subtitle: subtitle, author: author, institution: institution),
+    footer: none,                                          // no course/author byline
+    footer-right: context utils.slide-counter.display(),   // just the slide number, no "/ total"
+  )
+  set text(font: "IBM Plex Sans", size: 20pt)
+  show raw: set text(font: "IBM Plex Mono")
+  // grow the title-bar text a touch so the header reads taller and cleaner
+  show heading.where(level: 2): set text(size: 1.06em)
+  show heading: set text(font: "IBM Plex Sans")
+  set heading(numbering: none)
+  show math.equation: set text(size: 19pt)
+  // Keep display equations on a stable left edge. Inline mathematics remains
+  // inline; only a standalone equation is wrapped by this rule.
+  show math.equation.where(block: true): it => align(left, it)
+  body
+}
