@@ -55,16 +55,18 @@ def arrow(ax, start, end, label, rad=0.0, color=MUTED, text_shift=(0, 0)):
 
 
 def weather_chain():
-    fig, ax = plt.subplots(figsize=(6.5, 3.7))
-    sunny, rainy = (0.28, 0.5), (0.72, 0.5)
+    fig, ax = plt.subplots(figsize=(6.5, 3.9))
+    sunny, rainy = (0.30, 0.40), (0.70, 0.40)
     for pos, label, color in [(sunny, "sunny", ACC), (rainy, "rainy", BLUE)]:
         ax.add_patch(Circle(pos, 0.105, facecolor="white", edgecolor=color, lw=2.2))
-        ax.text(*pos, label, ha="center", va="center", color=color, fontsize=12)
-    arrow(ax, (0.38, 0.55), (0.62, 0.55), "0.20", rad=0.18, color=RED, text_shift=(0, 0.10))
-    arrow(ax, (0.62, 0.45), (0.38, 0.45), "0.40", rad=0.18, color=GREEN, text_shift=(0, -0.10))
-    arrow(ax, (0.22, 0.59), (0.24, 0.61), "0.80", rad=1.6, color=ACC, text_shift=(-0.10, 0.14))
-    arrow(ax, (0.78, 0.59), (0.76, 0.61), "0.60", rad=-1.6, color=BLUE, text_shift=(0.10, 0.14))
-    ax.text(0.5, 0.12, r"rows: current state; arrows: next-state probabilities", ha="center", color=INK)
+        ax.text(*pos, label, ha="center", va="center", color=color, fontsize=13)
+    arrow(ax, (0.41, 0.46), (0.59, 0.46), "0.20", rad=0.25, color=RED, text_shift=(0, 0.11))
+    arrow(ax, (0.59, 0.34), (0.41, 0.34), "0.40", rad=0.25, color=GREEN, text_shift=(0, -0.11))
+    # self-loops: wide arcs above each node, labels next to the arc apex
+    arrow(ax, (0.255, 0.50), (0.345, 0.50), "", rad=-1.7, color=ACC)
+    ax.text(0.30, 0.75, "0.80", color=ACC, fontsize=11, ha="center")
+    arrow(ax, (0.655, 0.50), (0.745, 0.50), "", rad=-1.7, color=BLUE)
+    ax.text(0.70, 0.75, "0.60", color=BLUE, fontsize=11, ha="center")
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
@@ -103,10 +105,11 @@ def chain_failures():
     for i, pos in enumerate(positions):
         axes[0].add_patch(Circle(pos, 0.06, facecolor="white", edgecolor=TEAL, lw=1.8))
         axes[0].text(*pos, str(i + 1), ha="center", va="center")
-    arrow(axes[0], positions[0], positions[1], "", color=MUTED)
-    arrow(axes[0], positions[1], positions[0], "", rad=0.25, color=MUTED)
-    arrow(axes[0], positions[2], positions[3], "", color=MUTED)
-    arrow(axes[0], positions[3], positions[2], "", rad=0.25, color=MUTED)
+    dx = 0.04
+    arrow(axes[0], (positions[0][0] + dx, 0.545), (positions[1][0] - dx, 0.545), "", rad=0.25, color=MUTED)
+    arrow(axes[0], (positions[1][0] - dx, 0.455), (positions[0][0] + dx, 0.455), "", rad=0.25, color=MUTED)
+    arrow(axes[0], (positions[2][0] + dx, 0.545), (positions[3][0] - dx, 0.545), "", rad=0.25, color=MUTED)
+    arrow(axes[0], (positions[3][0] - dx, 0.455), (positions[2][0] + dx, 0.455), "", rad=0.25, color=MUTED)
     axes[0].set_title("reducible: two closed groups")
     axes[0].text(0.5, 0.18, "long-run behaviour depends on the starting group", ha="center", color=RED)
     # periodic two-state alternator
@@ -123,10 +126,12 @@ def chain_failures():
 
 
 def pagerank():
+    # L5's four-page web: A->B,C  B->A,C  C->A,D  D->A (row-stochastic S).
     labels = ["A", "B", "C", "D"]
-    positions = {"A": (0.15, 0.65), "B": (0.50, 0.82), "C": (0.52, 0.30), "D": (0.85, 0.60)}
-    links = [("A", "B"), ("A", "C"), ("B", "C"), ("C", "A"), ("D", "C")]
-    S = np.array([[0, 0.5, 0.5, 0], [0, 0, 1, 0], [1, 0, 0, 0], [0, 0, 1, 0]], dtype=float)
+    S = np.array([[0, 0.5, 0.5, 0],
+                  [0.5, 0, 0.5, 0],
+                  [0.5, 0, 0, 0.5],
+                  [1.0, 0, 0, 0]])
     alpha = 0.85
     P = alpha * S + (1 - alpha) * np.ones((4, 4)) / 4
     rank = np.ones(4) / 4
@@ -135,33 +140,22 @@ def pagerank():
         rank = rank @ P
         hist.append(rank.copy())
     hist = np.array(hist)
+    undamped = np.array([8, 4, 6, 3]) / 21
 
-    fig, axes = plt.subplots(1, 2, figsize=(8.5, 3.8))
-    ax = axes[0]
-    for node, pos in positions.items():
-        size = 0.055 + 0.11 * rank[labels.index(node)]
-        ax.add_patch(Circle(pos, size, facecolor="white", edgecolor=TEAL, lw=2))
-        ax.text(*pos, node, ha="center", va="center", fontsize=12)
-    for source, target in links:
-        start = np.array(positions[source])
-        end = np.array(positions[target])
-        direction = end - start
-        unit = direction / np.linalg.norm(direction)
-        arrow(ax, start + 0.07 * unit, end - 0.07 * unit, "", rad=0.08, color=MUTED)
-    ax.set_xlim(0, 1)
-    ax.set_ylim(0, 1)
-    ax.set_title("four-page web")
-    ax.axis("off")
-
+    fig, ax = plt.subplots(figsize=(7.0, 3.8))
+    colors = [ACC, TEAL, BLUE, RED]
     for i, label in enumerate(labels):
-        axes[1].plot(hist[:, i], label=f"{label}: {rank[i]:.3f}")
-    axes[1].set(xlabel="power iteration", ylabel="PageRank", xlim=(0, 20), ylim=(0, 0.5))
-    axes[1].grid(alpha=0.15)
-    axes[1].legend(frameon=False, fontsize=9, ncol=2)
-    axes[1].set_title(r"damping $\alpha=0.85$")
+        ax.plot(hist[:, i], "o-", ms=3.5, color=colors[i], label=f"{label}: {rank[i]:.3f}")
+        ax.axhline(undamped[i], color=colors[i], ls=":", lw=1.3, alpha=0.6)
+    ax.text(14.7, 0.45, r"dotted: undamped $(8,4,6,3)/21$ from L5",
+            ha="right", fontsize=10, color=MUTED)
+    ax.set(xlabel="power-iteration step", ylabel="PageRank", xlim=(0, 15), ylim=(0, 0.48))
+    ax.grid(alpha=0.15)
+    ax.legend(frameon=False, fontsize=10, title=r"damped, $\alpha=0.85$",
+              title_fontsize=10, loc="lower center", ncol=4)
     fig.tight_layout()
     save(fig, "pagerank")
-    print("PageRank:", dict(zip(labels, rank.round(6))))
+    print("PageRank damped:", dict(zip(labels, rank.round(6))))
 
 
 if __name__ == "__main__":

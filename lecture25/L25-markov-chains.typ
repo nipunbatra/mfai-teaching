@@ -9,10 +9,53 @@
   subtitle: [Sequences, transition matrices, and long-run behaviour],
 )
 
+#let SETOSA = "https://setosa.io/ev/markov-chains/"
+
+// L5's four-page web, redrawn with the same layout so the callback is visual too.
+// Links: A -> B, C   B -> A, C   C -> A, D   D -> A.
+#let web-diagram(sp: (32mm, 24mm)) = {
+  let lw = l => text(size: 12pt, fill: MUTED, l)
+  align(center, diagram(
+    spacing: sp, node-stroke: 0.9pt + INK, node-fill: white,
+    {
+      node((0, 0), [*A*], radius: 6mm)
+      node((1, 0), [*B*], radius: 6mm)
+      node((1, 1), [*C*], radius: 6mm)
+      node((0, 1), [*D*], radius: 6mm)
+      edge((0, 0), (1, 0), "-|>", stroke: 0.7pt + MUTED, bend: 22deg, label: lw($1\/2$), label-sep: 1.5pt)
+      edge((1, 0), (0, 0), "-|>", stroke: 0.7pt + MUTED, bend: 22deg, label: lw($1\/2$), label-sep: 1.5pt)
+      edge((0, 0), (1, 1), "-|>", stroke: 0.7pt + MUTED, bend: 16deg, label: lw($1\/2$), label-pos: 0.2, label-sep: 1.5pt)
+      edge((1, 1), (0, 0), "-|>", stroke: 0.7pt + MUTED, bend: 16deg, label: lw($1\/2$), label-pos: 0.2, label-sep: 1.5pt)
+      edge((1, 0), (1, 1), "-|>", stroke: 0.7pt + MUTED, label: lw($1\/2$), label-side: left, label-sep: 1.5pt)
+      edge((1, 1), (0, 1), "-|>", stroke: 0.7pt + MUTED, label: lw($1\/2$), label-side: left, label-sep: 1.5pt)
+      edge((0, 1), (0, 0), "-|>", stroke: 1.1pt + ACC, label: lw(text(fill: ACC)[$1$]), label-side: left, label-sep: 1.5pt)
+    },
+  ))
+}
+
 #title-slide()
 
 // ═══════════════════ 1 · sequence model ═══════════════════
 = Tomorrow depends on today
+
+== Where L5 stopped
+
+#two(r: (44%, 56%))[
+  #web-diagram()
+][
+  L5 power-iterated this four-page web's link matrix and found the ranking
+
+  $ bold(r)=(8,4,6,3)\/21. $
+
+  #pause
+  Two questions were deferred to today:
+
+  + why is that limit *unique*, independent of the start?
+  + real webs have dead ends and closed cliques — why does a $0.15$ teleport probability fix them?
+]
+
+#pause
+Both answers come from Markov chains. We build the theory on a two-state model first.
 
 == A two-state weather model
 
@@ -29,7 +72,7 @@ Tomorrow is random, but today's state changes its probabilities.
 
 == State diagram #V
 
-#fig("/lecture25/figures/weather_chain.svg", w: 66%)
+#fig("/lecture25/figures/weather_chain.svg", w: 58%)
 
 #pause
 Outgoing probabilities from each state sum to one.
@@ -45,6 +88,9 @@ Given the present state, earlier states add no further information about the nex
 
 #pause
 This is a modeling assumption, not a universal property of sequences.
+
+#pause
+#alertbox[Language is not Markov: in "the *keys* to the cabinet *are* here", the verb agrees with a word several steps back. L26 fits Markov chains to text anyway — and measures what the assumption loses.]
 
 == What the assumption removes
 
@@ -105,6 +151,9 @@ $ P_(i j)=P(X_(t+1)=j|X_t=i). $
 #pause
 Every row sums to one and every entry is non-negative. Such a matrix is *row-stochastic*.
 
+#pause
+#notebox[L5 wrote the same bookkeeping column-wise: $bold(r)^"new"=M bold(r)$ with column-stochastic $M$. Our $P$ is that $M^top$. This deck uses rows throughout.]
+
 == Read the matrix both ways
 
 $ P=mat(0.8,0.2;0.4,0.6). $
@@ -120,6 +169,13 @@ Column view:
 
 + the sunny column collects all ways to arrive at sunny,
 + the rainy column collects all ways to arrive at rainy.
+
+== Explore: diagram and matrix together #I
+
+#interbox(link-to: SETOSA)[*Setosa — Markov chains.* Drag the transition probabilities and watch a token bounce between states; the state diagram and the transition matrix update together.]
+
+#pause
+Try: push both self-loop probabilities toward $1$ — transitions become rare and the token settles into long runs.
 
 == A distribution over states
 
@@ -271,7 +327,7 @@ for _ in range(12):
     state = rng.choice(2, p=P[state])
     path.append(state)
 
-print(path)
+print(path)  # [0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1]
 ```]
 
 #pause
@@ -343,6 +399,21 @@ $ P^top bold(pi)^top=bold(pi)^top. $
 #pause
 This is the eigenvalue-one direction from L5, normalized to sum to one.
 
+== Compute the left eigenvector
+
+#codebox[```python
+w, v = np.linalg.eig(P.T)     # eig, not eigh: P is not symmetric
+k = np.argmin(abs(w - 1))     # locate eigenvalue 1
+pi = np.real(v[:, k])         # this eigenvector is real; drop 0j
+print(pi / pi.sum())          # [0.66666667 0.33333333]
+```]
+
+#pause
+The eigenvector solver and the hand derivation agree: $bold(pi)=(2\/3,1\/3)$.
+
+#pause
+#notebox[`np.linalg.eig` returns complex arrays because a general real matrix can have complex eigenvalues. Here the $lambda=1$ pair is real, so casting with `np.real` discards only an exact zero imaginary part.]
+
 == Why eigenvalue one exists
 
 Since every row of $P$ sums to one,
@@ -370,6 +441,20 @@ for _ in range(30):
     mu = mu @ P
 print(mu)  # [0.66666667 0.33333333]
 ```]
+
+== Question: start at the stationary distribution #Q
+
+#mcq(
+  [The weather chain has $bold(pi)=(2\/3,1\/3)$. If $bold(mu)_0=bold(pi)$, what is $bold(mu)_(10)$?],
+  [exactly $(2\/3,1\/3)$],
+  [closer to $(1,0)$ than $bold(pi)$],
+  [approximately $(1\/2,1\/2)$],
+  [it depends on the states sampled along the way],
+)
+
+== Answer: start at the stationary distribution #A
+
+#mcq-answer("A", [exactly $(2\/3,1\/3)$], [$bold(pi)P=bold(pi)$, so every further step reproduces the same distribution. Individual sampled states still flip between sunny and rainy.])
 
 == The second eigenvalue sets the rate #OPT
 
@@ -445,32 +530,54 @@ This is the operating theorem behind PageRank and many sampling algorithms.
 
 == Links define transitions
 
-Imagine a user on a web page choosing one outgoing link uniformly.
+#two(r: (44%, 56%))[
+  #web-diagram()
+][
+  A user on a page clicks one outgoing link uniformly at random — L5's four-page web, read as a Markov chain.
+
+  #pause
+  Current page in rows, next page in columns:
+
+  $ S=mat(0,1/2,1/2,0;1/2,0,1/2,0;1/2,0,0,1/2;1,0,0,0). $
+]
 
 #pause
-For four pages:
+$S$ is row-stochastic: each page splits one row of probability over its outgoing links.
 
-+ A links to B and C,
-+ B links to C,
-+ C links to A,
-+ D links to C.
+== The undamped chain reproduces L5's ranking
 
-#pause
-The undamped transition matrix is
+Substitute $bold(pi)=(8,4,6,3)\/21$ into $bold(pi)=bold(pi)S$. The A coordinate:
 
-$ S=mat(0,1/2,1/2,0;0,0,1,0;1,0,0,0;0,0,1,0). $
-
-== The random-surfer problem
-
-The link chain may be reducible, periodic, or contain dangling pages with no outgoing links.
+$ pi_A=1/2 pi_B+1/2 pi_C+pi_D=2/21+3/21+3/21=8/21. quad checkmark $
 
 #pause
-PageRank adds teleportation:
+The B, C, D coordinates check the same way.
+
+#pause
+L5's self-consistent ranking is a stationary distribution — the same equation, written $bold(r)=M bold(r)$ there and $bold(pi)=bold(pi)S$ here.
+
+== Why this web was safe
+
++ Irreducible: the cycle $A -> C -> D -> A$ plus the pair $A <-> B$ connect every page to every page.
+
+#pause
++ Aperiodic: A returns to itself in $2$ steps ($A -> B -> A$) and in $3$ ($A -> C -> D -> A$); the gcd is $1$.
+
+#pause
+So the convergence statement applies, and L5's power iteration had exactly one possible limit.
+
+#pause
+#alertbox[Real webs are not safe. A page with no outgoing links leaves a zero row (delete D's link to see it). A closed group that receives links but never links out traps the walk.]
+
+== PageRank adds teleportation
 
 $ P=alpha S+(1-alpha)1/4 bold(1)bold(1)^top. $
 
 #pause
 With probability $alpha$, follow a link. With probability $1-alpha$, jump uniformly to any page.
+
+#pause
+The classic choice is $alpha=0.85$: on average one jump every $1\/(1-alpha) approx 7$ clicks.
 
 == Why teleportation helps
 
@@ -488,24 +595,23 @@ The stationary distribution is unique and power iteration converges.
 
 == Four-page PageRank #V
 
-#fig("/lecture25/figures/pagerank.svg", w: 79%)
+#fig("/lecture25/figures/pagerank.svg", w: 70%)
 
 #pause
-With $alpha=0.85$, the stationary scores are approximately
+$ bold(pi)_(alpha=0.85)=(0.371,0.195,0.278,0.156) quad "vs" quad bold(pi)_"undamped"=(0.381,0.190,0.286,0.143). $
 
-$ (0.373,0.196,0.394,0.038) $
-
-for $(A,B,C,D)$.
+#pause
+Teleportation pulls every score toward $1\/4$; the order $A>C>B>D$ survives.
 
 == Interpret the scores
 
-Page C receives links from A, B, and D, so its stationary probability is largest.
+Page A still wins: it collects links from B, C, and D — including D's undivided vote.
 
 #pause
-Page A receives from C, which itself has high rank.
+Page D is linked only by C's half-vote; teleportation lifts its score from $0.143$ to $0.156$.
 
 #pause
-Page D has no incoming web links; it receives only teleportation mass.
+Damping moved each score by at most $0.013$ here, because this web was already irreducible and aperiodic. On real webs, damping is what makes a unique answer exist at all.
 
 #pause
 PageRank values are visitation probabilities under a specific random-surfer model, not a universal measure of page quality.
@@ -513,18 +619,32 @@ PageRank values are visitation probabilities under a specific random-surfer mode
 == Power iteration for PageRank
 
 #codebox(size: 13pt)[```python
-S = np.array([[0, .5, .5, 0],
-              [0,  0,  1, 0],
-              [1,  0,  0, 0],
-              [0,  0,  1, 0]], dtype=float)
+S = np.array([[0, .5, .5,  0],
+              [.5, 0, .5,  0],
+              [.5, 0,  0, .5],
+              [1., 0,  0,  0]])
 
 alpha = 0.85
 P = alpha*S + (1-alpha)*np.ones((4, 4))/4
 r = np.ones(4)/4
 for _ in range(100):
     r = r @ P
-print(r)
+print(r.round(3))  # [0.371 0.195 0.278 0.156]
 ```]
+
+== Question: what damping buys #Q
+
+#mcq(
+  [For $0<alpha<1$, which property does $P=alpha S+(1-alpha)1/4 bold(1)bold(1)^top$ have for *any* link structure $S$?],
+  [its stationary distribution is uniform],
+  [every entry is positive, so a unique stationary distribution exists],
+  [its largest eigenvalue shrinks to $alpha$],
+  [each page's score equals its in-link count],
+)
+
+== Answer: what damping buys #A
+
+#mcq-answer("B", [every entry is positive, so a unique stationary distribution exists], [Positive entries make the chain irreducible and aperiodic in one step, so the convergence statement applies regardless of the link graph.])
 
 == Sparse computation at web scale #OPT
 
@@ -635,4 +755,12 @@ Next lecture:
 + score held-out sequences by cross-entropy,
 + sample characters from a fitted model.
 
-#focus-slide[Repeated transition-matrix multiplication turns local rules into long-run behaviour.]
+#pause
+#notebox[*Before L26* — MML §4.1–4.2 review (the $lambda=1$ eigenvector) · MacKay Ch. 29 shows these convergence conditions at work in Monte Carlo methods · replay the #link(SETOSA)[Setosa Markov-chains explorable].]
+
+#focus-slide[
+  A Markov chain is a matrix; its destiny is an eigenvector.
+  #v(12pt)
+  #set text(size: 22pt)
+  Next: *Learning Sequences + Course Finale* — estimating the matrix from text is counting, and sampling it writes.
+]
