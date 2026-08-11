@@ -185,14 +185,20 @@ for i in range(8):
 ax.contour(AA2, BB2, LL2, levels=np.geomspace(LL2.min() + 0.02, LL2.max(), 11),
            colors=[MUTED], linewidths=0.8, alpha=0.55)
 g0 = J0.T @ r0
-label_off = {0.0: (0.04, 0.02), 1.0: (0.05, -0.01), 4.0: (0.06, -0.03),
-             20.0: (0.05, 0.015), 100.0: (-0.05, 0.075)}
+label_off = {0.0: (0.04, 0.02), 1.0: (0.05, -0.01), 4.0: (0.06, -0.03)}
+# the lambda=20 and lambda=100 steps are tiny and cluster at theta0 — label them
+# from open space with thin leader lines instead of stacking text on the arrows
+leader_pos = {20.0: (1.60, 0.15), 100.0: (0.58, 0.115)}
 for lam, c in zip(lams, cols):
     d = np.linalg.solve(J0.T @ J0 + lam * np.eye(2), -g0)
     label = 'GN step' if lam == 0 else (r'$\lambda=%g$' % lam)
     ax.annotate('', xy=TH0 + d, xytext=TH0,
                 arrowprops=dict(arrowstyle='-|>', color=c, lw=2.4, mutation_scale=16))
-    ax.annotate(label, xy=TH0 + d + np.array(label_off[lam]), fontsize=12, color=c)
+    if lam in leader_pos:
+        ax.annotate(label, xy=TH0 + d, xytext=leader_pos[lam], fontsize=12, color=c,
+                    arrowprops=dict(arrowstyle='-', color=c, lw=0.8, shrinkA=2, shrinkB=3))
+    else:
+        ax.annotate(label, xy=TH0 + d + np.array(label_off[lam]), fontsize=12, color=c)
 gdir = -g0 / np.linalg.norm(g0) * 0.55
 ax.annotate('', xy=TH0 + gdir, xytext=TH0,
             arrowprops=dict(arrowstyle='-|>', color=TEAL, lw=1.6, ls='--', mutation_scale=13))
