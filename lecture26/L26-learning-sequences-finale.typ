@@ -6,17 +6,61 @@
 #import "../common/mldiag.typ": *
 #show: metropolis-deck.with(
   title: [Learning Sequence Models],
-  subtitle: [Counts, smoothing, evaluation, and generation],
+  subtitle: [Counts, smoothing, evaluation, generation — the finale],
 )
 
 #title-slide()
 
-// ═══════════════════ 1 · count transitions ═══════════════════
+// ═══════════════════ 1 · the promise from L1 ═══════════════════
+= The promise from Lecture 1
+
+== Lecture 1 showed this output
+
+Lecture 1 promised a character-level language model, trained from scratch on Shakespeare by L26, and showed its output:
+
+#codebox[```text
+DUKE VINCENTIO:
+Well, your wit is in the care of side and that.
+
+CLARENCE:
+And so the sight the world and the more,
+I shall be my lord the king of hearth.
+```]
+
+#pause
+Today we build that pipeline — count, smooth, score, sample — and run it on Shakespeare before the lecture ends.
+
+== Today's pipeline, module by module
+
++ estimate transition probabilities by counting — maximum likelihood (L14),
++ derive the count formula with Lagrange multipliers (L19),
++ smooth the counts with a conjugate Dirichlet prior (L15),
++ score held-out text with cross-entropy in bits (L24),
++ compute every score in log-space (L2),
++ sample the fitted chain to generate text (L25).
+
+#pause
+Every step is a module of this course applied to one model.
+
+== Learning outcomes
+
+By the end of this lecture you will be able to:
+
++ estimate a transition matrix from counts,
++ derive ⭐ $hat(P)_(i j)=n_(i j)/n_(i dot)$ using Lagrange multipliers,
++ apply Dirichlet smoothing and distinguish prediction from MAP,
++ build a character $n$-gram model,
++ score held-out text in bits per character and perplexity,
++ sample new sequences from a fitted model,
++ identify how every course module appears in this one artifact,
++ and locate the next mathematical steps toward ML and DL.
+
+// ═══════════════════ 2 · count transitions ═══════════════════
 = Estimate the transition matrix from data
 
 == An observed sequence
 
-Suppose the two states A and B produce
+Two states A and B produced the sequence
 
 `A A B A B B B A`
 
@@ -69,22 +113,9 @@ The empirical conditional frequency is
 $ ("number of observed" i arrow.r j " transitions")/("number of transitions leaving" i). $
 
 #pause
-The calculation is also the maximum-likelihood estimator. We now derive it.
+The calculation is also the maximum-likelihood estimator (L14). We now derive it.
 
-== Learning outcomes
-
-By the end of this lecture you will be able to:
-
-+ estimate a transition matrix from counts,
-+ derive ⭐ $hat(P)_(i j)=n_(i j)/n_(i dot)$ using Lagrange multipliers,
-+ apply Dirichlet smoothing and distinguish prediction from MAP,
-+ build a character $n$-gram model,
-+ score held-out text in bits per character and perplexity,
-+ sample new sequences from a fitted model,
-+ identify how every course module appears in this one artifact,
-+ and locate the next mathematical steps toward ML and DL.
-
-// ═══════════════════ 2 · MLE derivation ═══════════════════
+// ═══════════════════ 3 · MLE derivation ═══════════════════
 = Maximum likelihood for one row
 
 == Likelihood of transition counts
@@ -115,7 +146,10 @@ $ "subject to" quad sum_j P_(i j)=1. $
 
 == ⭐ Form the row Lagrangian #D
 
-$ cal(L)_i=sum_j n_(i j)log P_(i j)-lambda_i(sum_j P_(i j)-1). $
+$ cal(L)_i=sum_j n_(i j)log P_(i j)-lambda_i (sum_j P_(i j)-1). $
+
+#pause
+This is L19's convention for maximization, $cal(L)=f-lambda h$, with $h=sum_j P_(i j)-1$.
 
 #pause
 First assume every $n_(i j)>0$, so the maximizing row is in the simplex interior.
@@ -154,7 +188,7 @@ Substitute $lambda_i=n_(i dot)$:
 The maximum-likelihood transition probability is the empirical fraction of departures from $i$ that arrive at $j$.
 
 #pause
-#notebox[If $n_(i j)=0$, KKT places that coordinate on the boundary at $hat(P)_(i j)=0$, giving the same formula. If $n_(i dot)=0$, the row was never observed and its transition probabilities are not identifiable without a prior or another modeling choice.]
+#notebox[If $n_(i j)=0$, the KKT conditions (L20) place that coordinate on the boundary at $hat(P)_(i j)=0$, giving the same formula. If $n_(i dot)=0$, the row was never observed and its transition probabilities are not identifiable without a prior or another modeling choice.]
 
 == Return to the A/B sequence
 
@@ -212,7 +246,7 @@ print(P)       # [[.333 .667], [.5 .5]]
 
 #mcq-answer("B", [$(0.6,0.3,0.1)$], [Divide each count by the row total $6+3+1=10$.])
 
-// ═══════════════════ 3 · character model ═══════════════════
+// ═══════════════════ 4 · character model ═══════════════════
 = A bigram language model
 
 == Characters are states
@@ -229,17 +263,17 @@ The transition matrix has $27 times 27$ entries. Row `t` stores probabilities fo
 
 == Counts from the course plan #V
 
-#fig("/lecture26/figures/bigram_counts.svg", w: 64%)
+#fig("/lecture26/figures/bigram_counts.svg", w: 47%)
 
 #pause
-The heatmap shows a subset of the alphabet. Common spelling and spacing patterns appear as large counts.
+#align(center, text(size: 16pt, fill: MUTED)[A subset of the alphabet. Common spelling and spacing patterns appear as large counts.])
 
 == One learned row #V
 
 #fig("/lecture26/figures/next_after_t.svg", w: 65%)
 
 #pause
-The model learns from data that `t` is often followed by a space, `h`, or another common continuation.
+On this corpus `t` is followed most often by `i` (as in _transition_, _optimization_), then by a space and by `h`.
 
 == Build character counts
 
@@ -297,7 +331,7 @@ For $K=27$:
 #pause
 Longer context needs much more data.
 
-// ═══════════════════ 4 · smoothing ═══════════════════
+// ═══════════════════ 5 · smoothing ═══════════════════
 = Unseen does not mean impossible
 
 == The zero-probability problem
@@ -318,12 +352,10 @@ $ -log 0=infinity. $
 
 == Add-one smoothing #V
 
-#fig("/lecture26/figures/smoothing.svg", w: 64%)
+#fig("/lecture26/figures/smoothing.svg", w: 58%)
 
 #pause
-Add-one prediction changes $(8,2,0,0)$ to
-
-$ (9/14,3/14,1/14,1/14). $
+Add-one prediction changes $(8,2,0,0)$ to $(9\/14,3\/14,1\/14,1\/14)$.
 
 == Dirichlet prior
 
@@ -370,22 +402,36 @@ Small $alpha$ stays closer to counts but may assign extremely small probabilitie
 #pause
 Choose $alpha$ on validation data using held-out log loss, not training likelihood alone.
 
-// ═══════════════════ 5 · evaluate ═══════════════════
+// ═══════════════════ 6 · evaluate ═══════════════════
 = Test on text not used for counting
 
 == Held-out cross-entropy
 
-For a test sequence of length $T$, bits per character is
+For a test sequence of length $T$ and context length $m$, bits per character is
 
 $ "BPC"=-1/(T-m) sum_(t=m+1)^T log_2 q(x_t|x_(t-m),dots,x_(t-1)). $
 
 #pause
-Lower BPC means the model assigns higher probability to the observed continuation.
+This is L24's cross-entropy in bits, measured on held-out text. Lower BPC means the model assigns higher probability to the observed continuation.
 
 #pause
-Character-level perplexity is
+Character-level perplexity follows L24's convention for bits:
 
-$ 2^"BPC". $
+$ "perplexity"=2^"BPC". $
+
+== Score in log-space
+
+Our test segment has $5,390$ characters, hence $5,389$ scored transitions.
+
+#pause
+The bigram model's product of their conditional probabilities is about
+
+$ 2^(-3.581 times 5389) approx 10^(-5810), $
+
+far below the smallest positive normal float64, about $10^(-308)$ (L2).
+
+#pause
+#result[Sum log-probabilities; never form the probability product (L2).]
 
 == Train/test split
 
@@ -452,7 +498,7 @@ Neural language models replace explicit tables with learned shared representatio
 
 #mcq-answer("B", [same corpus and same character alphabet], [Cross-entropy is meaningful only when the evaluated data and unit of a symbol are held fixed.])
 
-// ═══════════════════ 6 · generate ═══════════════════
+// ═══════════════════ 7 · generate ═══════════════════
 = Sample the fitted model
 
 == Generation is repeated conditional sampling
@@ -466,30 +512,33 @@ Given current context $c_t$:
 5. repeat.
 
 #pause
-The probabilities used for scoring are the same probabilities used for generation.
+Generation reads the same fitted, smoothed rows that scoring reads. No second model is trained.
 
 == Bigram sampler
 
 #codebox(size: 13pt)[```python
 rng = np.random.default_rng(8)
-context = "t"
-output = [context]
+start, order = "the ", 1
+context, output = start[-order:], list(start)
 
-for _ in range(300):
-    probs = smoothed_row(context)
-    nxt = rng.choice(alphabet, p=probs)
+for _ in range(320):
+    probs = smoothed_row(context, alpha=0.001)
+    nxt = rng.choice(list(alphabet), p=probs)
     output.append(nxt)
-    context = nxt
+    context = (context + nxt)[-order:]
 
 print("".join(output))
 ```]
 
+#pause
+#notebox[Smoothing strength is a per-use choice: scoring used $alpha=0.1$ to keep held-out zeros finite; here $alpha=0.001$, because heavier smoothing would inject uniformly random characters into samples.]
+
 == What a bigram learns
 
-Sample from the course-plan bigram model:
+The sampler above, run on the course-plan bigram counts, prints
 
 #codebox[```text
-fulothecanaie s denivala chenen ch gers vex herde inghar
+the fulothecanaie s denivala chenen ch gers vex herde inghar
 ne d heg pe tion ceadeximaty de itangsinim sata lly bin...
 ```]
 
@@ -497,6 +546,8 @@ ne d heg pe tion ceadeximaty de itangsinim sata lly bin...
 Local letter pairs look plausible; words and sentences do not. One previous character is insufficient for language structure.
 
 == A 4-gram sample
+
+The same sampler with `order = 3` (three previous characters) prints
 
 #codebox[```text
 the exchand compostep newton derivation lives x ent inputed
@@ -508,32 +559,50 @@ Short fragments from the course vocabulary appear, but long-range syntax remains
 
 == Swap in a larger corpus
 
-The same notebook can replace the course plan with Tiny Shakespeare:
+Replace the course plan with Tiny Shakespeare (1.1 MB, 65 distinct characters, speaker names and line breaks kept):
 
 #codebox[```python
 text = open("input.txt", encoding="utf-8").read()
-model = fit_ngram(text, order=3, alpha=0.1)
-print(sample(model, n=1000, seed=0))
+table = train_counts(text, order=5)
+print(generate(table, order=5, n=200, seed=4,
+               alpha=0.001, start=text[:5]))
 ```]
 
 #pause
 The algorithm does not change. Corpus size, alphabet, and context order change the fitted probabilities.
 
-== Sampling temperature #OPT
+== Shakespeare from five-character contexts
 
-Given probabilities $q_j$, temperature $tau>0$ defines
+The run above prints, verbatim:
 
-$ q_j^(tau) prop exp((log q_j)/tau). $
+#codebox(size: 13pt)[```text
+First, yet this, for your wife, we met, were spake it.
+
+AUTOLYCUS:
+Very true subjects the oracle!
+
+DUKE VINCENTIO:
+Good made, but powerful old Grey his since he will not have order,
+Tullus not anon, we'll
+```]
 
 #pause
-+ $tau<1$: sharper, more repetitive samples,
-+ $tau=1$: original model,
-+ $tau>1$: flatter, more varied, more errors.
+Real speaker names, mostly real words, weak long-range syntax — the texture of Lecture 1's sample. The promise from L1 is kept: this model was trained from scratch, today, by counting.
+
+== What scale adds
+
+Our best count model reaches $2.69$ BPC on the held-out course plan.
 
 #pause
-Temperature changes generation; it does not improve held-out likelihood.
+Published character-level results for GPT-2 (1.5B parameters, zero-shot; Radford et al., 2019): $0.98$ BPC on text8 and $0.93$ bits per byte on enwik8.
 
-// ═══════════════════ 7 · the course in one model ═══════════════════
+#pause
+Different corpora and alphabets, so the numbers are not directly comparable — but the objective is identical: minimize held-out cross-entropy (L24).
+
+#pause
+#notebox[What changes between the two models is the parameterization of $q(x_t|"context")$ and the amount of data — not the loss, the evaluation, or the sampling procedure.]
+
+// ═══════════════════ 8 · the course in one model ═══════════════════
 = Every module appears here
 
 == Machine numbers and linear algebra
@@ -623,7 +692,7 @@ A neural language model:
 #pause
 The probability and loss framework remains; the parameterization becomes much richer.
 
-// ═══════════════════ 8 · close ═══════════════════
+// ═══════════════════ 9 · close ═══════════════════
 = What you can now build and check
 
 == A compact sequence-model workflow
@@ -647,6 +716,8 @@ The probability and loss framework remains; the parameterization becomes much ri
 + Longer context can reduce BPC but increases parameter and data requirements.
 + Generation repeatedly samples the same conditional probabilities used for scoring.
 + The character model uses every mathematical module in the course.
+
+#notebox[*Reading* — MacKay Ch. 2, revisited now that every tool in it is familiar. Optional: Karpathy, _makemore_ part 1 (video) — the same bigram model, first by counting, then by gradient descent.]
 
 == Practice
 
@@ -673,7 +744,7 @@ The probability and loss framework remains; the parameterization becomes much ri
 
 == What follows this course
 
-In a machine-learning course, these foundations support:
+In *ES 335 (Machine Learning)*, these foundations support:
 
 + linear and logistic regression,
 + regularization and model selection,
@@ -681,12 +752,22 @@ In a machine-learning course, these foundations support:
 + tree ensembles and probabilistic models.
 
 #pause
-In a deep-learning course, they support:
+In *ES 667 (Deep Learning)*, they support:
 
 + neural networks and backpropagation,
 + embeddings and attention,
 + convolutional and sequence models,
 + generative models and large language models.
+
+== Attention, seen from this course
+
+Our $n$-gram fixes the context: the previous $m$ symbols, no more.
+
+#pause
+Attention is a smarter memory than the one-step Markov context — the model learns which parts of the history to condition on.
+
+#pause
+The output of that memory still feeds the factorization, loss, and sampler you used today. ES 667 builds the memory.
 
 == Final checklist
 
@@ -700,4 +781,78 @@ You can now ask of an AI method:
 + What does its cross-entropy say in bits?
 + Which assumptions connect observations across time?
 
-#focus-slide[You have fitted, evaluated, and sampled a language model; larger models change the parameterization, not the mathematical questions.]
+== Sampling temperature #OPT
+
+Given probabilities $q_j$, temperature $tau>0$ defines
+
+$ q_j^(tau) prop exp((log q_j)/tau). $
+
+#pause
++ $tau<1$: sharper, more repetitive samples,
++ $tau=1$: original model,
++ $tau>1$: flatter, more varied, more errors.
+
+#pause
+Temperature changes generation; it does not improve held-out likelihood.
+
+== Hidden-state sequence models #OPT
+
+A hidden Markov model keeps the Markov chain but hides it: the chain runs over states $Z_t$, and we observe only emissions $X_t tilde p(x|Z_t)$.
+
+#pause
+Three standard questions — score a sequence, find the best hidden path, fit the parameters — are all answered with this course's tools: conditional probability and dynamic programming over log-probabilities.
+
+#pause
+#notebox[Reference: Rabiner (1989), _A tutorial on hidden Markov models_. HMMs are covered properly in probabilistic-ML courses; this slide is a pointer.]
+
+== The course in 26 lines
+
+#text(size: 12pt)[
+  #grid(columns: (1fr, 1fr), column-gutter: 16pt, row-gutter: 0pt,
+    table(
+      columns: (auto, 1fr),
+      inset: (x: 4pt, y: 3.2pt),
+      stroke: none,
+      align: (right, left),
+      [*L1*], [Every AI system is a stack of math — by L26 you'll have built one from scratch.],
+      [*L2*], [Computers don't do real numbers — they do \~4 billion of them, unevenly spaced.],
+      [*L3*], [Similarity is an angle.],
+      [*L4*], [A matrix is a verb, not a table.],
+      [*L5*], [Eigenvectors are the directions a matrix can't turn.],
+      [*L6*], [Every matrix is a rotation, a stretch, and a rotation.],
+      [*L7*], [Calculus is the art of replacing a function with a line.],
+      [*L8*], [The gradient points where the contour lines crowd.],
+      [*L9*], [Curvature is a matrix, and its sign is the shape of the bowl.],
+      [*L10*], [Finite differences balance truncation against floating-point rounding.],
+      [*L11*], [Backprop is just the chain rule with memoization.],
+      [*L12*], [Continuous probability is area, and transformations charge a Jacobian toll.],
+      [*L13*], [A Gaussian is a point and an ellipse.],
+    ),
+    table(
+      columns: (auto, 1fr),
+      inset: (x: 4pt, y: 3.2pt),
+      stroke: none,
+      align: (right, left),
+      [*L14*], [Many standard supervised losses are negative log-likelihoods for explicit observation models.],
+      [*L15*], [L2 and L1 penalties are negative log-priors in MAP estimation.],
+      [*L16*], [For a convex objective, every local minimum is global.],
+      [*L17*], [The learning rate is how far you trust a linear approximation.],
+      [*L18*], [Newton doesn't step downhill — it teleports to the bottom of its local bowl.],
+      [*L19*], [At the optimum, the objective and the constraint pull in the same direction.],
+      [*L20*], [KKT is Lagrange with inequalities and receipts.],
+      [*L21*], [Don't solve optimization problems — recognize them.],
+      [*L22*], [Probability determines surprise; averaging surprise gives entropy.],
+      [*L23*], [Probabilities determine ideal lengths; a code turns those lengths into bits.],
+      [*L24*], [Minimize cross-entropy, maximize likelihood, and reduce coding cost: the same optimization.],
+      [*L25*], [Repeated transition-matrix multiplication turns local rules into long-run behaviour.],
+      [*L26*], [You just trained a language model — everything else is scale.],
+    ),
+  )
+]
+
+#focus-slide[
+  You just trained a language model — everything else is scale.
+  #v(12pt)
+  #set text(size: 22pt)
+  Next: *Tutorial 13* — fit, score, and sample this model yourself. Then the endsem — and ES 335, whenever you are ready.
+]

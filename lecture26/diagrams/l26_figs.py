@@ -80,7 +80,7 @@ def bigram_matrix():
     fig, ax = plt.subplots(figsize=(6.2, 4.5))
     im = ax.imshow(view, cmap="YlGnBu")
     labels = ["space" if ch == " " else ch for ch in shown]
-    ax.set_xticks(range(len(shown)), labels)
+    ax.set_xticks(range(len(shown)), labels, rotation=60)
     ax.set_yticks(range(len(shown)), labels)
     ax.set_xlabel("next character")
     ax.set_ylabel("current character")
@@ -147,17 +147,37 @@ def bits_per_character(table, text, order, alpha=0.1):
     return float(np.mean(losses))
 
 
-def generate(table, order, n=320, seed=8, alpha=0.001):
+def generate(table, order, n=320, seed=8, alpha=0.001, start="the ", alphabet=ALPHABET):
     rng = np.random.default_rng(seed)
-    context = "the "[-order:] if order else ""
-    output = list(context)
+    context = start[-order:] if order else ""
+    output = list(start)
     for _ in range(n):
-        probs = distribution(table, context, alpha)
-        ch = rng.choice(list(ALPHABET), p=probs)
+        probs = distribution_over(table, context, alpha, alphabet)
+        ch = rng.choice(list(alphabet), p=probs)
         output.append(ch)
         if order:
             context = (context + ch)[-order:]
     return "".join(output)
+
+
+def distribution_over(table, context, alpha, alphabet):
+    row = table.get(context, {})
+    total = sum(row.values()) + alpha * len(alphabet)
+    return np.array([(row.get(ch, 0) + alpha) / total for ch in alphabet])
+
+
+def shakespeare_sample(path="input.txt", order=5, n=200, seed=4, alpha=0.001):
+    """Order-5 character model on Tiny Shakespeare (karpathy/char-rnn input.txt).
+
+    Raw characters (case, punctuation, newlines) are kept; the initial context is
+    the first `order` characters of the corpus. Reproduces the sample on the
+    L26 slide "Shakespeare from five-character contexts".
+    """
+    text = open(path, encoding="utf-8").read()
+    alphabet = sorted(set(text))
+    table = train_counts(text, order)
+    return generate(table, order, n=n, seed=seed, alpha=alpha,
+                    start=text[:order], alphabet=alphabet)
 
 
 def ngram_evaluation():
@@ -191,4 +211,6 @@ if __name__ == "__main__":
     next_after_t()
     smoothing()
     ngram_evaluation()
+    if os.path.exists("input.txt"):
+        print("shakespeare sample:", shakespeare_sample())
     print("wrote four figure pairs to", OUT)
