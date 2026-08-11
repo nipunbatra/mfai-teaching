@@ -108,8 +108,8 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
-| 25 | Markov Chains | [Setosa](https://setosa.io/ev/markov-chains/) | *soon* | |
-| 26 | Learning Sequences + Course Finale | MacKay Ch 2 | *soon* | |
+| 25 | Markov Chains | [Setosa](https://setosa.io/ev/markov-chains/) | [PDF](slides-pdf/L25.pdf) | |
+| 26 | Learning Sequences + Course Finale | MacKay Ch 2 | [PDF](slides-pdf/L26.pdf) | |
 
 > **Quiz 5 / Endsem** · cumulative
 

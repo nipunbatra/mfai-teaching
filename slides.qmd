@@ -62,8 +62,8 @@ One PDF per lecture, one page per slide (handout build). The full schedule with 
 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
-| 25 | Markov Chains | *soon* |
-| 26 | Learning Sequences + Course Finale | *soon* |
+| 25 | Markov Chains | [PDF](slides-pdf/L25.pdf) |
+| 26 | Learning Sequences + Course Finale | [PDF](slides-pdf/L26.pdf) |
 
 ---
 
