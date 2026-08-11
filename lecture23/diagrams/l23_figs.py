@@ -206,14 +206,91 @@ def length_comparison():
     return codes, entropy, average
 
 
+def text_bitmap(message="MFAI", width=120, height=48):
+    """Rasterize a short text into a binary bitmap (1 = ink)."""
+    dpi = 20
+    fig = plt.figure(figsize=(width / dpi, height / dpi), dpi=dpi)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis("off")
+    ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=88, weight="bold", color=INK)
+    fig.canvas.draw()
+    alpha = np.asarray(fig.canvas.buffer_rgba())[:, :, 3]
+    plt.close(fig)
+    return (alpha > 128).astype(int)
+
+
+HAMMING_G = np.array(
+    [
+        [1, 0, 0, 0, 1, 1, 0],
+        [0, 1, 0, 0, 1, 0, 1],
+        [0, 0, 1, 0, 0, 1, 1],
+        [0, 0, 0, 1, 1, 1, 1],
+    ]
+)
+HAMMING_H = np.array(
+    [
+        [1, 1, 0, 1, 1, 0, 0],
+        [1, 0, 1, 1, 0, 1, 0],
+        [0, 1, 1, 1, 0, 0, 1],
+    ]
+)
+
+
+def hamming74_roundtrip(bits, flip, rng):
+    """Encode with Hamming(7,4), flip each channel bit w.p. flip, syndrome-decode."""
+    pad = (-len(bits)) % 4
+    data = np.concatenate([bits, np.zeros(pad, int)]).reshape(-1, 4)
+    sent = data @ HAMMING_G % 2
+    received = sent ^ (rng.random(sent.shape) < flip)
+    syndromes = received @ HAMMING_H.T % 2
+    position = {tuple(HAMMING_H[:, i]): i for i in range(7)}
+    for row, syndrome in enumerate(map(tuple, syndromes)):
+        if syndrome in position:
+            received[row, position[syndrome]] ^= 1
+    decoded = received[:, :4].reshape(-1)
+    return decoded[: len(bits)]
+
+
+def channel_demo(flip=0.1):
+    rng = np.random.default_rng(23)
+    image = text_bitmap()
+    bits = image.reshape(-1)
+
+    uncoded = bits ^ (rng.random(bits.size) < flip)
+    votes = (np.tile(bits, (3, 1)) ^ (rng.random((3, bits.size)) < flip)).sum(axis=0)
+    repetition = (votes >= 2).astype(int)
+    hamming = hamming74_roundtrip(bits, flip, rng)
+
+    panels = [
+        ("original", bits, None),
+        ("received, no code (rate 1)", uncoded, None),
+        ("repetition R3 (rate 1/3)", repetition, None),
+        ("Hamming(7,4) (rate 4/7)", hamming, None),
+    ]
+    fig, axes = plt.subplots(1, 4, figsize=(11.0, 2.9))
+    rates = {}
+    for ax, (name, decoded, _) in zip(axes, panels):
+        error = (decoded != bits).mean()
+        rates[name] = error
+        ax.imshow(1 - decoded.reshape(image.shape), cmap="gray", vmin=0, vmax=1, interpolation="nearest")
+        title = name if name == "original" else f"{name}\n{error:.1%} of bits wrong"
+        ax.set_title(title, fontsize=11)
+        ax.axis("off")
+    fig.suptitle(f"binary symmetric channel, flip probability f = {flip}", fontsize=12, y=1.08)
+    save(fig, "channel_demo")
+    return rates
+
+
 if __name__ == "__main__":
     prefix_tree()
     ideal_lengths()
     counts, codes, entropy_word, average_word = huffman_tree()
     source_codes, entropy, average = length_comparison()
+    rates = channel_demo()
     print("counts:", dict(sorted(counts.items())))
     print("codes:", dict(sorted(codes.items())))
     print(f"MATHEMATICS entropy={entropy_word:.6f}, average_length={average_word:.6f}")
     print("five-symbol codes:", dict(sorted(source_codes.items())))
     print(f"five-symbol entropy={entropy:.6f}, average_length={average:.6f}")
-    print(f"wrote four figure pairs to {OUT}")
+    print("channel demo error rates:", {k: f"{v:.4f}" for k, v in rates.items()})
+    print(f"wrote five figure pairs to {OUT}")

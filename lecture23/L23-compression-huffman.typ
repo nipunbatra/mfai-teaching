@@ -9,9 +9,88 @@
   subtitle: [Prefix codes, code length, and Huffman's algorithm],
 )
 
+// ── Huffman build for "MATHEMATICS": one fletcher forest per merge step.
+//    Node positions are fixed once, so every step draws the same layout.
+#let hf-pos = (
+  C: (0, 3), E: (1, 3), H: (2, 3), I: (3, 3),
+  S: (4, 3), A: (5, 3), M: (6, 3), T: (7, 3),
+  n1: (0.5, 2), n2: (2.5, 2), n3: (4.5, 2), n4: (6.5, 2),
+  n5: (1.5, 1), n6: (5.5, 1), n7: (3.5, 0),
+)
+#let hf-leaves = (C: 1, E: 1, H: 1, I: 1, S: 1, A: 2, M: 2, T: 2)
+#let hf-merges = (
+  ("n1", 2, "C", "E"), ("n2", 2, "H", "I"), ("n3", 3, "S", "A"),
+  ("n4", 4, "M", "T"), ("n5", 4, "n1", "n2"), ("n6", 7, "n3", "n4"),
+  ("n7", 11, "n5", "n6"),
+)
+#let hf-codes = (C: "000", E: "001", H: "010", I: "011", S: "100", A: "101", M: "110", T: "111")
+#let hf-forest(k, codes: false) = align(center, diagram(
+  spacing: (12mm, 8mm), node-stroke: 0.9pt + INK, node-fill: white,
+  {
+    let hot = if k > 0 { hf-merges.at(k - 1).slice(2) + (hf-merges.at(k - 1).at(0),) } else { () }
+    for i in range(k) {
+      let (key, w, l, r) = hf-merges.at(i)
+      let new = i == k - 1
+      let ecol = if new { ACC } else { MUTED }
+      for (child, bit) in ((l, "0"), (r, "1")) {
+        edge(hf-pos.at(key), hf-pos.at(child), stroke: (if new { 1.2pt } else { 0.8pt }) + ecol,
+          label: if codes { text(size: 11pt, fill: BLUE, bit) } else { none }, label-sep: 2pt)
+      }
+      node(hf-pos.at(key), text(size: 13pt, weight: 700, fill: if new { ACC } else { INK })[#w],
+        radius: 4.2mm, stroke: 0.9pt + (if new { ACC } else { INK }))
+    }
+    for (key, w) in hf-leaves {
+      let new = key in hot
+      node(hf-pos.at(key), stack(spacing: 2.5pt,
+          text(size: 13.5pt, weight: 700, fill: if new { ACC } else { INK }, key),
+          text(size: 10pt, fill: MUTED, str(w))),
+        radius: 4.8mm, stroke: 0.9pt + (if new { ACC } else { INK }))
+      if codes {
+        let (x, y) = hf-pos.at(key)
+        node((x, y + 0.8), text(size: 11.5pt, fill: TEAL, raw(hf-codes.at(key))),
+          stroke: none, fill: none)
+      }
+    }
+  },
+))
+
 #title-slide()
 
-// ═══════════════════ 1 · variable-length codes ═══════════════════
+// ═══════════════════ 1 · the AI hook ═══════════════════
+= Language models are compressors
+
+== gzip versus a language model
+
+`enwik9` is the first $10^9$ bytes of English Wikipedia — a standard compression benchmark.
+
+#pause
+#table(
+  columns: (1.4fr, 1fr),
+  inset: 8pt,
+  stroke: 0.5pt + MUTED.lighten(40%),
+  table.header([compressor], [compressed size]),
+  [gzip], [$32.3%$ of the raw bytes],
+  [LZMA2 (7-zip)], [$23.0%$],
+  [Chinchilla 70B + arithmetic coding], [$8.3%$],
+)
+
+#pause
+#notebox[Delétang et al., _Language Modeling Is Compression_, ICLR 2024. The comparison charges nothing for the model itself: sender and receiver must already share the 70B weights. Counted honestly, the network only pays off on large corpora.]
+
+== Prediction is doing the work
+
+The language model never sees a file format. It does one thing: assign a probability to the next token.
+
+#pause
+A coder (arithmetic coding, later this lecture) turns those probabilities into bits: high probability, few bits.
+
+#pause
+To compress is to bet on probabilities: give short names to the outcomes you expect.
+
+#pause
+This lecture builds that link from the ground up — codes, code lengths, and the optimal code.
+
+// ═══════════════════ 2 · variable-length codes ═══════════════════
 = Give short names to common outcomes
 
 == A five-symbol source
@@ -124,11 +203,11 @@ Reaching a leaf completes one symbol; decoding restarts at the root.
 By the end of this lecture you will be able to:
 
 + distinguish fixed-length, uniquely decodable, and prefix-free codes,
-+ relate probability to ideal code length $-log_2 p$,
-+ use the Kraft inequality as a feasibility check,
++ relate probability to ideal code length $-log_2 p$, with Kraft as the feasibility check,
++ state Shannon's source coding theorem,
 + construct ⭐ a Huffman tree by repeated merging,
-+ calculate expected code length and compare it with entropy,
-+ explain why Huffman coding is optimal among binary prefix codes,
++ compare expected code length with entropy, on a worked example and on real text,
++ contrast compression with error-correcting codes,
 + and connect probabilistic prediction with compression.
 
 // ═══════════════════ 2 · probability and length ═══════════════════
@@ -205,12 +284,15 @@ $ L=sum_i p_i ell_i. $
 #pause
 Entropy is the corresponding average ideal length:
 
-$ H(X)=sum_i p_i(-log_2 p_i). $
+$ H(X)=sum_i p_i (-log_2 p_i). $
 
 #pause
 For any binary prefix code,
 
 $ L>=H(X). $
+
+#pause
+We use this bound today and prove the size of the gap in L24 (Gibbs' inequality).
 
 == Shannon lengths give an upper bound
 
@@ -227,6 +309,33 @@ $ ell_i<-log_2 p_i+1. $
 Average both sides:
 
 #result[$H(X)<=L<H(X)+1$.]
+
+== Shannon's source coding theorem
+
+Coding one symbol at a time can waste up to one bit on rounding. Encoding long blocks removes even that.
+
+#pause
+#result[Source coding theorem (stated): $n$ i.i.d. symbols from $X$ can be encoded in about $n H(X)$ bits with error probability $arrow.r 0$ as $n arrow.r infinity$; below $H(X)$ bits per symbol, errors are unavoidable.]
+
+#pause
+Entropy is not just a lower bound — it is the exact price of description. We state the theorem and make it plausible; MacKay Ch 4 proves it.
+
+== Why entropy is the boundary
+
+Flip a coin with $p("heads")=0.9$, $n=1000$ times. Here $H approx 0.469$ bits/flip.
+
+#pause
+Almost every sequence that actually occurs has close to $900$ heads. These _typical_ sequences number about
+
+$ 2^(n H)=2^469, $
+
+a vanishing fraction of the $2^1000$ possible strings.
+
+#pause
+Give each typical sequence a serial number: about $469$ bits describe $1000$ flips.
+
+#pause
+Counting typical sequences is the whole idea; making "almost never" precise is the work of the proof.
 
 == Question: check Kraft #Q
 
@@ -288,31 +397,81 @@ This exchange argument plus induction proves optimality.
 #pause
 There are eight distinct symbols, so a fixed code needs three bits per letter.
 
-== The merge sequence
+== ⭐ Merge 1: C and E #D
 
-Ties can be resolved in several ways; all optimal trees have the same expected length.
+The smallest weights are the five letters of count 1 — a tie. Ties can be broken arbitrarily; every choice gives the same expected length. Fix one order and take C and E first.
+
+#hf-forest(1)
 
 #pause
-One deterministic sequence of weights is
+Pool: $"CE" 2$ and letters $"H" 1, "I" 1, "S" 1, "A" 2, "M" 2, "T" 2$.
 
-$ 1+1 arrow.r 2, $
-$ 1+1 arrow.r 2, $
-$ 1+2 arrow.r 3, $
-$ 2+2 arrow.r 4, $
-$ 2+2 arrow.r 4, $
-$ 3+4 arrow.r 7, $
-$ 4+7 arrow.r 11. $
+== ⭐ Merge 2: H and I #D
+
+Two of the three remaining count-1 letters merge next.
+
+#hf-forest(2)
+
+#pause
+Pool: $"S" 1$ and $"CE" 2, "HI" 2, "A" 2, "M" 2, "T" 2$.
+
+== ⭐ Merge 3: S and A #D
+
+S is the only weight left at 1; its partner is any of the weight-2 nodes. Take the letter A.
+
+#hf-forest(3)
+
+#pause
+Pool: $"SA" 3$ and $"CE" 2, "HI" 2, "M" 2, "T" 2$.
+
+== ⭐ Merge 4: M and T #D
+
+The two smallest weights are now both 2.
+
+#hf-forest(4)
+
+#pause
+Pool: $"CE" 2, "HI" 2, "SA" 3, "MT" 4$.
+
+== ⭐ Merge 5: CE and HI #D
+
+The two smallest weights are the merged pairs CE and HI. Merged nodes re-enter the pool like any symbol.
+
+#hf-forest(5)
+
+#pause
+Pool: $"SA" 3, "CEHI" 4, "MT" 4$.
+
+== ⭐ Merge 6: SA and MT #D
+
+Take the 3 and one of the tied 4s.
+
+#hf-forest(6)
+
+#pause
+Pool: $"CEHI" 4, "SAMT" 7$.
+
+== ⭐ Merge 7: the root #D
+
+The last merge joins everything: weight $4+7=11$, the total letter count.
+
+#hf-forest(7)
+
+#pause
+Seven merges for eight symbols — each merge removes one node from the pool.
 
 == The resulting tree #V
 
-#fig("/lecture23/figures/huffman_mathematics.svg", w: 76%)
+Label left edges 0 and right edges 1; read each codeword from root to leaf.
+
+#hf-forest(7, codes: true)
 
 #pause
 Here every letter happens to receive length three. Huffman cannot improve on the fixed-length code for this short frequency table.
 
 == Verify the encoded word
 
-One generated code is
+Reading the tree gives
 
 $ A arrow.r 101, quad C arrow.r 000, quad E arrow.r 001, quad H arrow.r 010, $
 $ I arrow.r 011, quad M arrow.r 110, quad S arrow.r 100, quad T arrow.r 111. $
@@ -325,6 +484,22 @@ $ 11 times 3=33 " bits". $
 #pause
 The example is still useful: an optimal code need not beat fixed length on every finite sample.
 
+== ⭐ Expected length versus entropy #D
+
+The total bit count can be read off the build: each merge pushes its letters one level deeper, so total bits $=$ sum of merged weights,
+
+$ 2+2+3+4+4+7+11=33, quad L=33/11=3.000 " bits/letter". $
+
+#pause
+The empirical entropy of the letter counts is
+
+$ H=-3 dot 2/11 log_2 2/11 - 5 dot 1/11 log_2 1/11 approx 2.914 " bits/letter". $
+
+#pause
+The bound holds:
+
+#result[$H approx 2.914 <= L_"Huffman" = 3.000 < H+1$.]
+
 == A source with a useful imbalance
 
 Return to probabilities
@@ -332,11 +507,13 @@ Return to probabilities
 $ (0.40,0.20,0.15,0.15,0.10). $
 
 #pause
-Huffman produces lengths
+The merges are
 
-$ (1,3,3,3,3) $
+$ 0.10+0.15 arrow.r 0.25, quad 0.15+0.20 arrow.r 0.35, $
+$ 0.25+0.35 arrow.r 0.60, quad 0.40+0.60 arrow.r 1.00. $
 
-and one code assignment
+#pause
+A alone stays shallow: lengths $(1,3,3,3,3)$, one assignment
 
 $ A arrow.r 0, B arrow.r 111, C arrow.r 101, D arrow.r 110, E arrow.r 100. $
 
@@ -346,6 +523,17 @@ $ A arrow.r 0, B arrow.r 111, C arrow.r 101, D arrow.r 110, E arrow.r 100. $
 
 #pause
 $ H=2.146<=L_"Huffman"=2.200<3=L_"fixed". $
+
+== Huffman on real letter counts #V
+
+L22 estimated letter probabilities from this course's plan file: $22560$ letters, alphabet of $26$, $hat(H) approx 4.238$ bits/letter. Build Huffman on those counts:
+
+#align(center, bars((5.0, 4.265, 4.238),
+  labels: ([fixed 5-bit], [Huffman $L$], [entropy $hat(H)$]),
+  digits: 3, horizontal: true, bar: 11mm, span: 105mm))
+
+#pause
+Huffman lands within $0.03$ bits of the entropy: `e` ($hat(p)=0.110$) gets 3 bits, `j` ($hat(p) approx 0.002$) gets 9.
 
 == Huffman is optimal within a class
 
@@ -362,26 +550,42 @@ It does not mean:
 #pause
 Those are separate modeling and engineering questions.
 
+== Question: three symbols #Q
+
+#mcq(
+  [A source has counts $(5,2,1)$. Which code lengths does Huffman produce?],
+  [$(1,2,2)$],
+  [$(1,1,2)$],
+  [$(2,2,2)$],
+  [$(1,2,3)$],
+)
+
+== Answer #A
+
+#mcq-answer("A", [$(1,2,2)$], [Merge $1+2 arrow.r 3$, then $3+5 arrow.r 8$: the two rare symbols become depth-2 siblings. $L=(5 dot 1+2 dot 2+1 dot 2)\/8=1.375$ bits versus $H approx 1.30$. Option $(1,1,2)$ fails Kraft: $1/2+1/2+1/4>1$.])
+
 // ═══════════════════ 4 · implement and decode ═══════════════════
 = A small compressor
 
 == A priority queue implements the merges
 
 #codebox(size: 13pt)[```python
-import heapq, itertools
+import heapq, itertools, collections
 
+counts = collections.Counter("MATHEMATICS")
 serial = itertools.count()
 heap = [(count, next(serial), symbol)
-        for symbol, count in counts.items()]
+        for symbol, count in sorted(counts.items())]
 heapq.heapify(heap)
-
 while len(heap) > 1:
     wa, _, a = heapq.heappop(heap)
     wb, _, b = heapq.heappop(heap)
     heapq.heappush(heap, (wa+wb, next(serial), (a, b)))
-
 tree = heap[0][2]
 ```]
+
+#pause
+The serial number breaks ties deterministically; sorting first reproduces the merge order we drew.
 
 == Traverse the tree to assign codes
 
@@ -404,8 +608,8 @@ def encode(text, code):
     return "".join(code[ch] for ch in text)
 
 bits = encode("MATHEMATICS", code)
-print(bits)
-print(len(bits))
+print(bits[:12])   # 110101111010...
+print(len(bits))   # 33
 ```]
 
 #pause
@@ -524,6 +728,9 @@ $ -sum_(t=1)^n log_2 q(x_t | x_(<t)). $
 #pause
 Divide by $n$ to obtain bits per token. Exponentiate to obtain perplexity in L24.
 
+#pause
+This resolves the opening comparison: Chinchilla's $8.3%$ on `enwik9` is a measurement of its next-token predictions, turned into bits by an arithmetic coder. gzip's dictionary model predicts worse, so it pays more bits.
+
 // ═══════════════════ 6 · noisy channels ═══════════════════
 = Compression and error correction solve different problems
 
@@ -554,6 +761,41 @@ $ 111 arrow.r 101 arrow.r "decode as" 1. $
 #pause
 The price is rate $1/3$: three transmitted bits per information bit.
 
+== Hamming(7,4): three parity bits protect four data bits
+
+Send $(d_1,d_2,d_3,d_4)$ together with
+
+$ p_1=d_1 plus.o d_2 plus.o d_4, quad p_2=d_1 plus.o d_3 plus.o d_4, quad p_3=d_2 plus.o d_3 plus.o d_4. $
+
+#pause
+Each of the seven possible single-bit flips makes a distinct subset of the three checks fail, so the failure pattern points at the flipped position. Flip it back.
+
+#pause
+Rate $4/7 approx 0.57$ — better than $1/3$, and still every single error per block is corrected.
+
+== Repetition versus Hamming at 10% noise
+
+Simulate a channel that flips each transmitted bit with probability $f=0.1$:
+
+#table(
+  columns: (1.2fr, 0.6fr, 1fr),
+  inset: 8pt,
+  stroke: 0.5pt + MUTED.lighten(40%),
+  table.header([code], [rate], [bit error after decoding]),
+  [none], [$1$], [$0.100$],
+  [repetition R3], [$1\/3$], [$0.028$],
+  [Hamming(7,4)], [$4\/7$], [$approx 0.07$],
+)
+
+#pause
+R3 reaches the lowest error but pays three transmitted bits per data bit. Hamming protects almost twice as much data per transmitted bit. MacKay Ch 1 opens with exactly this trade-off.
+
+== The corrupted image #V
+
+#fig("/lecture23/figures/channel_demo.svg", w: 92%)
+
+#align(center, text(size: 16pt, fill: MUTED)[Every panel decodes the same bitmap after the same noisy channel (simulated, seed fixed).])
+
 == A limit also exists for noisy channels #OPT
 
 Shannon's channel coding theorem states that reliable communication is possible below a channel's capacity and impossible above it, under precise assumptions.
@@ -574,7 +816,7 @@ We will use mutual information only briefly in L24.
 #pause
 + Prefix-free codes decode without separators.
 + Kraft's inequality characterizes feasible prefix-code lengths.
-+ Ideal length is $-log_2 p$; entropy is the average ideal length.
++ Ideal length is $-log_2 p$; entropy is the average ideal length, and the source coding theorem makes it the exact price.
 + Huffman coding minimizes expected length among binary prefix codes.
 + For a source distribution, $H<=L_"Huffman"<H+1$.
 + A better conditional predictor gives a shorter description.
@@ -614,4 +856,7 @@ $ H(p,q)=H(p)+D_"KL"(p || q). $
 #pause
 The excess code length becomes KL divergence, and minimizing cross-entropy becomes maximum likelihood.
 
-#focus-slide[Probabilities determine ideal lengths; a code turns those lengths into bits.]
+#pause
+#notebox[*Reading:* MacKay, _Information Theory, Inference, and Learning Algorithms_ — Ch 5 (Huffman), Ch 4 (source coding theorem), Ch 1 (repetition vs Hamming). Delétang et al., _Language Modeling Is Compression_, ICLR 2024.]
+
+#focus-slide[A good predictor and a good compressor are the same object.]
