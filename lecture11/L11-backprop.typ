@@ -34,10 +34,16 @@
   hi: (),         // node keys highlighted (the node firing this step)
   back: (),       // ((from, to), …) orange backward arrows for this step
   sp: (23mm, 7.5mm),
+  reserve: false, // reserve each node's final size so the graph never shifts
+                  // between derivation steps (hidden phantom of widest content)
 ) = {
   let P  = (x: (0, 0.1), y: (0, 1.55), b: (1.15, -0.72), a: (1.15, 0.85), f: (2.3, 0.1))
   let TT = (x: $x$, y: $y$, b: $b = x^2$, a: $a = x + y$, f: $f = a dot b$)
   let CC = (x: INK, y: INK, b: TEAL, a: TEAL, f: ACC)
+  // widest value/adjoint content each node ever carries in the step sequence
+  let VPH = (x: "= 3", y: "= 1", b: "= 9", a: "= 4", f: "= 36")
+  let APH = (x: $overline(x) = 24 + 9 = 33$, y: $overline(y) = 9$, b: $overline(b) = 4$,
+             a: $overline(a) = 9$, f: $overline(f) = 1$)
   align(center, diagram(spacing: sp, {
     for (u, v) in (("x", "b"), ("x", "a"), ("y", "a"), ("b", "f"), ("a", "f")) {
       edge(P.at(u), P.at(v), "-|>", stroke: 0.8pt + MUTED)
@@ -55,7 +61,15 @@
       if k in adjs {
         rows.push(text(size: 11.5pt, weight: 700, fill: ACC, adjs.at(k)))
       }
-      node(pos, align(center, stack(spacing: 3pt, ..rows)),
+      let body = align(center, stack(spacing: 3pt, ..rows))
+      if reserve {
+        let phantom = stack(spacing: 3pt,
+          text(size: 13pt, weight: 700, TT.at(k)),
+          text(size: 11.5pt, weight: 500, VPH.at(k)),
+          text(size: 11.5pt, weight: 700, APH.at(k)))
+        body = box({ hide(phantom); place(center + horizon, body) })
+      }
+      node(pos, body,
         shape: fletcher.shapes.rect,
         fill: if ishi { ACC.lighten(87%) } else if c == INK { white } else { c.lighten(91%) },
         stroke: if ishi { 1.6pt + ACC } else { 0.9pt + c },
@@ -255,7 +269,7 @@ Each step *names* an intermediate value, and each step *uses* earlier values.
 This is the *forward pass*: leaves are given, every other node fires once its inputs are ready.
 
 #pause
-#notebox[Keep every number in sight — the backward pass is about to *reuse all of them*.]
+#notebox[Keep every number in sight — the backward pass is about to *reuse them*.]
 
 = Adjoints: the chain rule on a graph
 
@@ -335,7 +349,7 @@ $ Delta f approx underbrace(overline(u) (partial u)/(partial x), "via" u) dot De
 
 == The plan of attack #D
 
-#g5(vals: V5)
+#g5(vals: V5, reserve: true)
 
 #pause
 + *Seed* the output: $overline(f) = 1$.
@@ -346,7 +360,7 @@ $ Delta f approx underbrace(overline(u) (partial u)/(partial x), "via" u) dot De
 
 == Step 0 · seed the output #D
 
-#g5(vals: V5, adjs: (f: $overline(f) = 1$), hi: ("f",))
+#g5(vals: V5, adjs: (f: $overline(f) = 1$), hi: ("f",), reserve: true)
 
 $ overline(f) = (partial f)/(partial f) = 1 quad quad "(a value can't help but move one-for-one with itself)" $
 
@@ -356,7 +370,7 @@ Every other adjoint will now follow from the local-rules table — no calculus, 
 == Step 1 · the × node fires #D
 
 #g5(vals: V5, adjs: (f: $overline(f) = 1$, a: $overline(a) = 9$, b: $overline(b) = 4$),
-  hi: ("f",), back: (("f", "a"), ("f", "b")))
+  hi: ("f",), back: (("f", "a"), ("f", "b")), reserve: true)
 
 $f = a dot b$: *send each input the other input.*
 
@@ -369,7 +383,7 @@ $ overline(a) = overline(f) dot b = 1 dot 9 = 9 quad quad quad overline(b) = ove
 == Step 2 · the square node fires #D
 
 #g5(vals: V5, adjs: (f: $overline(f) = 1$, a: $overline(a) = 9$, b: $overline(b) = 4$, x: [24 (via $b$)]),
-  hi: ("b",), back: (("b", "x"),))
+  hi: ("b",), back: (("b", "x"),), reserve: true)
 
 $b = x^2$: local slope $2x = 6$. Arriving × local:
 
@@ -381,8 +395,8 @@ $ overline(b) dot 2x = 4 dot 6 = 24 quad "flows down the" b arrow.l x "edge" $
 == Step 3 · the + node fires #D
 
 #g5(vals: V5, adjs: (f: $overline(f) = 1$, a: $overline(a) = 9$, b: $overline(b) = 4$,
-  x: [24 (via $b$) + 9 (via $a$)], y: $overline(y) = 9$),
-  hi: ("a",), back: (("a", "x"), ("a", "y")))
+  x: [24 + 9], y: $overline(y) = 9$),
+  hi: ("a",), back: (("a", "x"), ("a", "y")), reserve: true)
 
 $a = x + y$: *copy the arriving adjoint to both inputs* (local slopes are $1$).
 
@@ -395,7 +409,7 @@ $y$ has only this one path, so it is done: $overline(y) = 9$.
 == Step 4 · accumulate at the branch #D
 
 #g5(vals: V5, adjs: (f: $overline(f) = 1$, a: $overline(a) = 9$, b: $overline(b) = 4$,
-  x: $overline(x) = 24 + 9 = 33$, y: $overline(y) = 9$), hi: ("x",))
+  x: $overline(x) = 24 + 9 = 33$, y: $overline(y) = 9$), hi: ("x",), reserve: true)
 
 Both of $x$'s paths have reported — the branch rule says *add*:
 
@@ -408,7 +422,7 @@ $ overline(x) = underbrace(24, "via " b) + underbrace(9, "via " a) = 33 $
 == The finished graph — photograph this #V
 
 #g5(vals: V5, adjs: (f: $overline(f) = 1$, a: $overline(a) = 9$, b: $overline(b) = 4$,
-  x: $overline(x) = 33$, y: $overline(y) = 9$), sp: (25mm, 8.5mm))
+  x: $overline(x) = 33$, y: $overline(y) = 9$), reserve: true)
 
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[teal: forward values, flowing right · orange: adjoints, flowing left — same graph, two sweeps])
@@ -510,7 +524,7 @@ And the gap *scales*:
 )
 
 #pause
-At 60 ms per directional pass, the forward-mode estimate is about *330 years* to assemble this full gradient. Reverse mode needs one sweep, typically comparable to a small number of forward evaluations.
+#align(center, text(size: 16pt, fill: MUTED)[At 60 ms per pass, GPT-3's forward-mode column is ≈ 330 years; reverse mode is one sweep.])
 
 == Scalar losses favor reverse mode
 
@@ -529,7 +543,7 @@ Why does reverse mode fit machine learning so perfectly?
 #pause
 #notebox[For $g: RR -> RR^(10^6)$ (one input, many outputs), forward mode needs one pass whereas reverse mode needs one pass per output coordinate.]
 
-== The price: memory (here is the memoization)
+== The price: memory
 
 Reverse mode is not free. Look what the backward steps *consumed*:
 
@@ -543,7 +557,7 @@ So the forward pass must *keep every intermediate value alive* until backward is
 #result[Store each node's value once, reuse it for every path through that node: backprop is the chain rule with *memoization*.]
 
 #pause
-#notebox[The trade: a single forward-mode directional derivative can stream without retaining a reverse tape; reverse mode stores intermediate values, using memory proportional to the recorded graph. This is one major reason training needs more memory than inference.]
+#notebox[Forward mode streams without a tape; reverse mode stores every intermediate — one major reason training needs more memory than inference.]
 
 == The cheap-gradient principle
 
@@ -645,14 +659,14 @@ class Value:
 A node may push its `grad` down *only when that `grad` is complete* — after every node it feeds has already fired.
 
 #pause
-- Fire $a$ before $f$? Then $a$ pushes `a.grad = 0` — silence — and $x, y$ end up wrong forever.
+- Fire $a$ before $f$? Then $a$ pushes `a.grad = 0`, and $overline(x), overline(y)$ come out wrong.
 #pause
 - Safe order for our graph: $f$, then $b$, then $a$ (leaves receive; they never push).
 #pause
 - The general recipe: list nodes so every node comes *after* all nodes it feeds — a *topological order* of the DAG, walked in reverse.
 
 #pause
-#notebox[Getting this order is a classic graph traversal: depth-first, children before self ("post-order"). Ten lines, next slide.]
+#notebox[Getting this order is a classic graph traversal: depth-first, children before self ("post-order"). Twelve lines, next slide.]
 
 == Stage 3 · topological sort, then one sweep
 
@@ -678,7 +692,7 @@ Seed, sweep, done — steps 0–4 of the hand derivation, mechanized in twelve l
 
 #codebox[```python
 x, y = Value(3.0), Value(1.0)
-f = (x + y) * x * x        # the same 5-node graph
+f = (x + y) * (x * x)      # the same 5-node graph
 f.backward()
 
 print(f.data)              # 36.0
@@ -686,19 +700,19 @@ print(x.grad, y.grad)      # 33.0  9.0
 ```]
 
 #pause
-#result[$36$, $33$, $9$ — the hand-run, reproduced by 35 lines of Python you can hold in your head.]
+#result[$36$, $33$, $9$ — the hand-run, reproduced in about 35 lines of Python you can hold in your head.]
 
 #pause
-#notebox[We wrote `x * x` because our `Value` has no power op yet. Watch the mul closure: *both* branches are `x`, so it fires `x.grad += x.data * out.grad` twice — the $2x$ rule emerges from accumulation, unasked.]
+#notebox[We wrote `x * x` because our `Value` has no power op yet. Watch its mul closure: *both* inputs are `x`, so it fires `x.grad += x.data * out.grad` twice. Two pushes, summed — the $2x$ rule emerges from accumulation, unasked.]
 
-== 35 lines, and it is real #I
+== Walk the graph in the browser #I
 
 #interbox(link-to: IA + "autograd")[
   Walk a computation graph in the browser: symbolic vs finite-difference vs autodiff on one screen, forward values then a step-by-step backward sweep. Rebuild today's $f = (x + y) dot x^2$ in it and watch $33$ and $9$ appear.
 ]
 
 #pause
-#notebox[*Assignment 1 (micrograd) goes out this week.* You take today's 35 lines and grow them Karpathy's way: `tanh`, `exp`, `__pow__`, `__neg__`, broadcasting scalars — then use *your own engine* to fit a small model. The assigned video walks the full 94-line original; watch it before you start.]
+#notebox[*Assignment 1 (micrograd) goes out this week.* You take today's engine and grow it Karpathy's way: `tanh`, `exp`, `__pow__`, `__neg__`, broadcasting scalars — then use *your own engine* to fit a small model. The assigned video walks the full 94-line original; watch it before you start.]
 
 = PyTorch: the industrial engine
 
@@ -790,7 +804,8 @@ b  = torch.tensor( 6.88137, requires_grad=True)
 
 o = torch.tanh(w1*x1 + w2*x2 + b)   # o = 0.7071
 o.backward()
-print(w1.grad, w2.grad, b.grad)     # 1.0   0.0   0.5
+print(w1.grad, w2.grad, b.grad)
+# tensor(1.0000)  tensor(0.)  tensor(0.5000)
 ```]
 
 #pause
@@ -815,9 +830,9 @@ Every step of `loss.backward()` is now one you have done yourself:
 + Adjoints land in `.grad` — millions at a time.
 
 #pause
-#align(center, scale(66%, reflow: true, mlp-diagram((3, 4, 4, 1), labels: ([inputs], [layer 1], [layer 2], [loss]))))
+#align(center, scale(62%, reflow: true, mlp-diagram((3, 4, 4, 1), labels: ([inputs], [layer 1], [layer 2], [loss]))))
 
-#result[The same reverse-sweep procedure applies to larger graphs; work scales with the graph rather than with one separate evaluation per parameter.]
+#result[The same reverse sweep runs on any graph — cost scales with the graph, not the parameter count.]
 
 = Summary & what's next
 
@@ -862,7 +877,7 @@ Compose them and curvature comes free: for scalar $f$, the *Hessian-vector produ
 
 $ H bold(v) = nabla (nabla f(theta)^top bold(v)) quad = quad "forward mode pushed through the reverse-mode program" $
 
-costs a few function evaluations and *never materializes* the $n times n$ Hessian — the trick behind Newton-flavoured optimizers (L18) at scales where $n^2$ storage is fiction. JAX exposes all three as `jvp`, `vjp`, `grad`; see the autodiff cookbook.
+costs a few function evaluations and *never materializes* the $n times n$ Hessian — the trick behind Newton-flavoured optimizers (L18) at scales where $n^2$ storage is infeasible. JAX exposes all three as `jvp`, `vjp`, `grad`; see the autodiff cookbook.
 
 #focus-slide[
   Backprop is just the chain rule with memoization.
