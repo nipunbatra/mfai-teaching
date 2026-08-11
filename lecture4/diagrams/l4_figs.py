@@ -208,7 +208,7 @@ def rank_collapse():
     nv = np.array([2, -1]) / np.sqrt(5) * 2.4
     ax.annotate('', xy=nv, xytext=(0, 0), zorder=6,
                 arrowprops=dict(arrowstyle='-|>', color=RED, lw=2.8, mutation_scale=18))
-    ax.text(nv[0] - 1.6, nv[1] - 0.95, 'the doomed direction:\n$C\\binom{2}{-1}=\\binom{0}{0}$',
+    ax.text(nv[0] - 1.6, nv[1] - 0.95, 'crushed to the origin:\n$C\\binom{2}{-1}=\\binom{0}{0}$',
             color=RED, fontsize=12)
     draw_axes(ax, lim)
 

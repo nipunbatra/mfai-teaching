@@ -15,7 +15,7 @@
 
 = Matrices as transformations in neural networks
 
-== The trick a photo app runs a billion times a day #V
+== Rotate a photo: one matrix moves every pixel #V
 
 #fig("/lecture4/figures/image_transform.svg", w: 82%)
 
@@ -109,7 +109,7 @@ $ S = mat(1, 1; 0, 1) quad — "the ground floor holds still; every higher layer
 $ F = mat(0, 1; 1, 0) quad — "mirror across the line " y = x $
 
 #pause
-The chimney switched sides — no rotation can ever do that. Four matrices, four personalities.
+The chimney switched sides — no rotation can ever do that. Four matrices, four geometrically different moves.
 
 == What all four examples preserved
 
@@ -150,7 +150,7 @@ Matrices multiply vectors of *matching* shape — dimensions in #text(fill: ACC)
 $ underbrace(mat(1, 2, 0; 0, 1, 3), #[#text(fill: BLUE)[$2$] $times$ #text(fill: ACC)[$3$]]) med underbrace(mat(1; 2; 1), #[#text(fill: ACC)[$3$] $times$ #text(fill: GREEN)[$1$]]) = underbrace(mat(1 dot 1 + 2 dot 2 + 0 dot 1; 0 dot 1 + 1 dot 2 + 3 dot 1), #[#text(fill: BLUE)[$2$] $times$ #text(fill: GREEN)[$1$]]) = mat(5; 5) $
 
 #pause
-The general contract — inner dimensions kiss and cancel, outer dimensions survive:
+The general contract — inner dimensions must match and are consumed; outer dimensions survive:
 
 $ (#text(fill: BLUE)[$m$] times #text(fill: ACC)[$n$]) dot (#text(fill: ACC)[$n$] times #text(fill: GREEN)[$1$]) arrow.r (#text(fill: BLUE)[$m$] times #text(fill: GREEN)[$1$]) $
 
@@ -189,11 +189,11 @@ $ T(bold(u) + bold(v)) = T(bold(u)) + T(bold(v)), quad quad T(c bold(u)) = c thi
 - The converse holds too (stated, not proved): *every* linear map $RR^n arrow.r RR^m$ is multiplication by some $m times n$ matrix. There is nothing else.
 
 #pause
-#result[“Matrix” and “linear move of space” are one concept in two costumes.]
+#result[Every matrix is a linear map; every linear map $RR^n arrow.r RR^m$ is a matrix. One concept, two notations.]
 
 = Read the columns
 
-== The trick · watch just two vectors #V
+== Watch just two vectors #V
 
 #fig("/lecture4/figures/basis_tracking.svg", w: 74%)
 
@@ -265,7 +265,7 @@ A "shadow" matrix that flattens everything onto the $x$-axis? $bold(e)_1$ stays,
 $ P = mat(1, 0; 0, 0) $
 
 #pause
-#notebox[That second design *crushed a whole dimension on purpose*. Hold the thought — it returns in ten minutes with a name: rank 1.]
+#notebox[That second design *crushed a whole dimension on purpose* — $P$ is our first *rank-1* matrix. Rank gets its definition in the next section.]
 
 == Checkpoint: identify the transformation #Q
 
@@ -293,7 +293,7 @@ Every "which matrix did this?" puzzle is solved the same way: *watch where the b
 #fig("/lecture4/figures/composition_steps.svg", w: 94%)
 
 #pause
-Rotate with $R$, *then* shear with $S$: the input $bold(x)$ becomes $S(R bold(x))$.
+Rotate with $R = R_(90 degree) = mat(0, -1; 1, 0)$ (the rotation we built by columns), *then* shear with $S = mat(1, 1; 0, 1)$ (Example 3): the input $bold(x)$ becomes $S(R bold(x))$.
 
 #pause
 Two linear moves in a row are still one linear move — so *some single matrix* must do the whole trip. We name it $S R$, written right-to-left: the move nearest $bold(x)$ acts first.
@@ -339,7 +339,7 @@ Track the basis both ways (or grind the entry formula — same result):
 $ S R = mat(1, -1; 1, 0), quad quad R S = mat(0, -1; 1, 1) $
 
 #pause
-Different matrices, as the houses foretold.
+Different matrices — matching the two different final houses in the figure.
 
 #alertbox[$A B eq.not B A$ in general. Matrix multiplication remembers the *order of moves* — "put on socks, then shoes" is not "put on shoes, then socks." Every identity you write this semester must respect it.]
 
@@ -369,7 +369,7 @@ np.allclose((S @ R) @ x, S @ (R @ x))    # True — associativity
 ```]
 
 #pause
-That last line is quietly profound: *precompute the combined move once*, or apply moves one at a time — identical result. Graphics engines and deep-learning compilers live on this choice.
+That last line matters in practice: *precompute the combined move once*, or apply moves one at a time — identical result. Graphics engines and deep-learning compilers rely on this choice.
 
 == Why stacked linear layers need a nonlinearity
 
@@ -405,12 +405,12 @@ So every output — every mix $x_1 bold(a)_1 + x_2 bold(a)_2$ — is a multiple 
 $ C bold(x) = x_1 mat(1; 2) + x_2 mat(2; 4) = (x_1 + 2 x_2) mat(1; 2) quad — "one direction, scaled. The line " y = 2x. $
 
 #pause
-And one whole direction of inputs is *doomed*:
+And one whole direction of inputs is sent to the origin:
 
 $ C mat(2; -1) = 2 mat(1; 2) - 1 mat(2; 4) = mat(0; 0) $
 
 #pause
-The columns fought over the same direction — and an entire dimension of information died in the crossfire.
+Both columns point along the same direction, so one whole input dimension is lost.
 
 == What the columns can reach · column space #V
 
@@ -420,7 +420,7 @@ The columns fought over the same direction — and an entire dimension of inform
 $"col"(A) = "span"{bold(a)_1, ..., bold(a)_n}$ — L3's *span* of the columns: everything $A bold(x)$ can ever reach.
 
 #pause
-Dependent columns shrink the span to a line, and most targets $bold(b)$ become *unreachable* — exactly when $A bold(x) = bold(b)$ has no solution. (File that away; it returns in twenty minutes.)
+Dependent columns shrink the span to a line, and most targets $bold(b)$ become *unreachable* — exactly when $A bold(x) = bold(b)$ has no solution. (We return to $A bold(x) = bold(b)$ in the final section.)
 
 == Rank · the dimension of what survives
 
@@ -456,20 +456,20 @@ $ underbrace("rank"(A), "survives") + underbrace(dim "null"(A), "dies") = underb
 (The *rank–nullity theorem* — stated here, proved in MML 2.7.)
 
 #pause
-#notebox[L5 plant: a direction that $A$ merely *scales* — stretches without turning — is called an *eigenvector*. A doomed direction is the extreme case: an eigenvector with stretch factor $0$. Next lecture is entirely about these special directions.]
+#notebox[L5 preview: a direction that $A$ merely *scales* — stretches without turning — is called an *eigenvector*. A direction crushed to zero is the extreme case: an eigenvector with stretch factor $0$. Next lecture is entirely about these special directions.]
 
 == Rank by hand, one size up
 
 $ A = mat(0, 1, 2; 1, 2, 1; 2, 7, 8) quad — 3 times 3", so rank" <= 3". Hunt for a dependency." $
 
 #pause
-Row 3 is a mix of the others: $3 dot "row 1" + 2 dot "row 2" = (2, 7, 8) = "row 3"$. Only 2 independent rows → $"rank"(A) = 2$.
+Row 3 is a mix of the others: $3 dot "row 1" + 2 dot "row 2" = (2, 7, 8) = "row 3"$. Rows 1, 2 are not proportional, so exactly 2 independent rows → $"rank"(A) = 2$.
 
 #pause
 #notebox[Row rank always equals column rank (MML 2.6), so test dependencies on whichever side is easier. Here the row dependency is immediate.]
 
 #pause
-One more: $X = mat(1, 2, 4, 4; 3, 4, 8, 0)$ is $2 times 4$, so $"rank" <= 2$; its two rows aren't proportional → $"rank"(X) = 2$ — full rank, even though *some* columns repeat each other.
+One more: $X = mat(1, 2, 4, 4; 3, 4, 8, 0)$ is $2 times 4$, so $"rank" <= 2$; its two rows aren't proportional → $"rank"(X) = 2$ — full rank, even though column 3 is $2 times$ column 2.
 
 == The thinnest matrices · outer products #D
 
@@ -490,7 +490,7 @@ Take $bold(u) = mat(1; 2; 3)$ and $bold(v) = mat(4; 5; 6)$. Their *outer product
 )
 
 #pause
-Nine entries, but look at the shading: every column repeats the *same pattern*, just rescaled. This matrix is enormous bureaucracy around very little information.
+Nine entries, but look at the shading: every column repeats the *same pattern*, just rescaled. Nine numbers carrying only one column's worth of independent information.
 
 == Why $"rank"(bold(u) bold(v)^top) = 1$ #D
 
@@ -515,6 +515,8 @@ So the column space is just the line through $bold(u)$: dimension 1 → rank 1. 
 Read the claim backwards: rank-1 outer products are *atoms*, and every matrix is a molecule —
 
 $ A = sigma_1 bold(u)_1 bold(v)_1^top + sigma_2 bold(u)_2 bold(v)_2^top + dots.c + sigma_r bold(u)_r bold(v)_r^top, quad r = "rank"(A) $
+
+for suitable vectors $bold(u)_i, bold(v)_i$ and weights $sigma_i > 0$ (stated here; L6 constructs them).
 
 #pause
 - L6 preview: the *SVD* finds the best atoms, importance-sorted $sigma_1 >= sigma_2 >= dots$ — keep the top few → compression, PCA.
@@ -552,7 +554,7 @@ $ mat(1, -1; 0, 1) mat(1, 1; 0, 1) = mat(1, 0; 0, 1) = I quad #text(fill: GREEN)
 #pause
 When an inverse exists, it is *unique* — there is only one way to perfectly undo a move.
 
-== When can you undo? One test in three costumes
+== When can you undo? Three equivalent tests
 
 For a *square* matrix $A$, these are the same single question:
 
@@ -569,7 +571,7 @@ A matrix passing the test is *invertible* (nonsingular); failing, *singular*.
 #pause
 #result[Invertible $arrow.l.r.double$ full rank $arrow.l.r.double$ nothing is crushed. You can undo a move exactly when it destroyed no information.]
 
-== Checkpoint · spot the un-undoable #Q
+== Checkpoint · spot the singular matrix #Q
 
 #mcq([Without computing a single determinant: which matrix has *no inverse*? (Hint: one of them flattens the plane.)],
   [$mat(0, -1; 1, 0)$],
@@ -578,7 +580,7 @@ A matrix passing the test is *invertible* (nonsingular); failing, *singular*.
   [$mat(2, 0; 0, 1)$],
 )
 
-== Answer · spot the un-undoable #A
+== Answer · spot the singular matrix #A
 
 #mcq-answer([B], [$mat(1, 2; 2, 4)$ is singular],
   [Its second column is $2 times$ the first — dependent columns → rank 1 → the plane is flattened onto a line → two different inputs share each output, so no undo can exist. The rotation (A), shear (C), and scale (D) all keep rank 2: nothing dies, so each can be undone.])
@@ -606,7 +608,7 @@ By hand for two unknowns; but one weather step or network layer has $n approx 10
 
 == On paper, $bold(x) = A^(-1) bold(b)$ · in code, use `solve`
 
-$bold(x) = A^(-1) bold(b)$ is a theorem, *not an algorithm*. Watch both routes on a notoriously nasty (but tiny!) matrix — the $12 times 12$ Hilbert matrix of simple fractions $H_(i j) = 1\/(i + j + 1)$, with true solution all-ones:
+$bold(x) = A^(-1) bold(b)$ is a theorem, *not an algorithm*. Watch both routes on a notoriously nasty (but tiny!) matrix — the $12 times 12$ Hilbert matrix of simple fractions $H_(i j) = 1\/(i + j + 1)$, indices from $0$ as in NumPy, with true solution all-ones:
 
 #codebox[```python
 n = 12; i = np.arange(n)
@@ -615,11 +617,11 @@ x_true = np.ones(n);  b = H @ x_true
 
 err_inv = np.abs(np.linalg.inv(H) @ b - x_true).max()
 err_solve = np.abs(np.linalg.solve(H, b) - x_true).max()
-print(err_inv, err_solve)       # compare; values depend on NumPy/BLAS
+print(err_inv, err_solve)       # here: 8.66 vs 0.14
 ```]
 
 #pause
-The true entries are all $1$. Both routes struggle because $H$ is extremely ill-conditioned; on typical systems the explicit-inverse route also has larger forward error. The exact values vary across NumPy and BLAS versions, which is itself a useful numerical lesson.
+The true entries are all $1$. Both routes struggle because $H$ is extremely ill-conditioned — but on this machine `inv` misses by $8.66$ where `solve` misses by $0.14$, roughly $60 times$ worse. Exact values vary across NumPy/BLAS builds; the ordering is typical.
 
 == Why `solve` wins
 
@@ -631,7 +633,7 @@ The true entries are all $1$. Both routes struggle because $H$ is extremely ill-
 #alertbox[When the task is to solve $A bold(x) = bold(b)$, write `np.linalg.solve(A, b)`. Explicit inverses have legitimate uses, but this is normally not one of them.]
 
 #pause
-#notebox[Honest footnote: $"cond"(H) approx 10^16$, so even `solve` sweated here (error 0.14). Why some matrices *amplify* rounding lies — the condition number — is Lecture 17's opening act.]
+#notebox[Honest footnote: $"cond"(H) approx 10^16$, so even `solve` lost most of its digits here (error $0.14$). Why some matrices *amplify* rounding error — the condition number — is where Lecture 17 begins.]
 
 == Too many equations · tall systems
 
@@ -669,7 +671,7 @@ np.linalg.lstsq(A, b, rcond=None)[0]   # (7/6, 3/2): best line 7/6 + 1.5·t
 ```]
 
 #pause
-#notebox[Two IOUs: *L6* computes least squares at scale (via SVD), and *L14* reveals why *squared* error is the statistically right miss to minimize. Fitting = projection is the bridge.]
+#notebox[Two pointers ahead: *L6* computes least squares at scale (via SVD), and *L14* shows why *squared* error is the statistically right miss to minimize. Fitting = projection is the bridge.]
 
 == Lecture 4 — summary
 
