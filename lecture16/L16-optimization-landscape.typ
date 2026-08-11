@@ -60,7 +60,7 @@
 #let XG = refine(-1.0)     // global minimum  ≈ −1.06
 #let XM = refine(0.1)      // local maximum   ≈  0.13
 #let XL = refine(0.9)      // local minimum   ≈  0.93
-// its 2-D sibling (adds a clean y-bowl), and a rugged cousin for the hook
+// its 2-D sibling (adds a clean y-bowl), and a non-convex comparison
 #let R2(x, y) = dw(x) + 1.2*y*y
 #let rug(x, y) = dw(x) + 1.2*y*y + 0.38*calc.sin(3.1*x)*calc.sin(2.3*y) + 0.22*calc.sin(2.1*y + 0.8)
 
@@ -85,10 +85,10 @@
 
 #title-slide()
 
-// ═══════════════════════════ 1 · the hook ═══════════════════════════
-= The hook: two training runs, two fates
+// ═══════════════════════════ 1 · motivating comparison ═══════════════════════════
+= Two optimization problems
 
-== Same job, two mornings
+== Linear and nonlinear model fitting
 
 Both of these minimize a loss — L14 taught us that's what "fitting" is:
 
@@ -104,12 +104,12 @@ Both of these minimize a loss — L14 taught us that's what "fitting" is:
 )
 
 #pause
-Same species of problem — *minimize a function of the parameters* — wildly different lives.
+Both tasks *minimize a function of the parameters*, but the two objectives have different geometry.
 
 #pause
-#notebox[*Commit to a guess:* is the difference in the _algorithms_, the _hardware_, or the _function being minimized_? Today's lecture is the answer.]
+#notebox[*Question.* Which differences come from the algorithm, and which come from the function being minimized?]
 
-== The answer, before any definitions #V
+== Convex and non-convex objectives #V
 
 The difference is the *shape of the surface* each one walks on:
 
@@ -121,29 +121,29 @@ The difference is the *shape of the surface* each one walks on:
 )
 
 #pause
-- Left: wherever you start, downhill leads to *the* bottom — no tricks required
+- Left: the objective has one basin; every local minimum is global
 #pause
-- Right: valleys, ridges, saddles — where you end up *depends on where you start*
+- Right: the objective can have several valleys, ridges, and saddle points
 
 #pause
-#result[Today's word for the left picture is *convex*. Convexity is the property that makes "just run the optimizer" a mathematically safe instruction.]
+#result[For a convex objective, every local minimum is a global minimum.]
 
-== Module 3 shook hands with Module 4
+== From estimation to optimization
 
-L14 closed with a promise — every fit is a minimization:
+L14 expressed parameter fitting as minimization:
 
 $ hat(theta) = amin_theta underbrace("NLL"(theta), "MSE, BCE, CE, …") quad quad #text(size: 17pt, fill: MUTED)[L14: "Fitting = minimizing NLL. Module 4 is the art of walking downhill."] $
 
 #pause
-Module 4 keeps that promise, one lecture per skill:
+Module 4 studies this minimization problem in six stages:
 
 #align(center, diagram(
   spacing: (13mm, 8mm), node-stroke: 0.9pt,
   {
-    node((0,0), align(center, text(size: 14pt)[*L16* — today \ read the terrain]), shape: fletcher.shapes.rect, fill: ACC.lighten(86%), stroke: ACC, inset: 6pt)
-    node((1,0), align(center, text(size: 14pt)[*L17* \ walk downhill]), shape: fletcher.shapes.rect, fill: white, stroke: INK, inset: 6pt)
-    node((2,0), align(center, text(size: 14pt)[*L18* \ jump (Newton)]), shape: fletcher.shapes.rect, fill: white, stroke: INK, inset: 6pt)
-    node((3,0), align(center, text(size: 14pt)[*L19–20* \ fences (constraints)]), shape: fletcher.shapes.rect, fill: white, stroke: INK, inset: 6pt)
+    node((0,0), align(center, text(size: 14pt)[*L16* \ objective geometry]), shape: fletcher.shapes.rect, fill: ACC.lighten(86%), stroke: ACC, inset: 6pt)
+    node((1,0), align(center, text(size: 14pt)[*L17* \ gradient descent]), shape: fletcher.shapes.rect, fill: white, stroke: INK, inset: 6pt)
+    node((2,0), align(center, text(size: 14pt)[*L18* \ Newton methods]), shape: fletcher.shapes.rect, fill: white, stroke: INK, inset: 6pt)
+    node((3,0), align(center, text(size: 14pt)[*L19–20* \ constraints and KKT]), shape: fletcher.shapes.rect, fill: white, stroke: INK, inset: 6pt)
     node((4,0), align(center, text(size: 14pt)[*L21* \ recognize LP/QP]), shape: fletcher.shapes.rect, fill: white, stroke: INK, inset: 6pt)
     edge((0,0), (1,0), "-|>", stroke: 0.7pt + MUTED)
     edge((1,0), (2,0), "-|>", stroke: 0.7pt + MUTED)
@@ -153,7 +153,7 @@ Module 4 keeps that promise, one lecture per skill:
 ))
 
 #pause
-Before anyone walks anywhere: learn to *read the terrain*. That is today.
+This lecture develops the geometry used by the remaining optimization lectures.
 
 == Learning outcomes
 
@@ -163,11 +163,11 @@ By the end of this lecture you will be able to:
 + Classify flat spots by the Hessian's *eigenvalue signs* — L9's gallery, now on the job.
 + Test a *set* for convexity with segments, and a *function* with chords.
 + Certify convexity fast: $f'' >= 0$ / $H succ.eq 0$, plus the *sum, max, affine-composition* rules.
-+ Prove the module's license plate (⭐): *convex $arrow.r.double$ every local minimum is global*.
++ Prove ⭐ that every local minimum of a convex function is global.
 + Prove *least squares is convex* via $H = 2X^top X succ.eq 0$ (⭐) — and say what deep nets give up.
 
 // ═══════════════════════════ 2 · the predicament ═══════════════════════════
-= The optimizer's predicament
+= Local information available to an optimizer
 
 == The problem, stated once for the whole module
 
@@ -180,9 +180,9 @@ $ min_(theta in RR^d) f(theta) $
 - maximizing is the same craft upside-down: $max f = -min(-f)$ — L14 already negated log-likelihoods for exactly this reason, so *everything from now on is a minimization*
 
 #pause
-#result[One problem shape rules all of ML: $min_theta f(theta)$. The whole module is about this line.]
+#result[The optimization problem is $min_theta f(theta)$; the following lectures differ in how they use information about $f$.]
 
-== You never see the landscape — only a flashlight beam #V
+== Function values, gradients, and Hessians #V
 
 #align(center, lines(
   (
@@ -202,7 +202,7 @@ $ min_(theta in RR^d) f(theta) $
 ))
 
 #pause
-Standing at $theta$, the fog gives you three legal questions — nothing else:
+At a current parameter value $theta$, an optimizer can evaluate three kinds of local information:
 
 #table(
   columns: (auto, 1fr, auto),
@@ -229,12 +229,12 @@ Because $theta$ lives in $RR^d$, and $d$ is not 2. Grid-search with a modest 10 
 )
 
 #pause
-#result[At ML scale, *local probes are all you will ever have.* Optimization is the art of acting globally on local information.]
+#result[Exhaustive search is impossible at ML scale; practical methods use local evaluations of $f$, $nabla f$, and sometimes $H$.]
 
 #pause
-#notebox[This is the module's recurring tension: the flashlight is honest but *near-sighted*. Today we find the one world where near-sighted is enough.]
+#notebox[Local derivatives describe a neighbourhood. Convexity is the additional global property that makes those local statements sufficient.]
 
-== What the probes buy: Taylor, the flashlight's optics
+== Taylor models use local information
 
 L9 built "the formula every optimizer lives on" — today it starts living:
 
@@ -250,22 +250,22 @@ $ f(theta + bold(delta)) thin approx thin underbrace(f(theta), "probe 1") + unde
 // ═══════════════════════════ 3 · stationary points ═══════════════════════════
 = Stationary points: where the search can stop
 
-== Where can a local method stop?
+== Stationary points
 
-While $nabla f(theta) eq.not bold(0)$, the Taylor plane is tilted — a small step against the gradient strictly lowers $f$ (L17 makes this precise). So a sensible walker *keeps moving*.
+While $nabla f(theta) eq.not bold(0)$, the Taylor plane is tilted; a sufficiently small step against the gradient lowers $f$ (L17 makes this precise).
 
 #pause
 $ "it can only park where" quad nabla f(theta) = bold(0) quad "— a" bold("stationary point") $
 
 #pause
-- Also called a *critical point*; the flashlight sees "flat" there
+- Also called a *critical point*; the first-order model is flat there
 #pause
 - But *flat is not the same as bottom* — L7 met smiles, frowns and $x^3$'s fake-out in 1-D
 
 #pause
-#notebox[Optimizers are moths: they can only land on flat spots. The rest of this section is a field guide to flat spots.]
+#notebox[The gradient test finds candidate optima. The Hessian distinguishes minima, maxima, and saddle points.]
 
-== The 1-D field guide, in thirty seconds #V
+== Classifying stationary points in one dimension #V
 
 #align(center, grid(columns: 3, column-gutter: 9mm, row-gutter: 3mm, align: center,
   lines(fn: sq, domain: (-1.4, 1.4), size: (52mm, 31mm), markers: false,
@@ -276,13 +276,13 @@ $ "it can only park where" quad nabla f(theta) = bold(0) quad "— a" bold("stat
     points: ((0.0, 0.0, [neither!]),)),
   text(size: 15pt)[$f'' = 2 > 0$ — smile],
   text(size: 15pt)[$f'' = -2 < 0$ — frown],
-  text(size: 15pt)[$f'' = 6x = 0$ — no verdict],
+  text(size: 15pt)[$f'' = 6x = 0$ — inconclusive],
 ))
 
 #pause
 All three have $f'(0) = 0$. The *second* derivative tells them apart — except when it's $0$, where the test goes silent ($x^3$: neither a min nor a max).
 
-== In $d$ dimensions the field guide is L9's gallery #V
+== Hessian eigenvalues classify the local shape #V
 
 #let gal-s(A, name) = surface(qform(A), xlim: (-1.6, 1.6), ylim: (-1.6, 1.6), samples: 20, cell: 2.1mm, height: 22mm, title: name)
 #align(center, grid(columns: 3, column-gutter: 12mm, row-gutter: 3mm, align: center,
@@ -300,13 +300,13 @@ Curvature became a matrix in L9; its *eigenvalue signs* are the shape. (Eigenval
 #pause
 #result[At a stationary point: $H$'s eigenvalue signs *name the flat spot* — all $+$ min, all $-$ max, mixed $=$ saddle.]
 
-== The verdict table, ready for work
+== The Hessian-eigenvalue test
 
 #table(
   columns: (auto, auto, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*eigenvalues of $H$ at $nabla f = bold(0)$*], [*verdict*], [*what a minimizer should do*]),
+  table.header([*eigenvalues of $H$ at $nabla f = bold(0)$*], [*classification*], [*descent implication*]),
   [all $lambda_i > 0$ (PD)], [local *minimum*], [park — locally, done],
   [all $lambda_i < 0$ (ND)], [local *maximum*], [any direction escapes],
   [mixed signs (indefinite)], [*saddle*], [escape along a $lambda < 0$ eigenvector],
@@ -317,9 +317,9 @@ Curvature became a matrix in L9; its *eigenvalue signs* are the shape. (Eigenval
 Hand tests for $2 times 2$ still apply (L9): $det H < 0 arrow.r$ saddle; $det H > 0$ — read the trace.
 
 #pause
-#alertbox[The verdict is *local*. "All $lambda > 0$" certifies a neighborhood, not the world — hold that thought; it is today's entire plot.]
+#alertbox[This test is local. Positive Hessian eigenvalues certify a local minimum, not a global one.]
 
-== Worked numbers · two flat spots, two fates
+== Worked example: two stationary points
 
 $ f(x, y) = x^3 - 3x + y^2 quad quad nabla f = vec(3x^2 - 3, 2y) = bold(0) quad arrow.r.double quad (x, y) = (plus.minus 1, 0) $
 
@@ -334,7 +334,7 @@ Hessian: $H = mat(6x, 0; 0, 2)$ — depends on where you stand (curvature is loc
 #pause
 And since $f(x, 0) = x^3 - 3x arrow.r -infinity$ as $x arrow.r -infinity$: that "local minimum" is *not* global — nothing is. Flat-spot analysis alone can never tell you this.
 
-== Code: the field guide in six lines
+== Classify both points in NumPy
 
 #codebox[```python
 import numpy as np
@@ -351,11 +351,11 @@ for p in [(1, 0), (-1, 0)]:
 ```]
 
 #pause
-`eigvalsh` is the same three-line ritual as L9 — the new part is what the optimizer *does* with the verdict.
+`eigvalsh` is the same symmetric-eigenvalue calculation used in L9; here the signs determine the local classification.
 
-== Local vs global · the two-valley trap #V
+== A local minimum need not be global #V
 
-Our non-convex mascot for the day, $w(x) = (x^2 - 1)^2 + x\/2$ — every marked value below is computed in-slide (Newton on $w' = 0$):
+Consider the non-convex function $w(x) = (x^2 - 1)^2 + x\/2$. Every marked value below is computed in-slide using Newton's method on $w' = 0$:
 
 #align(center, lines(
   (pts(dw, -1.62, 1.62),),
@@ -374,9 +374,9 @@ Our non-convex mascot for the day, $w(x) = (x^2 - 1)^2 + x\/2$ — every marked 
 - A walker started at $theta = 1.5$ parks at $#fmt(XL, d: 2)$ — flat, curving up, *fully convinced* — and is wrong by $#fmt(dw(XL) - dw(XG), d: 2)$ in loss.
 
 #pause
-#alertbox[No local probe at $#fmt(XL, d: 2)$ — not $f$, not $nabla f$, not $H$ — betrays the better valley at $#fmt(XG, d: 2)$. The flashlight cannot call its bluff.]
+#alertbox[The values of $f$, $nabla f$, and $H$ at $#fmt(XL, d: 2)$ do not reveal the lower minimum at $#fmt(XG, d: 2)$.]
 
-== Checkpoint: what does the flashlight certify? #Q
+== Checkpoint: what do local derivatives certify? #Q
 
 #mcq([An optimizer stops at $hat(theta)$ on a smooth, *unknown* $f: RR^2 arrow.r RR$, with $nabla f(hat(theta)) = bold(0)$ and $H(hat(theta))$ having eigenvalues $2$ and $5$. What is *certain*?],
   [$hat(theta)$ is a local minimum — and that is all we can certify],
@@ -385,7 +385,7 @@ Our non-convex mascot for the day, $w(x) = (x^2 - 1)^2 + x\/2$ — every marked 
   [$f$ is convex],
 )
 
-== Answer: what does the flashlight certify? #A
+== Answer: local derivatives certify a local minimum #A
 
 #mcq-answer("A", [a local minimum — and nothing more],
   [Both eigenvalues positive $arrow.r$ PD $arrow.r$ a genuine local min (L9). But *global* (B) is a claim about all of $RR^2$, and local probes at one point can't reach that far — our two-valley mascot just demonstrated it. (D) reverses today's logic: curvature at *one* point never certifies convexity — $x^3$ has $f''(1) = 6 > 0$ yet isn't convex. Turning "local min" into "global min" needs a *property of $f$*, not a better probe. Enter convexity.])
@@ -397,7 +397,7 @@ Our non-convex mascot for the day, $w(x) = (x^2 - 1)^2 + x\/2$ — every marked 
 
 What we want is a *certificate*:
 
-$ underbrace("local verdict", nabla f = bold(0) ", " H succ.eq 0) + underbrace("a property of" f "as a whole", "?") quad arrow.r.double quad "global claim" $
+$ underbrace("local conditions", nabla f = bold(0) ", " H succ.eq 0) + underbrace("a property of" f "as a whole", "?") quad arrow.r.double quad "global claim" $
 
 #pause
 That property is *convexity*, and it comes in two pieces, buildable in one lecture:
@@ -468,7 +468,7 @@ Take $bold(x) = (4, 1)$ and $bold(y) = (0, 3)$. The mix $t bold(x) + (1 - t) bol
 #pause
 #notebox[Vocabulary you'll meet in Boyd: a *convex combination* is a mix with nonnegative weights summing to 1 — segments are the 2-point case.]
 
-== A field guide of sets #V
+== Examples of convex and non-convex sets #V
 
 #align(center, grid(columns: 3, column-gutter: 8mm, row-gutter: 1.5mm, align: center,
   panel({
@@ -699,7 +699,7 @@ The gallery, re-certified in one line each:
   columns: (auto, auto, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 7pt,
-  table.header([*$f$*], [*$f''$*], [*verdict*]),
+  table.header([*$f$*], [*$f''$*], [*classification*]),
   [$x^2$], [$2 > 0$], [convex on $RR$ (and *strictly* — no flat stretches)],
   [$e^x$], [$e^x > 0$], [convex on $RR$],
   [$ln x$], [$-1\/x^2 < 0$], [concave on $(0, infinity)$],
@@ -760,7 +760,7 @@ Regularizing *cannot break* convexity — L15's "every regularizer is a prior" n
 #pause
 #result[You will almost never chord-check a real objective. You will *assemble* it from certified parts — this table is how convexity scales.]
 
-== Log-sum-exp is convex — L2's hero returns
+== Log-sum-exp is convex
 
 L2 derived $"LSE"(bold(x)) = log sum_i e^(x_i)$ for numerical survival. It is also *convex* — here in 1-D against the max it approximates:
 
@@ -794,10 +794,10 @@ L2 derived $"LSE"(bold(x)) = log sum_i e^(x_i)$ for numerical survival. It is al
 #mcq-answer("D", [$theta_1^2 - theta_2^2$ — a saddle, not a bowl],
   [Its Hessian is $mat(2, 0; 0, -2)$ everywhere — mixed eigenvalue signs, indefinite, the gallery's saddle: not convex (and not concave). The rest assemble from certified parts: (A) sum of convex ✓; (B) max of an affine and a convex ✓; (C) log-sum-exp ✓. Note how you convicted D and certified A–C *without one chord* — the toolkit is the point.])
 
-// ═══════════════════════════ 7 · the ⭐ payoff ═══════════════════════════
-= The payoff: local = global — and least squares
+// ═══════════════════════════ 7 · local and global minima ═══════════════════════════
+= Local and global minima of convex functions
 
-== ⭐ The license plate of convex optimization #D
+== ⭐ Every local minimum of a convex function is global #D
 
 #result[If $f$ is convex, *every local minimum is a global minimum.*]
 
@@ -816,7 +816,7 @@ Proof by picture first — suppose a convex $f$ had a local min $hat(theta)$ *an
 ))
 
 #pause
-The chord from $(hat(theta), f(hat(theta)))$ down to $(bold(z), f(bold(z)))$ starts sloping *down*. Convexity forces the graph to stay *under* that chord — so arbitrarily close to $hat(theta)$ there are strictly lower points. "Local minimum" was a lie. (Our mascot is non-convex — exactly why it *can* hide $bold(z)$ behind a hill.)
+The chord from $(hat(theta), f(hat(theta)))$ to $(bold(z), f(bold(z)))$ slopes downward. Convexity keeps the graph below that chord, so points arbitrarily close to $hat(theta)$ have lower values. This contradicts the assumption that $hat(theta)$ is a local minimum.
 
 == ⭐ The same picture, in four lines of algebra #D
 
@@ -836,9 +836,9 @@ $ f(theta_t) < (1-t) f(hat(theta)) + t f(hat(theta)) = f(hat(theta)) $
 *Contradiction.* As $t arrow.r 0$, $theta_t$ enters *every* ball around $hat(theta)$ — yet each $theta_t$ is strictly lower. No ball certifies $hat(theta)$ as a local min. $qed$
 
 #pause
-#result[Convexity upgrades the flashlight: any parking spot it certifies *locally* is certified *globally*. This theorem is the license the next five lectures drive on.]
+#result[For a convex function, a local minimum cannot coexist with a point having a lower objective value.]
 
-== ⭐ Least squares, the star customer #D
+== ⭐ Least squares is convex #D
 
 The objective L4 set up, L6 solved at scale, L14 crowned as Gaussian NLL:
 
@@ -887,7 +887,7 @@ $f(b, w) = sum_i (b + w x_i - y_i)^2$ over the whole parameter plane — one bas
 #pause
 - When columns of $X$ are linearly dependent (L4's rank!), an eigenvalue of $X^top X$ hits $0$: the bowl grows a *flat trough* of equally-good minimizers — still convex, still all-global, just no longer unique
 
-== The hook, closed
+== Compare the two fitting problems
 
 *Why does the linear model "just work"?*
 
@@ -902,9 +902,9 @@ $f(b, w) = sum_i (b + w x_i - y_i)^2$ over the whole parameter plane — one bas
 #result[Convexity is not a luxury; it is the boundary between "guaranteed" and "we'll see". Know which side your problem lives on.]
 
 // ═══════════════════════════ 8 · non-convex reality ═══════════════════════════
-= Life without the promise — and the road ahead
+= Non-convex objectives
 
-== Anatomy of a non-convex landscape #V
+== Several features of a non-convex objective #V
 
 Our mascot's 2-D sibling, $R(x, y) = (x^2 - 1)^2 + x\/2 + 1.2 y^2$ — all three flavors of flat spot in one place (marks placed by the in-slide Newton solver):
 
@@ -941,11 +941,11 @@ Heuristic: at a random stationary point, each eigenvalue's sign is roughly a coi
 )
 
 #pause
-- Good news hiding inside: a saddle has a $lambda < 0$ eigen-direction — a visible downhill escape (L17–L18 exploit it); saddles *slow* walkers, they rarely trap them
+- A saddle has a $lambda < 0$ eigen-direction that provides a local descent direction; saddles often slow first-order methods without being local minima
 #pause
 - The heuristic is honest hand-waving; random-matrix theory makes it rigorous (Dauphin et al., 2014 — DL course territory)
 
-== Plateaus: where the flashlight goes dark
+== Plateaus: small gradients away from an optimum
 
 #align(center, lines(
   (pts(x => 1.0 - calc.exp(-x * x), -3.9, 3.9, n: 120),),
@@ -964,8 +964,8 @@ Heuristic: at a random stationary point, each eigenvalue's sign is roughly a coi
 
 == Lecture 16 — summary
 
-- *One problem shape*: $min_theta f(theta)$ — and you only ever hold local probes $f, nabla f, H$ at your current $theta$ (Taylor is the flashlight).
-- *Stationary points* $nabla f = bold(0)$: classified by $H$'s eigenvalue signs (L9) — bowl / dome / saddle; the verdict is local only.
+- *One problem shape*: $min_theta f(theta)$ — evaluated through $f$, $nabla f$, and sometimes $H$ at the current $theta$.
+- *Stationary points* $nabla f = bold(0)$: classified locally by the signs of $H$'s eigenvalues (L9) — minimum, maximum, or saddle.
 - *Convex set*: segments never leave. *Convex function*: chords never dip below the graph; epigraph ties the two.
 - *Certify fast*: $f'' >= 0$ / $H succ.eq 0$ everywhere; or assemble from rules — scale, sum, affine composition, max; log-sum-exp is convex (a variance says so).
 - ⭐ *Convex $arrow.r.double$ local = global* — the four-line chord contradiction.
@@ -1018,7 +1018,7 @@ Log-sum-exp is convex but not *strictly*: its bowl has one perfectly flat rail.
 - That flat direction *is* L2's softmax shift-invariance — subtract-the-max just slides along the rail where nothing changes. Geometry and numerics, one fact.
 
 #focus-slide[
-  Convexity is a promise: what you see locally is the truth globally.
+  For a convex objective, every local minimum is global.
   #v(12pt)
   #set text(size: 22pt)
   Next: *Gradient Descent* — now we actually walk downhill: trust the linear model for one small step, and repeat.

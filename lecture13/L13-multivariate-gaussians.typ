@@ -64,8 +64,8 @@
 
 #title-slide()
 
-// ═══════════════════════════ 1 · the hook ═══════════════════════════
-= The hook: the aristocrat of distributions
+// ═══════════════════════════ 1 · motivation ═══════════════════════════
+= Why multivariate Gaussians appear in ML
 
 == One word stalks every ML paper you will ever read
 
@@ -239,7 +239,7 @@ $ p(bold(x)) = underbrace(1/((2 pi)^(d\/2) thin det(Sigma)^(1\/2)), "volume book
 - *Sanity check* $d = 1$, $Sigma = (sigma^2)$: $det(Sigma)^(1\/2) = sigma$, $Sigma^(-1) = 1\/sigma^2$ — L12's bell, exactly.
 
 // ═══════════════════════════ 3 · reading Σ ═══════════════════════════
-= Reading $Sigma$: the shape dial
+= Reading the covariance matrix $Sigma$
 
 == The covariance matrix, defined
 
@@ -284,7 +284,7 @@ $ Sigma = mat(2, 1; 1, 2) $
 *L5's running matrix.* You already know its secrets by heart: eigenvectors $(1, 1)$ and $(1, -1)$, eigenvalues $3$ and $1$. File that away — in the ⭐ section it becomes a picture.
 
 #pause
-One more L9 payoff. For any direction $bold(a)$, the variance of the *projection* $bold(a)^top bold(x)$ is
+For any direction $bold(a)$, the variance of the projection $bold(a)^top bold(x)$ is
 
 $ "Var"(bold(a)^top bold(x)) = bold(a)^top Sigma thin bold(a) quad #text(fill: MUTED)[— a quadratic form again, and variances can't be negative…] $
 
@@ -453,7 +453,7 @@ $ mu_(x|7) = 3 + 1/2 (7 - 5) = 4 quad quad sigma_(x|y)^2 = 2 - 1/2 = 1.5 quad #t
 )
 
 #pause
-Superpower 3 from the hook: *closed under every operation ML performs daily* — each with an explicit formula, no integral ever computed.
+The Gaussian family is closed under common linear operations used in ML, each with an explicit formula.
 
 #pause
 #notebox[This closure is why *Kalman filters* track rockets in real time and *Gaussian processes* fit in a page of code: every update is "Gaussian in, Gaussian out". General block formulas: MML §6.5.]
@@ -528,7 +528,7 @@ $ d_M^2 (bold(x)) = (bold(x) - bold(mu))^top Sigma^(-1) (bold(x) - bold(mu)) $
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[same four level values on both plots, $Sigma = mat(delim: "(", 2, 1; 1, 2)$ — the Mahalanobis unit ball is the covariance ellipse itself])
 
-== Numbers: the verdict, computed
+== Compute the conditional distribution
 
 The slide inverts $Sigma$ live (chalkdust `la.inv`):
 
@@ -670,12 +670,12 @@ $ (X_1 + dots.c + X_n - n mu) / (sigma sqrt(n)) arrow.r quad cal(N)(0, 1) quad "
 #pause
 - The summands' own distribution *washes out* — only mean and variance survive the averaging.
 #pause
-- This is superpower 1: real-world noise (sensor error, measurement jitter, aggregate effects) is a *sum of many small independent pushes* — so the Gaussian noise model isn't lazy, it's the CLT's prediction.
+- Sensor error, measurement jitter, and aggregate effects often combine many small independent contributions, so the central limit theorem motivates Gaussian noise models.
 
 #pause
 #notebox[*Honesty:* we demoed the CLT and stated it; the proof needs tools (characteristic functions) beyond this course — see MML §6.4 for pointers. "Stated with pictures, cited, not proved" is our contract for it.]
 
-== Superpower 2: the most honest bump (stated, planted)
+== The Gaussian maximizes entropy at fixed variance
 
 *Fact (maximum entropy).* Among *all* densities on $RR$ with a given mean $mu$ and variance $sigma^2$, the Gaussian has the largest *entropy* — it is the least committed, most spread-out choice consistent with those two facts.
 
@@ -687,7 +687,7 @@ $ (X_1 + dots.c + X_n - n mu) / (sigma sqrt(n)) arrow.r quad cal(N)(0, 1) quad "
 #pause
 #result[CLT: the Gaussian is where sums *end up*. Max entropy: it's where honesty *starts*. Two independent roads, one destination.]
 
-== The hook, resolved
+== Summary of the Gaussian modelling assumptions
 
 Why "Gaussian" in every ML paper:
 
@@ -695,7 +695,7 @@ Why "Gaussian" in every ML paper:
   columns: (auto, 1fr, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 7pt,
-  table.header([*superpower*], [*what it buys*], [*status*]),
+  table.header([*property*], [*modelling consequence*], [*status*]),
   [CLT], [aggregated noise is *born* Gaussian], [demoed today],
   [max entropy], [the *least-assuming* model given $bold(mu)$, $Sigma$], [stated → L22],
   [closure], [marginals, conditionals, sums: *closed forms*], [seen today],

@@ -56,7 +56,7 @@
 
 #title-slide()
 
-= The hook: every loss curve is secretly a parabola
+= Local linear and quadratic models of a loss
 
 == Zoom in on any loss curve #V
 
@@ -267,7 +267,7 @@ Shrink $h$ by $10 times$ #sym.arrow.r error shrinks $100 times$; the *relative* 
 == Answer: predict with a derivative #A
 
 #mcq-answer([A], [$f(2.1) approx 4.7$],
-  [Local line: $f(2 + 0.1) approx f(2) + f'(2) times 0.1 = 5 + (-3)(0.1) = 4.7$. B flips the sign of the sensitivity; C uses $h = 0.01$; D subtracts $f'$ itself instead of $f' dot h$ — a units crime: sensitivity must be _scaled by the nudge_.])
+  [Local line: $f(2 + 0.1) approx f(2) + f'(2) times 0.1 = 5 + (-3)(0.1) = 4.7$. B flips the sign of the derivative; C uses $h = 0.01$; D subtracts $f'$ without multiplying by the displacement $h$.])
 
 = Rules, and the chain that runs ML
 
@@ -367,7 +367,7 @@ At a critical point ($f'(x_0) = 0$), read the curvature:
   columns: (auto, 1fr, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*curvature*], [*local shape*], [*verdict*]),
+  table.header([*curvature*], [*local shape*], [*classification*]),
   [$f''(x_0) > 0$], [smile — curve sits _above_ its flat tangent], [local *min*],
   [$f''(x_0) < 0$], [frown — curve sits _below_ its flat tangent], [local *max*],
   [$f''(x_0) = 0$], [test is silent], [look further],
@@ -435,7 +435,7 @@ $ f(x_0 + h) thin approx thin f(x_0) + f'(x_0) thin h + (f''(x_0)) / 2! thin h^2
 - Each term is a *correction* the previous order couldn't see.
 
 #pause
-#result[Taylor's promise: near $x_0$, any smooth function can be *replaced by a polynomial* — and polynomials we can evaluate, minimize, and reason about.]
+#result[Near $x_0$, Taylor's formula approximates a smooth function by a polynomial whose coefficients are its derivatives at $x_0$.]
 
 == ⭐ Second-order Taylor of $cos x$, step 1: harvest #D
 
@@ -601,7 +601,7 @@ The terms *rise first* — then $k!$ catches up and crushes them. Enough terms d
 
 = What this buys ML
 
-== The hook, resolved
+== Apply the quadratic model to the opening loss
 
 Zoom near a minimum $theta^*$ and Taylor-expand the loss there:
 
@@ -618,7 +618,7 @@ Anywhere else, $cal(L)' eq.not 0$: the line term dominates all others for small 
 
 == See it on today's loss #V
 
-Our hook's loss near its minimum ($theta^* = -1.497$, $cal(L)^* = 0.828$, $cal(L)'' (theta^*) = 9.39$) against the pure parabola $cal(L)^* + 4.69 thin (theta - theta^*)^2$:
+Near its minimum ($theta^* = -1.497$, $cal(L)^* = 0.828$, $cal(L)'' (theta^*) = 9.39$), compare the opening loss with the quadratic model $cal(L)^* + 4.69 thin (theta - theta^*)^2$:
 
 #align(center, lines(
   fn: (wig, t => LSTAR + 0.5 * KSTAR * calc.pow(t - TSTAR, 2)),
@@ -660,7 +660,7 @@ Continuity ledger — *planted today, paid off later*:
 - *Flat + curvature*: $f' = 0$ finds candidates; the sign of $f''$ classifies them — usually.
 - *Taylor*: match $n$ derivatives, repair by $k!$; ⭐ $cos x approx 1 - x^2 slash 2$, error $approx x^4 slash 24$.
 - *Radius*: local testimony expires at the nearest disaster ($ln(1 + x)$ past $abs(x) = 1$; $cos$ never).
-- *Payoff*: at minima the line term dies — every smooth loss bottoms out as a parabola (L16–L18).
+- *At a smooth minimum*: the linear term vanishes and the Hessian determines the local quadratic shape used in L16–L18.
 
 #pause
 #notebox[*Watch:* 3b1b _Essence of Calculus_ ch. 1–4 + the Taylor video. *Read before L8:* MML §5.1. *T4* (after L8): derivative and chain-rule drills in NumPy.]

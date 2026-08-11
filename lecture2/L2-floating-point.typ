@@ -13,9 +13,9 @@
 
 #title-slide()
 
-= The hook: a body at the crime scene
+= A softmax computation that returns `nan`
 
-== Last time, we left a body at the crime scene #V
+== The numerical failure from Lecture 1 #V
 
 617 steps of beautiful training, then `nan` forever:
 
@@ -26,7 +26,7 @@ Today we solve it — and learn the fix used inside *every* ML framework you wil
 
 == Exhibit B · a one-line scandal
 
-Before the big mystery, a small one. Type this into any Python prompt:
+First, type this into any Python prompt:
 
 #codebox[```python
 >>> 0.1 + 0.2 == 0.3
@@ -111,7 +111,7 @@ $ 6.022 times 10^23 $
 
 #pause
 - *A few significant digits* (the _mantissa_: 6.022) — the precision
-- *A magnitude dial* (the _exponent_: 23) — the range
+- *A magnitude field* (the _exponent_: 23) — controls the range
 
 #pause
 Same digit budget describes atoms ($10^(-27)$ kg) or stars ($10^30$ kg): the point _floats_ to where it's needed.
@@ -182,7 +182,7 @@ Decimal('0.100000001490116119384765625')
 #pause
 #result[There is *no 0.1* in floating point. There never was.]
 
-== Mystery of `0.1 + 0.2`, resolved
+== Why `0.1 + 0.2 != 0.3`
 
 What float64 _actually stores_ (every digit below is exact):
 
@@ -198,7 +198,7 @@ What float64 _actually stores_ (every digit below is exact):
 )
 
 #pause
-Two _different_ doubles → `==` says `False`. Case closed.
+The two calculations produce different adjacent floating-point values, so `==` returns `False`.
 
 #pause
 #alertbox[Never compare floats with `==`. Use `np.isclose(a, b)` / `math.isclose(a, b)` — every test suite you write in this course will.]
@@ -294,7 +294,7 @@ The range boundary isn't some astronomical corner case. For `exp`:
 )
 
 #pause
-#result[A score of *89* is all it takes to overflow float32. Your model _will_ produce one — Mystery 1's logits were \~1000.]
+#result[In float32, $e^z$ overflows for $z$ near $89$; the opening logits around $1000$ therefore overflow.]
 
 = Catastrophic cancellation
 
@@ -313,7 +313,7 @@ Both inputs had *8* correct digits. The result has *1* — and if the inputs wer
 #pause
 Nothing "overflows" — the answer is just quietly wrong.
 
-== Worked crime 1 · the quadratic formula #D
+== Worked example 1: the quadratic formula #D
 
 Solve $x^2 - 10000x + 1 = 0$ in float32. The small root, two algebraically identical ways:
 
@@ -337,7 +337,7 @@ The naive formula returned *zero* — a 100% error — with no warning of any ki
 #pause
 Same math on paper. In float32, one drifts to 100% error; the other sits at machine epsilon.
 
-== Worked crime 2 · variance, two ways
+== Worked example 2: two variance formulas
 
 Textbooks give two equal formulas for variance. Try both on `[10000.0, 10000.1, 10000.2]` (true variance ≈ *0.00667*), in float32:
 
@@ -381,7 +381,7 @@ $ log sum_i e^(x_i) = log sum_i e^m e^(x_i - m) = log (e^m sum_i e^(x_i - m)) = 
 Every exponent $x_i - m <= 0$, so every $e^(x_i - m) in (0, 1]$: *nothing can overflow* — and the largest term is exactly $1$, so no total underflow either.
 
 #pause
-*Check* on Mystery 1's scores $[1000, 1001, 1002]$:
+*Check* on the opening scores $[1000, 1001, 1002]$:
 
 $ "LSE" = 1002 + log(e^(-2) + e^(-1) + e^0) = 1002 + log(1.503) = 1002.41 quad ✓ $
 
@@ -392,7 +392,7 @@ Softmax is *shift-invariant* — multiply top and bottom by $e^(-c)$:
 $ "softmax"(bold(z))_i = e^(z_i) / (sum_j e^(z_j)) = e^(z_i - c) / (sum_j e^(z_j - c)) quad "for any" c $
 
 #pause
-Choose $c = max_j z_j$. On the crime-scene scores $bold(z) = [1000, 1001, 1002]$:
+Choose $c = max_j z_j$. For $bold(z) = [1000, 1001, 1002]$:
 
 #table(
   columns: (auto, auto, auto, auto, 1fr),
@@ -435,7 +435,7 @@ array([0.09003057, 0.24472847, 0.66524096])
 #pause
 Five lines you will reuse in Tutorial 1, in L14 (MLE), in L24 (cross-entropy), and in L26's language model.
 
-== Mystery 1 · case closed
+== Stable softmax avoids the overflow
 
 What actually happened at step 618:
 
@@ -570,5 +570,5 @@ The smallest _normal_ float32 is $2^(-126) approx 1.18 times 10^(-38)$. Without 
   Computers don't do real numbers — they do \~4 billion of them, unevenly spaced.
   #v(12pt)
   #set text(size: 22pt)
-  Next: *vectors* — Mystery 3: how "king − man + woman ≈ queen" can possibly work.
+  Next: *vectors* — how direction and displacement explain `king − man + woman ≈ queen`.
 ]

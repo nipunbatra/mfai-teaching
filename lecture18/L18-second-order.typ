@@ -8,7 +8,7 @@
 #import "../common/mldiag.typ": *
 #show: metropolis-deck.with(
   title: [Second-Order Methods],
-  subtitle: [Newton, Gauss-Newton & the trust dial],
+  subtitle: [Newton, Gauss-Newton, and Levenberg–Marquardt],
 )
 
 #let IA = "https://nipunbatra.github.io/interactive-articles/"
@@ -95,8 +95,8 @@
 
 #title-slide()
 
-// ═══════════════════ 1 · the hook ═══════════════════
-= The hook: inside scipy's curve fitter
+// ═══════════════════ 1 · motivating example ═══════════════════
+= Nonlinear least squares in `scipy`
 
 == A sensor, a decay, eight points #V
 
@@ -123,21 +123,21 @@ popt, pcov = curve_fit(model, t, y, p0=(1.0, 0.2))
 No learning rate. No 10,000 iterations. It lands on the answer in *about six steps*.
 
 #pause
-#notebox[The docs say `method='lm'` — *Levenberg–Marquardt*. What is that? By the end of today you will have built it, piece by piece, and these exact numbers will fall out.]
+#notebox[`method='lm'` selects Levenberg–Marquardt. We will derive the method and reproduce these fitted parameters.]
 
-== Today, in one sentence
+== From a linear model to a quadratic model
 
 L17's gradient descent trusted a *line* — and paid for it in steps, with the condition number $kappa$ setting the price.
 
 #pause
-#result[If a linear model buys one step, a *quadratic* model buys a jump straight to the bottom of its bowl.]
+#result[A quadratic local model has a finite minimizer; solving for it gives the Newton step.]
 
 #pause
 - *Newton*: model the loss with L9's quadratic Taylor, jump to the model's minimum.
 #pause
 - *Gauss-Newton*: when the loss is a *sum of squares*, get the curvature almost free.
 #pause
-- *Levenberg–Marquardt*: a trust dial between the two worlds — the thing inside `curve_fit`.
+- *Levenberg–Marquardt*: damp the Gauss-Newton system when its local model is unreliable.
 
 == Learning outcomes
 
@@ -148,7 +148,7 @@ By the end of this lecture you will be able to:
 + Run Newton by hand in 1-D and recognize *quadratic convergence* (digits double).
 + Price a Newton step ($d^2$ memory, $d^3$ solve) and name its failure modes (saddles, ascent).
 + Set up *nonlinear least squares*: residual vector $bold(r)$, its Jacobian $J$, $nabla cal(L) = J^top bold(r)$.
-+ Derive the *Gauss-Newton* system $(J^top J) bold(delta) = -J^top bold(r)$ and read LM's $lambda$ dial.
++ Derive the *Gauss-Newton* system $(J^top J) bold(delta) = -J^top bold(r)$ and interpret LM's damping parameter $lambda$.
 + Say precisely what `scipy.optimize.curve_fit` runs.
 
 // ═══════════════════ 2 · a parabola instead of a line ═══════════════════
@@ -168,7 +168,7 @@ $ f(bold(x) + bold(delta)) approx f(bold(x)) + nabla f(bold(x))^top bold(delta) 
 #pause
 #notebox[A line has no bottom. However far you trust it, it only ever says "downhill is that way" — never "stop *here*".]
 
-== L9's gift: the model with a bottom
+== The second-order Taylor model has a minimizer
 
 L9 built the *second-order* Taylor model and promised it would run Module 4:
 
@@ -290,9 +290,9 @@ $ bold(x)_1 = bold(x)_0 - A^(-1)(A bold(x)_0 + bold(b)) = bold(x)_0 - bold(x)_0 
 #pause
 #result[On a quadratic, the model *is* the function — one jump, done, and $kappa$ never entered the formula.]
 
-== The $kappa = 50$ bowl: crawl vs teleport #V
+== Compare gradient descent and Newton on $kappa=50$ #V
 
-L17's torture chamber, $f = 1/2(x^2 + 50 y^2)$, same start — both trajectories computed live:
+Use the same start on $f = 1/2(x^2 + 50 y^2)$; both trajectories are computed in the slide:
 
 #align(center, stack(dir: ltr, spacing: 8mm,
   contour(ad.fn2(bowl50), xlim: (-2.6, 2.6), ylim: (-0.9, 0.9),
@@ -327,7 +327,7 @@ newton(lambda x: A @ x, lambda x: A, np.array([-2.2, 0.65]), steps=1)
 #pause
 Compare L17's tuning ritual: no `lr=`, no schedule, no divergence watch. The price appears later — first, let's enjoy it on functions that *aren't* parabolas.
 
-== Checkpoint: one step, no dial #Q
+== Checkpoint: Newton on a quadratic #Q
 
 #mcq([Newton's method is applied to $f(x) = 3(x - 2)^2$ starting at $x_0 = 10$. Where is $x_1$?],
   [$x_1 = 2$],
@@ -336,17 +336,17 @@ Compare L17's tuning ritual: no `lr=`, no schedule, no divergence watch. The pri
   [Cannot say — depends on the learning rate],
 )
 
-== Answer: one step, no dial #A
+== Answer: one step reaches the quadratic minimum #A
 
 #mcq-answer("A", [$x_1 = 2$, the exact minimum],
-  [$f$ is a quadratic, so Newton's parabola *is* $f$: $f'(10) = 6(10 - 2) = 48$, $f'' = 6$, $delta = -48/6 = -8$, $x_1 = 2$. One jump, done. And option D is a trap worth savoring: Newton has *no learning rate* — the curvature $f''$ already decides how far a given slope should be trusted.])
+  [$f$ is quadratic, so the second-order model equals $f$: $f'(10) = 6(10 - 2) = 48$, $f'' = 6$, $delta = -48/6 = -8$, and $x_1 = 2$. Newton has no learning rate; the curvature $f''$ scales the gradient.])
 
 // ═══════════════════ 4 · beyond quadratics ═══════════════════
 = Newton beyond quadratics
 
 == Not a parabola? Re-model and jump again
 
-Real losses aren't quadratics — the model is only a *local rumor*. So iterate:
+For a non-quadratic objective, the model is local, so recompute it after every step:
 
 $ bold(x)_(k+1) = bold(x)_k - H(bold(x)_k)^(-1) nabla f(bold(x)_k) quad quad "(1-D: " x_(k+1) = x_k - f'(x_k) slash f''(x_k) ")" $
 
@@ -417,15 +417,15 @@ $ norm(bold(e)_(k+1)) <= C norm(bold(e)_k)^2 quad quad "— \"quadratic converge
 #pause
 - GD's *linear* convergence multiplies the error by a constant (L17: $1 - 1/kappa$, painful for large $kappa$); Newton *squares* it — and squaring doesn't care about $kappa$.
 #pause
-- The catch is the word *near*: far from the minimum the parabola is a rumor about a place it's never been. No global promise.
+- The qualification is *near*: far from the minimum, the quadratic approximation may be inaccurate.
 
 #pause
-#alertbox[Newton is a *finisher*, not an explorer: started close, it's unbeatable; started far, it can jump anywhere — including uphill. The next section is the bill and the crash reel.]
+#alertbox[Newton converges rapidly when initialized near a suitable minimum. Far away, the step can increase the objective or converge to another stationary point.]
 
-// ═══════════════════ 5 · the bill and the dangers ═══════════════════
-= The bill and the dangers
+// ═══════════════════ 5 · cost and failure modes ═══════════════════
+= Computational cost and failure modes
 
-== The bill: what a step costs at AI scale
+== Computational cost of one Newton step
 
 For $d$ parameters, per iteration:
 
@@ -444,7 +444,7 @@ At L9's modest network, $d = 10^6$: $H$ has $10^12$ entries $approx$ *4 TB* in f
 #pause
 #result[Newton's genius is per-*step*; its cost is per-*dimension, cubed*. In 2-D it's free. At $10^6$-D it's fantasy.]
 
-== Danger 1: saddles pull it in #V
+== Newton can converge to a saddle point #V
 
 Newton chases $nabla f = bold(0)$ — and (L16) a saddle *is* a $nabla f = bold(0)$ point. On $f = 1/2(x^2 - y^2)$:
 
@@ -462,7 +462,7 @@ Newton chases $nabla f = bold(0)$ — and (L16) a saddle *is* a $nabla f = bold(
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[GD leaks along $-y$ and escapes downhill; Newton's model of a saddle is the saddle — its "jump to the stationary point" lands *on* it, in one step])
 
-== Danger 2: negative curvature points it uphill #V
+== An indefinite Hessian can produce an ascent direction #V
 
 On a double well, stand at $x_k = #fmt(xd, d: 1)$ where $f'' = #fmt(fppd, d: 2) < 0$ — the parabola *frowns*:
 
@@ -482,7 +482,7 @@ On a double well, stand at $x_k = #fmt(xd, d: 1)$ where $f'' = #fmt(fppd, d: 2) 
 #pause
 #alertbox[When $H$ is not positive definite, $-H^(-1) nabla f$ need not point downhill. Newton without a safety check is only trustworthy where the world is bowl-shaped.]
 
-== The repair shop
+== Damping, line search, and trust regions
 
 All practical second-order methods are Newton plus a seatbelt:
 
@@ -518,7 +518,7 @@ $ r_i (bold(theta)) = a thin e^(-b t_i) - y_i, quad quad cal(L)(bold(theta)) = 1
 #pause
 #notebox[The $1/2$ is cosmetics: it cancels the 2 that differentiation drops. This *shape* — squared residuals — is everywhere: calibration, GPS, camera bundle adjustment, regression.]
 
-== The residual is a vector-valued map — L9's customer
+== The residual vector and its Jacobian
 
 $bold(r): RR^2 -> RR^8$ — two parameters in, eight misses out. Its derivative is a *Jacobian* (L9): one row per residual, one column per parameter, $8 times 2$:
 
@@ -612,7 +612,7 @@ $ mat(4.403, -5.488; -5.488, 11.938) bold(delta) = vec(2.894, -0.937) quad arrow
 From $(1.0, 0.2)$ straight to $(2.31, 0.72)$ — one solve of a 2×2 system.
 
 #pause
-#notebox[$b$ *overshot* (true best: 0.563): the linearization was a rumor too, far from the fit. No panic — iterate.]
+#notebox[$b$ overshoots the fitted value $0.563$ on the first step because the residual linearization is local. Recompute it and continue.]
 
 == The run: five solves to machine precision
 
@@ -639,9 +639,9 @@ $b$ rings — overshoot, undershoot, settle — as each linearization corrects t
 #fig("/lecture18/figures/gn_evolution.svg", w: 98%)
 
 #pause
-Iteration 0 is a limp guess; one solve later the curve has snapped to the data; by 2 it's fitting *noise-level* detail. This is the six-step magic the hook promised.
+The first solve moves close to the data; by iteration 2 the remaining error is comparable to the observation noise.
 
-== The whole journey in the $(a, b)$ plane #V
+== Parameter trajectory in the $(a, b)$ plane #V
 
 #fig("/lecture18/figures/gn_landscape.svg", w: 62%)
 
@@ -666,11 +666,11 @@ for _ in range(6):
 Residuals, Jacobian, one small solve — no Hessian code anywhere, and no learning rate.
 
 // ═══════════════════ 8 · Levenberg–Marquardt ═══════════════════
-= Levenberg–Marquardt: the trust dial
+= Levenberg–Marquardt damping
 
-== When Gauss-Newton stumbles
+== When the Gauss-Newton model is unreliable
 
-Gauss-Newton inherits Newton's temper, because it trusts a *model* built from a rumor:
+Gauss-Newton can fail when its local residual model is inaccurate or poorly conditioned:
 
 - Far from the fit, the linearization lies — our very first step overshot $b$ by 29%.
 #pause
@@ -681,12 +681,12 @@ Gauss-Newton inherits Newton's temper, because it trusts a *model* built from a 
 #pause
 Section 5 already prescribed the seatbelt: *damp it* — add $lambda I$ before solving.
 
-== One dial between two optimizers
+== The damping parameter $lambda$
 
 #result[*Levenberg–Marquardt:* $(J^top J + lambda I) thin bold(delta) = -J^top bold(r)$]
 
 #pause
-Turn the dial and watch who's in charge:
+The two limiting cases explain the effect of $lambda$:
 
 - $lambda -> 0$: the damping vanishes — *pure Gauss-Newton*, full quadratic confidence.
 #pause
@@ -695,7 +695,7 @@ Turn the dial and watch who's in charge:
 #pause
 One scalar interpolates between "jump to the model's bottom" and "inch downhill".
 
-== The dial, drawn #V
+== How $lambda$ changes the step #V
 
 All steps solved from the same $bold(theta)_0$ on the real problem — only $lambda$ moves:
 
@@ -704,7 +704,7 @@ All steps solved from the same $bold(theta)_0$ on the real problem — only $lam
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[as $lambda$ climbs, the step *shrinks* and *swings* from the Gauss-Newton jump into the $-nabla cal(L)$ direction — confidence draining continuously out of the model])
 
-== The $lambda$ policy: trust is earned
+== Adapt $lambda$ using the observed loss
 
 $lambda$ isn't tuned by you — it's adjusted *by results*, every iteration:
 
@@ -723,7 +723,7 @@ A feedback controller with one state variable. Far away it behaves like safe GD;
 #pause
 #notebox[This is Section 5's trust-region idea compressed into a scalar: $lambda$ small = big trust region, $lambda$ large = tiny one.]
 
-== The hook, resolved
+== Reproduce `curve_fit` on the sensor data
 
 `scipy.optimize.curve_fit(model, t, y, method='lm')` runs exactly this loop — MINPACK's `lmdif`, Fortran from 1980, still fitting the world's sensors:
 
@@ -739,18 +739,18 @@ Same answer to six decimals — on this easy, well-started problem LM's $lambda$
 #pause
 - You never supplied a derivative: it builds $J$ by *finite differences* (L10's tool, ideal at $d = 2$).
 #pause
-#result[`curve_fit` = Gauss-Newton + the $lambda$ trust dial + finite-difference Jacobians. You have now built every piece.]
+#result[`curve_fit(method='lm')` combines Gauss-Newton, adaptive damping, and finite-difference Jacobians.]
 
 == Interactive: beyond gradient descent #I
 
 #interbox(link-to: IA + "optimizers-beyond")[
-  Race Newton and BFGS against gradient descent on 2-D losses: watch Newton teleport on the bowl, dive into the saddle, and go feral far from the minimum — then see damping tame it.
+  Compare Newton and BFGS with gradient descent on 2-D objectives; inspect the quadratic, saddle, and poorly initialized cases, then add damping.
 ]
 
 #pause
 Try the ill-conditioned bowl first: it is this lecture's $kappa = 50$ picture, live.
 
-== Checkpoint: reading the dial #Q
+== Checkpoint: large Levenberg–Marquardt damping #Q
 
 #mcq([In Levenberg–Marquardt, cranking $lambda$ *up* makes the step approach…],
   [the pure Gauss-Newton step],
@@ -759,10 +759,10 @@ Try the ill-conditioned bowl first: it is this lecture's $kappa = 50$ picture, l
   [a step of fixed length in a random descent direction],
 )
 
-== Answer: reading the dial #A
+== Answer: the step approaches scaled gradient descent #A
 
 #mcq-answer("B", [a tiny step along $-nabla cal(L)$],
-  [For large $lambda$, $(J^top J + lambda I) approx lambda I$, so $bold(delta) approx -1/lambda J^top bold(r) = -1/lambda nabla cal(L)$: the *direction* becomes the negative gradient and the *length* shrinks like $1 slash lambda$ — the dial controls both at once. (C is the other trap: LM never sees the true Hessian; even at $lambda = 0$ it has only $J^top J$, the second-derivative-free approximation.)])
+  [For large $lambda$, $(J^top J + lambda I) approx lambda I$, so $bold(delta) approx -1/lambda J^top bold(r) = -1/lambda nabla cal(L)$. The direction approaches the negative gradient and the length shrinks as $1 slash lambda$. LM never uses the true Hessian; even at $lambda = 0$ it uses the Gauss-Newton approximation $J^top J$.])
 
 // ═══════════════════ 9 · summary & what's next ═══════════════════
 = Summary & what's next
@@ -772,10 +772,10 @@ Try the ill-conditioned bowl first: it is this lecture's $kappa = 50$ picture, l
 - *Newton* ⭐: minimize the L9 quadratic model → solve $H bold(delta) = -nabla f$. A matrix-valued learning rate: step $1 slash lambda_i$ per eigen-direction — $kappa$ is priced in.
 - *On quadratics*: one step to the exact minimum, from anywhere, at any $kappa$.
 - *Near any minimum*: quadratic convergence — the error squares, digits double.
-- *The bill*: $d^2$ memory, $O(d^3)$ solve; *the dangers*: saddles attract it, negative curvature sends it uphill. Seatbelts: damping $+tau I$, line search, trust regions.
+- *Cost and failure modes*: $d^2$ memory, $O(d^3)$ solve; saddles and indefinite Hessians require damping, line search, or trust regions.
 - *Least squares* $cal(L) = 1/2 norm(bold(r))^2$: $nabla cal(L) = J^top bold(r)$, $H = J^top J + sum_i r_i nabla^2 r_i$.
 - *Gauss-Newton*: drop the residual term — $(J^top J) bold(delta) = -J^top bold(r)$: curvature from first derivatives; five solves fit our sensor.
-- *Levenberg–Marquardt*: $+lambda I$ — a results-driven trust dial from GN to GD. That's `curve_fit`.
+- *Levenberg–Marquardt*: add $lambda I$ and adapt $lambda$ from the observed loss; this is the method used by `curve_fit`.
 
 #pause
 #notebox[*Read before L19* — MML §7.1.3 (context) · Solomon, _Numerical Algorithms_, Ch. 9 — the reference treatment of nonlinear least squares & Gauss-Newton. *T9* this week: Newton and Gauss-Newton by hand and in NumPy, on this lecture's exact data.]

@@ -74,7 +74,7 @@
 
 #title-slide()
 
-= The hook: how PyTorch checks its own homework
+= How PyTorch checks analytical gradients
 
 == The bug that does not crash
 
@@ -112,12 +112,12 @@ $ f'(x) approx (f(x + h) - f(x - h)) / (2h) quad quad "— a slope, measured wit
 
 == Three puzzles hiding in that one call
 
-The most sophisticated derivative engine on earth is graded by… a secant from first-year calculus. Look closer and it gets stranger:
+PyTorch compares analytical gradients with finite-difference secants. Three implementation choices need explanation:
 
 #pause
 + *Trust* — the referee is an _approximation_. How wrong is it? Can it even be trusted to judge?
 #pause
-+ *The magic numbers* — `gradcheck` _refuses_ float32, defaults to `eps = 1e-6`, and insists on the symmetric formula. Who chose those, and why?
++ *Numerical choices* — `gradcheck` refuses float32, defaults to `eps = 1e-6`, and uses the symmetric formula. We will derive why.
 #pause
 + *The scandal* — if nudging is good enough to referee, why doesn't PyTorch simply _use_ it to train?
 
@@ -157,7 +157,7 @@ By the end of this lecture you will be able to:
 This trichotomy — *symbolic / numeric / automatic* — organizes everything about differentiation on machines (it's the framing of the Baydin et al. survey in your reading).
 
 #pause
-Roads 1 and 2 you can guess. Road 3 sounds like magic. By the end of today it will feel obvious.
+The first two methods follow directly from calculus. Automatic differentiation will be derived from computation graphs in L11.
 
 == Road 1 · symbolic: do the algebra
 
@@ -268,7 +268,7 @@ Divide $h$ by 10 → error divides by 10. Extrapolate the pattern: $h = 10^(-16)
 #pause
 And look closer: the error isn't just _order_ $h$ — it is almost exactly $h\/2$. That "2" is not a coincidence. Taylor knows why.
 
-== Front 1 · truncation: Taylor keeps receipts
+== Truncation error from Taylor's theorem
 
 *L7 callback* — Taylor's remainder form is an _equality_ (some $xi$ between $x$ and $x + h$): $f(x + h) = f(x) + h f'(x) + (h^2\/2) f''(xi)$. Rearrange the forward difference:
 
@@ -470,7 +470,7 @@ Halve $h$ → *quarter* the truncation error. At $h = 10^(-2)$: forward is off b
 ⭐ redo (practice): minimize $E(h) = M h^2\/6 + epsilon\/h$ → $h^* prop epsilon^(1\/3) approx 6 times 10^(-6)$, floor $prop epsilon^(2\/3) approx 10^(-11)$.
 
 #pause
-#result[`eps = 1e-6` sits on central's sweet spot — every magic number was $epsilon$ in disguise.]
+#result[For float64 central differences, the balance between truncation and rounding error places the optimal $h$ near $10^(-6)$.]
 
 == Checkpoint: the step-size war #Q
 
@@ -484,7 +484,7 @@ Halve $h$ → *quarter* the truncation error. At $h = 10^(-2)$: forward is off b
 == Answer: the step-size war #A
 
 #mcq-answer([B], [past $h^*$, rounding dominates],
-  [Central's sweet spot in float64 is $h^* approx 6 times 10^(-6)$. Below it you slide *up the left wall* of the U-curve: truncation keeps shrinking ($prop h^2$), but the cancellation term $epsilon\/h$ grows faster. Smaller $h$ stopped being safer — that's the whole war in one move.])
+  [For float64 central differences, $h^* approx 6 times 10^(-6)$. Below it, truncation continues to shrink as $h^2$, but cancellation error grows as $epsilon\/h$. Therefore smaller $h$ is not always more accurate.])
 
 = The wall: one evaluation per input
 
@@ -504,7 +504,7 @@ def grad_fd(f, theta, h=1e-6):
 #pause
 Nudging $theta_3$ tells you *nothing* about $theta_7$. There is no bulk discount.
 
-== The bill grows with $n$ #V
+== Function-evaluation cost grows with input dimension #V
 
 #align(center, bars(
   (2, 3, 4, 5, 6, 7, 8, 9),
@@ -756,7 +756,7 @@ val, dfdx = jax.jvp(f, (3.0, 1.0), (1.0, 0.0))   # value 36.0, tangent 33.0
 #pause
 - For vector-valued $f$, that dot product becomes $J bold(v)$ (L9's Jacobian): a *Jacobian–vector product*, JVP — computed without ever building $J$
 
-== The bill, again: one pass per *input*
+== Forward mode requires one pass per input direction
 
 Exactness: won. Now recount the cost for ML's shape of function:
 
@@ -764,7 +764,7 @@ Exactness: won. Now recount the cost for ML's shape of function:
   columns: (1fr, auto, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*Function shape*], [*Forward-mode passes*], [*Verdict*]),
+  table.header([*Function shape*], [*Forward-mode passes*], [*Preferred mode*]),
   [$f: RR arrow.r RR^m$ (one knob, many outputs)], [#text(fill: GREEN)[*1*]], [#text(fill: GREEN)[perfect]],
   [$f: RR^n arrow.r RR$ (a *loss*: $n = 10^9$ knobs, one number)], [#text(fill: RED)[*$n$* — one per seed]], [#text(fill: RED)[330 years again]],
 )
@@ -817,7 +817,7 @@ gradcheck(my_op, (x,))    # x MUST be float64; default eps=1e-6; central formula
   columns: (auto, 1fr, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*Route*], [*Verdict*], [*Cost for $nabla f$, $f: RR^n arrow.r RR$*]),
+  table.header([*Method*], [*Assessment*], [*Cost for $nabla f$, $f: RR^n arrow.r RR$*]),
   [symbolic], [exact, but expressions explode], [—],
   [finite differences], [truncation vs rounding — both lose], [$n$ evals, *approximate*],
   [forward-mode AD], [#text(fill: GREEN)[*exact!* carries (value, derivative) pairs]], [#text(fill: RED)[$n$ *passes* — one per input]],

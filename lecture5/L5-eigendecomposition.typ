@@ -91,10 +91,10 @@
 
 #title-slide()
 
-// ═══════════════════════════ 1 · the hook ═══════════════════════════
-= The hook: how Google ranked the web
+// ═══════════════════════════ 1 · motivating example ═══════════════════════════
+= PageRank and repeated matrix multiplication
 
-== You met today's hero in Lecture 1 #V
+== PageRank uses a stationary direction #V
 
 L1 demoed the teaching contract — picture, numbers, code, symbols — on *this exact picture*:
 
@@ -143,7 +143,7 @@ By the end of this lecture you will be able to:
 
 + Say what an *eigenvector* and *eigenvalue* are — in pictures, numbers, code, and symbols.
 + Compute both *by hand* for any 2×2 matrix (characteristic polynomial).
-+ Read $lambda$ like a dial: stretch, shrink, squash, *flip*, or *rotate*.
++ Interpret $lambda$ as stretch, shrink, squash, flip, or rotation.
 + Factor $A = P D P^(-1)$ and use it to compute $A^k$ instantly.
 + Run *power iteration* — and prove why it finds the top eigenvector.
 + State the *spectral theorem* for symmetric matrices (and see why ML loves them).
@@ -337,7 +337,7 @@ Our $A$: trace $= 2 + 2 = 4 = 3 + 1$ ✓ #h(1.5em) det $= 4 - 1 = 3 = 3 dot 1$ �
 )
 
 // ═══════════════════════════ 4 · geometric meaning ═══════════════════════════
-= The eigenvalue dial: stretch, flip, rotate
+= Interpreting eigenvalues
 
 == One number per direction — what can it say? #V
 
@@ -370,7 +370,7 @@ No real roots. The eigenvalues have become a *complex pair* — and that is prec
 #pause
 #notebox[One honest slide, no complex arithmetic beyond this: a complex eigenvalue pair $=$ a rotation (possibly combined with scaling) hiding inside the matrix. We will meet it once more today — as a wobble in a live computation. Deep dive: not this course.]
 
-== The dial, assembled
+== Eigenvalue cases in one table
 
 #table(
   columns: (auto, 1fr),
@@ -457,7 +457,7 @@ In eigen-coordinates the tangled map $mat(2, 1; 1, 2)$ becomes the *diagonal* ma
 #pause
 #result[Diagonalization = switching to the basis $A$ itself prefers. \ Same map, honest coordinates.]
 
-== The payoff: powers collapse
+== Matrix powers in an eigenbasis
 
 Multiply the factored form by itself and watch the middle cancel:
 
@@ -490,7 +490,7 @@ Every entry is $approx 3^(10)\/2$: after ten applications, the $lambda = 3$ dire
 #fig("/lecture5/figures/repeated_application.svg", w: 73%)
 
 #pause
-#align(center, text(size: 16pt, fill: MUTED)[whatever the start, $A^k bold(x)$ swings onto the *top* eigen-direction — length is bookkeeping, direction is destiny])
+#align(center, text(size: 16pt, fill: MUTED)[for a generic start, the component along the dominant eigenvector eventually determines the direction of $A^k bold(x)$])
 
 #pause
 #align(center, text(size: 18pt, fill: ACC)[That observation is an algorithm wearing a trench coat.])
@@ -615,7 +615,7 @@ array([0.70710678, 0.70710678])
 #pause
 Six lines, no polynomial, scales to matrices with *billions* of rows — you only ever need matrix-vector products.
 
-== Checkpoint: the speed dial #Q
+== Checkpoint: power-iteration rate #Q
 
 #mcq([$B$ has eigenvalues $lambda_1 = 4$ and $lambda_2 = 2$. Per step of power iteration, the error shrinks by roughly a factor of…],
   [$1\/4$],
@@ -624,7 +624,7 @@ Six lines, no polynomial, scales to matrices with *billions* of rows — you onl
   [it doesn't shrink — $lambda_1 > 1$ makes it grow],
 )
 
-== Answer: the speed dial #A
+== Answer: the eigenvalue ratio sets the rate #A
 
 #mcq-answer([B], [$times 1\/2$ per step],
   [The contamination decays like $(lambda_2\/lambda_1)^k = (2\/4)^k$. The absolute sizes of the $lambda$'s are irrelevant after normalization — only the *ratio* matters. (D confuses growth of *length*, which normalization discards, with drift of *direction*.)],
@@ -682,7 +682,7 @@ Start fair — a quarter each — and let the votes flow:
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[no normalization needed — each column of $M$ sums to 1, so the total importance stays exactly #fmt(prhist.at(12).sum(), d: 2). Suspicious? Hold that thought.])
 
-== The verdict #V
+== Power iteration on the four-page graph #V
 
 #align(center, bars(
   prhist.at(12),
@@ -705,7 +705,7 @@ Look back at column A: #range(5).map(k => fmt(prhist.at(k).at(0), d: 3)).join(" 
 Our convergence theory says the error decays by $abs(lambda_2 \/ lambda_1)$. For this $M$ the subdominant eigenvalues are $-1/2$ and a *complex pair* $-1/4 plus.minus 0.43 i$…
 
 #pause
-#notebox[…and a complex pair, you now know, is a hidden *rotation*: the error spirals into zero instead of shrinking along a line. The flip/rotate dial from earlier just showed up, uninvited, in a real computation. Decay factor per step: $abs(lambda_2\/lambda_1) = 1\/2$.]
+#notebox[A complex-conjugate pair represents a rotation combined with scaling, so the error spirals toward zero. Its magnitude decreases by $abs(lambda_2\/lambda_1) = 1\/2$ per step.]
 
 == One slide of honesty: this matrix is a Markov matrix
 
@@ -717,7 +717,7 @@ $M$'s columns are nonnegative and sum to $1$ — a *stochastic (Markov) matrix*.
 - Our little web was safe: no dead-end pages, no isolated clique, so power iteration converged to a *unique* answer.
 
 #pause
-#alertbox[The real web has both hazards — pages with no outlinks, and closed loops that trap the surfer. Google's fix (the *damping factor*: teleport with probability $0.15$), and the theorem that guarantees a unique ranking, is exactly *L25: Markov chains & stationary distributions*. Planted today, paid off there — with this same 4-page web.]
+#alertbox[Real link graphs contain pages with no outlinks and closed communicating classes. PageRank adds a $0.15$ teleport probability; L25 studies the Markov-chain conditions that make the stationary ranking unique.]
 
 // ═══════════════════════════ 8 · symmetric matrices ═══════════════════════════
 = Symmetric matrices: the nicest case
@@ -770,7 +770,7 @@ $ lambda = (#fmt(es.at(0).at(0), d: 0), #fmt(es.at(0).at(1), d: 0)) quad quad bo
 $ bold(q)_1 dot bold(q)_2 = #fmt(la.dot(es.at(1).at(0), es.at(1).at(1)), d: 4) quad #text(fill: GREEN)[— orthogonal ✓] $
 
 #pause
-That zero is zero *to machine precision* — which, after L2, you know is the only zero floating point can promise.
+The reported value is zero to machine precision, the appropriate numerical interpretation after L2.
 
 #pause
 Real $lambda$'s, perpendicular $bold(q)$'s — the theorem, holding up in silicon.
@@ -783,7 +783,7 @@ Symmetric matrices are not a corner case — ML manufactures them:
 #pause
 - *$X^top X$* — at the heart of least squares (L4's preview) and of PCA (L6);
 #pause
-- *Hessians* (L17–L18) — the curvature of every loss surface; their eigenvalues decide your learning rate's fate.
+- *Hessians* (L17–L18) — their eigenvalues determine curvature and stable learning-rate ranges.
 
 #pause
 #result[Whenever ML hands you a matrix that is symmetric, the spectral theorem hands you back a perpendicular grid of dials. That guarantee powers L6, L13, and L17.]
@@ -793,10 +793,10 @@ Symmetric matrices are not a corner case — ML manufactures them:
 
 == Lecture 5 — summary
 
-- *Eigen-pair:* $A bold(v) = lambda bold(v)$ — a direction $A$ can't turn; $lambda$ is the dial: stretch, shrink, $0$ squash, negative flip, complex rotate.
+- *Eigen-pair:* $A bold(v) = lambda bold(v)$ — $bold(v)$ keeps its direction; $lambda$ sets scaling, sign reversal, or rotation in a complex invariant plane.
 - *2×2 by hand:* solve $det(A - lambda I) = 0$; audit with trace $= sum lambda_i$, det $= product lambda_i$.
 - *Diagonalize:* $A = P D P^(-1)$ — in the eigen-basis $A$ is pure dials, so $A^k = P D^k P^(-1)$.
-- *Power iteration:* multiply-normalize → top eigenvector; error $times abs(lambda_2 \/ lambda_1)$ per step. PageRank is its $lambda = 1$ payoff (→ L25).
+- *Power iteration:* multiply-normalize → dominant eigenvector; error $times abs(lambda_2 \/ lambda_1)$ per step. PageRank uses the eigenvector with $lambda = 1$ (L25).
 - *Spectral theorem:* symmetric $arrow.r.double$ real $lambda$'s, orthogonal eigenvectors, $A = Q Lambda Q^top$ (→ L6, L13).
 
 #pause

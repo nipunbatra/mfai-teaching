@@ -97,6 +97,37 @@ a section-divider slide; `== heading` starts a slide. `#pause` is the only build
 - Body text stays at default size. Never shrink below 16pt to make content fit — cut instead.
 - Captions under figures: `#align(center, text(size: 16pt, fill: MUTED)[...])`.
 
+## 4a. Voice and narrative
+
+Use `~/git/dl-teaching/lecture1` and `lecture2` as the language reference. The
+course should still have examples, stories, intuition, and visual continuity;
+the story must come from a concrete problem and its calculations.
+
+- Prefer direct titles: **"Gaussian likelihood"**, **"Verify the four XOR
+  inputs"**, **"The multiplier is a sensitivity"**, **"Solve the constrained
+  example"**.
+- Avoid manufactured plot language and recurring characters: no "mystery",
+  "crime scene", "hero", "villain", "fate", "confession", "case closed",
+  "superpower", or similar narration. Do not label sections "the hook" or
+  "the payoff"; show the motivating example and return to it by name.
+- A useful physical analogy is welcome when it explains the mathematics
+  (rolling ball, contour touching a constraint, water filling an epigraph).
+  Do not stack several metaphors around one result.
+- Write in plain declarative sentences. Prefer **compute, compare, derive,
+  verify, interpret, fit, constrain** over slogans such as "one weird trick",
+  "license plate", "magic", or "the whole plot".
+- Keep one numerical example alive across several slides. Reuse its symbols,
+  colours, and values so that the derivation feels cumulative rather than
+  episodic.
+- `#result[...]` states a mathematical conclusion students can reuse. It is not
+  a tagline.
+- Introduce notation only when the current example needs it, following the
+  example → calculation → general statement rhythm used in *Mathematics for
+  Machine Learning*.
+- Callbacks should be factual ("L9: positive Hessian eigenvalues imply local
+  convexity"), not narrative debt ("the promise returns", "the cameo pays
+  off").
+
 ## 5. Chips, callouts, boxes — when to use what
 
 | Element | Use |

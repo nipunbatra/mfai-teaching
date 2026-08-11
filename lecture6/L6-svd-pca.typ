@@ -15,7 +15,7 @@
 
 #title-slide()
 
-= The hook: fine-tuning seven billion numbers
+= Low-rank updates for large models
 
 == Fine-tuning moves every weight
 
@@ -402,7 +402,7 @@ $k = 1$ is literally one column times one row — yet the sky gradient is alread
 #pause
 - Right: measured error (dots) lands _exactly_ on the Eckart–Young tail $sqrt(sum_(i > k) sigma_i^2)$ (line) — the theorem, photographed
 
-== The hook, cashed: LoRA is this ledger
+== LoRA uses a low-rank parameter update
 
 Replace "image" by "weight update" and rerun the argument:
 
@@ -481,7 +481,7 @@ $ underbrace(norm(bold(x)_i)^2, "fixed") = underbrace((bold(w)^top bold(x)_i)^2,
 Sum over the cloud: the left side is fixed, so *max variance $arrow.l.r$ min reconstruction error*. Best-fit line and max-spread direction are the _same_ axis.
 
 #pause
-#result[⭐ payoff: total spread along $bold(w)$ is $norm(X bold(w))^2$ — maximized by the *top right singular vector* $bold(v)_1$ of $X$. You derived PCA twenty minutes ago.]
+#result[Total spread along $bold(w)$ is $norm(X bold(w))^2$ and is maximized by the top right singular vector $bold(v)_1$ of $X$. This is the first principal direction.]
 
 == The PCA recipe
 
@@ -601,7 +601,7 @@ Both routes are correct mathematics. Numerically they are not equals:
 #pause
 - *Memory*: for $d = 10^5$ features, $C$ is $10^5 times 10^5$ — $10^10$ entries you never needed; SVD works on $X$ directly
 #pause
-- *Precision*: forming $A^top A$ *squares* the singular values — $sigma_i = 10^(-8)$ becomes $lambda_i = 10^(-16)$, exactly float64's $epsilon$ (L2!). Our digits run even reported a tail eigenvalue of $-0.0$ — a numerically negative variance, L2's crime scene revisited
+- *Precision*: forming $A^top A$ squares the singular values — $sigma_i = 10^(-8)$ becomes $lambda_i = 10^(-16)$, close to float64 $epsilon$. The numerical example reports a tail eigenvalue of $-0.0$, a rounding artifact rather than negative variance
 #pause
 - sklearn's `PCA` therefore never forms $C$: it runs an SVD of $X_c$ under the hood
 

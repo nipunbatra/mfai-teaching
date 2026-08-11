@@ -44,7 +44,7 @@
 
 #title-slide()
 
-= The hook: who chose your loss function?
+= Deriving losses from probability models
 
 == Three lines you will type for the rest of your career
 
@@ -62,7 +62,7 @@ Squaring errors. Taking logs of probabilities. *Who decided these formulas?* Why
 #pause
 #notebox[Nobody tuned these by trial and error. All three fall out of *one idea*, mechanically. Today: the idea, and the full derivation for MSE. Cross-entropy's turn comes in L24 — but you'll leave today knowing exactly where it lives.]
 
-== Today's one move, as a map
+== From a probability model to an objective
 
 #align(center, diagram(
   spacing: (14mm, 8mm), node-stroke: 0.9pt,
@@ -80,7 +80,7 @@ Squaring errors. Taking logs of probabilities. *Who decided these formulas?* Why
 ))
 
 #pause
-One move — *flip the model around* — then bookkeeping. Every box on this map gets built today, with numbers.
+Fix the observed data and vary the parameters. The following slides compute every step in this map.
 
 #pause
 #notebox[You have never formally "fit a model" in this course. That is the point: today is where *fitting* becomes a mathematical operation instead of a vibe.]
@@ -154,7 +154,7 @@ A coin with $P("heads") = theta$. One formula, $p(x | theta)$ — *two completel
     #align(center, lines(fn: t => t, domain: (0, 1), markers: false, colors: (ACC,),
       x-label: [$theta$], y-label: [$L(theta)$], size: (52mm, 30mm)))
     #v(3pt)
-    the *likelihood* of that outcome \ #text(size: 16pt, fill: MUTED)[area under this line: $1\/2$ — no promise at all]
+    the *likelihood* of that outcome \ #text(size: 16pt, fill: MUTED)[area under this line: $1\/2$ — every $theta$ gives the same value]
   ],
 )
 
@@ -691,7 +691,7 @@ For a yes/no label $y in {0, 1}$ with predicted head-probability $p$, the Bernou
 $ -log [ p^y (1 - p)^(1 - y) ] = -[ y log p + (1 - y) log(1 - p) ] $
 
 #pause
-That *is* `binary_cross_entropy` — the second line of the hook's code. You derived it as the coin's log-likelihood before you knew its name.
+This is `binary_cross_entropy`, derived directly from the Bernoulli log-likelihood.
 
 #pause
 - $y = 1$, model said $p = 0.9$: penalty $-log 0.9 approx 0.105$ — cheap
@@ -720,7 +720,7 @@ The *true* per-residual loss curves, computed from the densities themselves ($-l
 #pause
 The parabola *accelerates*: doubling a large residual quadruples its cost — outliers steer the fit. The Laplace's thin tails in log-space charge a flat rate — outliers get a shrug. Choosing a loss *is* choosing how much you believe in outliers.
 
-== The hook, revisited · case status
+== Match each common loss to an observation model
 
 #align(center, table(
   columns: (auto, 1fr, auto), stroke: 0.5pt + MUTED.lighten(40%),
@@ -782,7 +782,7 @@ Try on paper; the T7 notebook (after L15) checks all of them in NumPy.
 + Exponential waiting times $p(x | lambda) = lambda e^(-lambda x)$ (L12's zoo): derive $hat(lambda)_"MLE" = 1 \/ macron(x)$.
 + Redo the keystone with *Laplace* noise and show the objective becomes $sum_i abs(y_i - w x_i - b)$.
 + For $n = 10^6$, $p_i approx 0.1$: estimate $product_i p_i$ and compare with float64's smallest positive number ($approx 10^(-324)$, L2). Why must training code never form this product?
-+ True or false, one sentence: "the MLE of $theta$ is the most probable value of $theta$ given the data." (The L15 trap.)
++ True or false, one sentence: "the MLE of $theta$ is the most probable value of $theta$ given the data." Explain the distinction introduced in L15.
 
 == Lecture 14 — summary
 
@@ -809,7 +809,7 @@ Add and subtract the entropy of $p^star$ (L22 defines it properly):
 $ EE_(p^star)[log p(x | theta)] = underbrace(EE_(p^star)[log p^star (x)], "fixed: no" #h(3pt) theta) - underbrace("KL"(p^star #h(3pt) || #h(3pt) p_theta), ">= 0," #h(3pt) "gap to reality") $
 
 #pause
-#result[Maximizing likelihood $arrow.l.r.double$ minimizing $"KL"(p^star || p_theta)$ — MLE steers the model toward *reality*. \ L24 builds KL from scratch and cashes this identity.]
+#result[Maximizing likelihood is equivalent to minimizing $"KL"(p^star || p_theta)$ up to a constant independent of $theta$. L24 derives this identity from cross-entropy.]
 
 #focus-slide[
   Every loss function is a negative log-likelihood in disguise.

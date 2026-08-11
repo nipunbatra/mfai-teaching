@@ -54,16 +54,16 @@
 
 #title-slide()
 
-= The hook: Mystery 2 comes home
+= Two quadratic objectives, one learning rate
 
-== Same code, same $eta$ — two fates #V
+== The same learning rate can converge or diverge #V
 
-L1, Mystery 2. Gradient descent, same code, same learning rate $eta = 0.8$ — on two different problems:
+Gradient descent uses the same code and learning rate $eta = 0.8$ on two quadratic objectives:
 
 #fig("/lecture1/figures/lr_two_problems.svg", w: 78%)
 
 #pause
-It crawls on one and explodes on the other. Sixteen lectures later, we can finally arrest someone. *Today this mystery is resolved completely* — with exact numbers.
+It converges slowly on one and diverges on the other. This lecture explains both outcomes with exact calculations.
 
 == Interrogating the suspect
 
@@ -73,7 +73,7 @@ The obvious suspect is $eta = 0.8$. Put it on the stand:
   columns: (auto, 1fr, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*Hypothesis*], [*Then we'd expect…*], [*Verdict*]),
+  table.header([*Possible explanation*], [*What it would predict*], [*Observation*]),
   [$eta$ is too *big*], [both problems overshoot and explode], [#text(fill: RED)[✗ A crawls]],
   [$eta$ is too *small*], [both problems crawl], [#text(fill: RED)[✗ B explodes]],
 )
@@ -106,18 +106,18 @@ The same number cannot be simultaneously too big and too small…
 
 By the end of this lecture you will be able to:
 
-+ *Derive* gradient descent from the first-order Taylor approximation (the L7 payoff).
++ *Derive* gradient descent from the first-order Taylor approximation developed in L7.
 + Implement the *four-line algorithm* and read $eta$ as a trust radius.
 + Predict *crawl / converge / oscillate / diverge* from $eta$ and the curvature — the wall at $eta = 2\/a$.
 + Run the *exact analysis on quadratics*: contraction factor $1 - eta a$, per-axis rates.
 + Compute a *condition number* $kappa$ and explain the zig-zag pathology it causes.
 + Explain why *feature scaling* speeds up training, and how *momentum* fights ravines.
 
-= Trust the line: deriving the algorithm
+= Deriving gradient descent from Taylor's approximation
 
-== The one idea #V
+== The first-order Taylor model #V
 
-Stand at $x = 1$ on $f(x) = x^2$. The derivative hands you a line — and the line makes a *promise*: "walk downhill along me and $f$ keeps dropping."
+At $x = 1$ on $f(x) = x^2$, the derivative defines the local linear approximation.
 
 #let ftr(x) = x * x
 #let elltr(x) = 2 * x - 1
@@ -129,9 +129,9 @@ Stand at $x = 1$ on $f(x) = x^2$. The derivative hands you a line — and the li
 ))
 
 #pause
-Small step: the promise is kept. Big step: the line says "still descending!" while the truth ($f = 1.44$) is *above where you started*. Lines are honest only *locally*.
+A small step decreases the true function. A large step can increase it even though the linear approximation continues downward. The approximation is local.
 
-== How far can you trust a line?
+== The approximation is accurate only for small steps
 
 L7's local replacement, in today's many-variable clothes (L9): for a step $Delta$ from $theta$,
 
@@ -141,7 +141,7 @@ $ f(theta + Delta) approx f(theta) + nabla f(theta)^top Delta $
 - The error of this replacement grows like $norm(Delta)^2$ (the second-order Taylor term) — *double* your step, the line lies *four times* harder.
 
 #pause
-- So every use of the line comes with a *radius of trust*: a $norm(Delta) <= r$ inside which the promise roughly holds.
+- The linear model is useful only over a neighbourhood in which the neglected curvature term remains small.
 
 #pause
 #notebox[This is the spine of the lecture: *trust the linear model for one small step, then rebuild the line and repeat*. Everything else is bookkeeping about $r$.]
@@ -176,7 +176,7 @@ Fold the radius and the gradient's length into one knob, $#text(fill: ACC)[$eta$
 #pause
 #notebox[Cash the L7 promissory note: this update "quotes today's local line" — L7's closing table predicted this exact formula would appear here.]
 
-== Every trusted step pays out
+== A sufficiently small step decreases the objective
 
 Substitute the step $Delta = -eta nabla f$ back into the linear model:
 
@@ -238,7 +238,7 @@ $f(x, y) = x^2 + y^2$ — same curvature in every direction:
 #align(center, text(size: 16pt, fill: MUTED)[round contours ⟹ $-nabla f$ points *straight at the minimum*; steps shrink as $norm(nabla f) -> 0$])
 
 #pause
-Remember this picture — today's villain will bend it out of shape.
+This round bowl is the well-conditioned reference case.
 
 == What $eta$ really is
 
@@ -246,7 +246,7 @@ Remember this picture — today's villain will bend it out of shape.
 - *Too timid*: you trust the line less than you could — you collect only a sliver of the guaranteed payout per step.
 
 #pause
-- *Too bold*: you leave the trust region — the line's promise is void, and the true $f$ may rise.
+- *Too large*: the neglected curvature dominates, and the true $f$ may rise.
 
 #pause
 - *Just right*: the largest step the line can still honor.
@@ -254,9 +254,9 @@ Remember this picture — today's villain will bend it out of shape.
 #pause
 #notebox[How large is that, exactly? It must depend on how fast the line goes stale — the *curvature*. That is a number we can compute. Next section: compute it.]
 
-= The learning-rate dial
+= Choosing the learning rate
 
-== One knob, four personalities #V
+== Four behaviours as $eta$ changes #V
 
 GD on $f(x) = 1/2 x^2$ (curvature $a = 1$), $x_0 = 2.4$, twelve steps — four choices of $eta$:
 
@@ -327,7 +327,7 @@ In $10^6$ dimensions you can't watch $x_t$ — only the *loss*. Same four runs, 
 #pause
 You will diagnose learning rates from curves like these for the rest of your career.
 
-== Interactive: sweep the dial yourself #I
+== Interactive: vary the learning rate #I
 
 #interbox(link-to: IA + "optimizer-race")[
   Drop a start point on a 2-D loss surface and sweep the learning rate live: watch the same four personalities — crawl, converge, overshoot, explode — appear as you cross the $2\/a$ wall.
@@ -358,7 +358,7 @@ $ x: quad 0 arrow.r 6 arrow.r 0 arrow.r 6 arrow.r dots.c quad #text(fill: MUTED)
 
 == Why quadratics tell the whole story
 
-Zoom in near any minimum $theta^*$ of any smooth loss (L7's hook, L9's Taylor):
+Near a minimum $theta^*$ of a smooth loss, use the Taylor model from L9:
 
 $ f(theta) approx f(theta^*) + 1/2 space f''(theta^*) (theta - theta^*)^2 $
 
@@ -424,7 +424,7 @@ $|1 - eta a|$ against $eta$ (drawn for $a = 1$):
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[a V with its tip at $eta = 1\/a$: undershoot on the left branch, overshoot on the right, cross $|c| = 1$ and you burn])
 
-== Mystery 2 · the numbers confess #D
+== Apply the contraction factor to both objectives #D
 
 Confession time. L1's two "problems" were exactly $f(x) = a/2 x^2$ — with different curvatures, same $eta = 0.8$:
 
@@ -444,7 +444,7 @@ Confession time. L1's two "problems" were exactly $f(x) = a/2 x^2$ — with diff
 #pause
 - For problem B, $eta = 0.8$ sits beyond its wall $2\/3.2 = 0.625$. It never had a chance.
 
-== Mystery 2 · recomputed before your eyes #V
+== Compute both trajectories #V
 
 The L1 figure again — except now *this slide computes it* from $x_(t+1) = (1 - eta a) x_t$:
 
@@ -461,9 +461,9 @@ The L1 figure again — except now *this slide computes it* from $x_(t+1) = (1 -
 #align(center, text(size: 16pt, fill: MUTED)[straight lines on the log axis — geometric decay and geometric explosion, slopes $2 log |c|$])
 
 #pause
-#result[Mystery 2, case closed: *"too small" and "too big" were both true* — of the same $eta$, against two different curvatures.]
+#result[The same $eta$ is small relative to curvature $0.02$ and too large relative to curvature $3.2$.]
 
-== ⭐ Two axes, one dial #D
+== ⭐ One learning rate must serve every eigendirection #D
 
 The deeper trouble: one problem can contain *both curvatures at once*. Take the diagonal bowl
 
@@ -515,9 +515,9 @@ Try to pick one $eta$ for A's and B's curvatures *simultaneously* ($a = 0.02$, $
 #pause
 #result[Every row sacrifices an axis. When curvatures are far apart, *no learning rate is good* — that situation has a name.]
 
-== The villain's name: the condition number #D
+== The condition number controls the convergence rate #D
 
-$ kappa = a_"max" / a_"min" quad #text(fill: MUTED)[(steepest curvature over flattest — for Mystery 2's pair: $3.2 \/ 0.02 = 160$)] $
+$ kappa = a_"max" / a_"min" quad #text(fill: MUTED)[(largest curvature over smallest — for the opening pair: $3.2 \/ 0.02 = 160$)] $
 
 #pause
 Best compromise: $eta^* = 2\/(a_"max" + a_"min")$ balances the two factors at
@@ -535,13 +535,13 @@ $ |c| = (kappa - 1) / (kappa + 1) approx 1 - 2/kappa $
 )
 
 #pause
-#result[GD's bill grows in proportion to $kappa$. Conditioning — not dimension — decides your fate.]
+#result[For this quadratic family, the number of gradient-descent steps grows in proportion to the condition number $kappa$.]
 
 = The ill-conditioned bowl
 
 == Both personalities in one problem #V
 
-Put Mystery 2's two curvatures into *one* bowl: $f(x, y) = 1/2 (0.02 x^2 + 3.2 y^2)$, $kappa = 160$ — and run GD with a safe $eta = 0.55$:
+Put the opening example's two curvatures into one objective: $f(x, y) = 1/2 (0.02 x^2 + 3.2 y^2)$, $kappa = 160$, and run GD with a safe $eta = 0.55$:
 
 #let bowl-m2 = ad.expr("0.01*x^2 + 1.6*y^2", ("x", "y"))
 #align(center, contour(ad.fn2(bowl-m2), xlim: (-2.6, 2.6), ylim: (-0.9, 0.9),
@@ -756,9 +756,9 @@ Same bowl ($kappa = 160$), same start, same 36 steps:
 == Lecture 17 — summary
 
 - *GD derived* ⭐: trust L7's line for one step — $theta_(t+1) = theta_t - eta nabla f$, payout $approx eta norm(nabla f)^2$ (direction: L8's Cauchy–Schwarz).
-- *The dial*: crawl / converge / oscillate / diverge; the wall at $eta = 2\/a$ — two over the curvature.
+- *Learning-rate regimes*: slow convergence / fast convergence / oscillation / divergence; the boundary is $eta = 2\/a$.
 - *Quadratics tell all* ⭐: iterates are $(1 - eta a)^t x_0$; per-axis factors on bowls; best $eta = 1\/a$.
-- *The villain*: $kappa = a_"max"\/a_"min"$; best factor $(kappa - 1)\/(kappa + 1)$ ⟹ bill $prop kappa$. Mystery 2 was $kappa = 160$ in disguise.
+- *Conditioning*: $kappa = a_"max"\/a_"min"$; the best contraction factor is $(kappa - 1)\/(kappa + 1)$, so the required steps scale with $kappa$.
 - *Preconditioning*: curvature = feature scale squared — standardizing rounds the bowl.
 - *Momentum*: $v = beta v + g$; consistent directions $times 1\/(1 - beta)$, flip-flops damped — ravines tamed, not cured.
 
@@ -774,7 +774,7 @@ Try on paper; verify in the T8 notebook.
 + On $f(x, y) = 1/2 (x^2 + 16 y^2)$ with the best single $eta$: per-axis factors, and how many steps to shrink the slow-axis error $1000 times$?
 + Two features have standard deviations $1$ and $50$ (means $0$). Estimate $kappa$ before and after standardization.
 + Momentum with $beta = 0.95$: the effective memory length, and the limiting $|v|$ under alternating gradients $plus.minus g$.
-+ Reproduce Mystery 2 in NumPy ($a = 0.02, 3.2$, $eta = 0.8$, 30 steps). Find the largest $eta$ that converges on *both*, and the steps problem A then needs for a $100 times$ error cut.
++ Reproduce the opening pair in NumPy ($a = 0.02, 3.2$, $eta = 0.8$, 30 steps). Find the largest $eta$ that converges on both and the steps the flatter problem needs for a $100 times$ error reduction.
 
 == ⭐⭐⭐ SGD exists #OPT
 
@@ -791,7 +791,7 @@ A real loss is an *average over data*: $cal(L)(theta) = 1/n sum_i ell_i (theta)$
 #notebox[That noise, minibatches, learning-rate schedules (see the `lr-schedule-visualizer` interactive), and the adaptive per-coordinate $eta$ of RMSProp/Adam — conditioning medicine, all of it — belong to *ES 335 and ES 667*. Today's contraction-factor story is the foundation they all stand on.]
 
 #focus-slide[
-  The learning rate is how far you trust a linear approximation.
+  The learning rate sets the step length used with a local linear approximation.
   #v(12pt)
   #set text(size: 22pt)
   Next: *Newton & Gauss–Newton* — what if you trusted a *quadratic* model instead?

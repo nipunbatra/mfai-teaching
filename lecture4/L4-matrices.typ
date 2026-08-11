@@ -13,7 +13,7 @@
 
 #title-slide()
 
-= The hook: every layer moves space
+= Matrices as transformations in neural networks
 
 == The trick a photo app runs a billion times a day #V
 
@@ -235,7 +235,7 @@ $ 2 mat(2; 1) + 1 mat(1; 2) = mat(4; 2) + mat(1; 2) = mat(5; 4) quad #text(fill:
 #pause
 The row view is how machines compute. The column view is how *you should think* — it will explain rank, $A bold(x) = bold(b)$, and least squares within the hour.
 
-== The superpower · design the matrix you need
+== Construct a matrix for a desired transformation
 
 Want a matrix that rotates by $90 degree$? Don't memorize — *place the columns*:
 
@@ -252,7 +252,7 @@ $ P = mat(1, 0; 0, 0) $
 #pause
 #notebox[That second design *crushed a whole dimension on purpose*. Hold the thought — it returns in ten minutes with a name: rank 1.]
 
-== Checkpoint · the mystery move #Q
+== Checkpoint: identify the transformation #Q
 
 #fig("/lecture4/figures/mcq_transform.svg", w: 52%)
 
@@ -356,7 +356,7 @@ np.allclose((S @ R) @ x, S @ (R @ x))    # True — associativity
 #pause
 That last line is quietly profound: *precompute the combined move once*, or apply moves one at a time — identical result. Graphics engines and deep-learning compilers live on this choice.
 
-== The hook, resolved · why layers need $phi$
+== Why stacked linear layers need a nonlinearity
 
 Stack two purely linear layers, $bold(h) = W_1 bold(x)$ then $bold(y) = W_2 bold(h)$:
 
@@ -451,7 +451,7 @@ $ A = mat(0, 1, 2; 1, 2, 1; 2, 7, 8) quad — 3 times 3", so rank" <= 3". Hunt f
 Row 3 is a mix of the others: $3 dot "row 1" + 2 dot "row 2" = (2, 7, 8) = "row 3"$. Only 2 independent rows → $"rank"(A) = 2$.
 
 #pause
-#notebox[Row rank *always* equals column rank (MML 2.6) — so hunt for dependencies on whichever side looks easier. Here rows confess faster than columns.]
+#notebox[Row rank always equals column rank (MML 2.6), so test dependencies on whichever side is easier. Here the row dependency is immediate.]
 
 #pause
 One more: $X = mat(1, 2, 4, 4; 3, 4, 8, 0)$ is $2 times 4$, so $"rank" <= 2$; its two rows aren't proportional → $"rank"(X) = 2$ — full rank, even though *some* columns repeat each other.
@@ -507,7 +507,7 @@ $ A = sigma_1 bold(u)_1 bold(v)_1^top + sigma_2 bold(u)_2 bold(v)_2^top + dots.c
 - Modern fine-tuning (*LoRA*) freezes a giant $W$ and learns only a low-rank update — a few outer products instead of billions of entries.
 
 #pause
-#notebox[The derivation you just did — "every column is a multiple of $bold(u)$" — is the load-bearing fact under a trillion-parameter industry trick. Full payoff: L6.]
+#notebox[The statement "every column is a multiple of $bold(u)$" is the rank-one structure used by low-rank parameter updates in L6.]
 
 = Invertibility: undoing a move
 
@@ -544,7 +544,7 @@ For a *square* matrix $A$, these are the same single question:
 #pause
 - *full rank* — columns independent: the outputs fill all of $RR^n$, nothing was flattened
 #pause
-- *null space is only ${bold(0)}$* — no direction dies: no two inputs collide (the crime in the right panel)
+- *null space is only ${bold(0)}$* — no nonzero direction is removed, so distinct inputs do not collide
 #pause
 - $det(A) eq.not 0$ — the determinant measures the *area scale factor* of the move; $det = 0$ means areas got crushed flat (we'll meet $det$ properly in L5)
 

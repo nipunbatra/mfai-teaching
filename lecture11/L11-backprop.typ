@@ -137,7 +137,7 @@
 
 #title-slide()
 
-= The hook: one line of code
+= What `loss.backward()` computes
 
 == The most-executed line in modern AI
 
@@ -153,7 +153,7 @@ Every model you have ever heard of — chatbots, image generators, speech system
 About 20 milliseconds after the call, `∂loss/∂θ` has appeared for *every one* of the model's parameters. Billions of them. From one pass.
 
 #pause
-#notebox[By the end of today you will have run this pass *by hand*, then *written the engine yourself* (\~35 lines of Python), then matched PyTorch digit for digit.]
+#notebox[We will compute the reverse pass by hand, implement a scalar autodiff engine in about 35 lines of Python, and compare it with PyTorch.]
 
 == Today's one idea
 
@@ -174,7 +174,7 @@ Three questions, in order:
   columns: (auto, 1fr, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*Route*], [*Verdict from L10*], [*Cost for* $nabla f$, $f: RR^n -> RR$]),
+  table.header([*Method*], [*Assessment from L10*], [*Cost for* $nabla f$, $f: RR^n -> RR$]),
   [symbolic], [exact, but expressions explode], [—],
   [finite differences], [truncation vs rounding — both lose], [$n$ evals, *approximate*],
   [forward-mode AD], [exact! carry $("value", "derivative")$ pairs], [#text(fill: RED)[$n$ *passes* — one per input]],
@@ -451,7 +451,7 @@ These slides ship their own reverse-mode engine (chalkdust `autodiff`, written i
 #pause
 Hand, calculus, Typst engine: three routes, one answer. Two more coming (micrograd, PyTorch).
 
-== The engine's own drawing of its tape #V
+== The autodiff tape as a computation graph #V
 
 #adgraph(f5, (3, 1), names: ("x", "y"), spacing: (19mm, 8mm))
 
@@ -557,7 +557,7 @@ How much *time* does the backward sweep add? Each node fires once, doing constan
 
 == Checkpoint: pick the mode #Q
 
-#mcq([$f: RR^(10^6) -> RR$ (a loss). #h(0.4em) $g: RR -> RR^(10^6)$ (one dial, a million outputs). Which mode for which, to get all derivatives cheapest?],
+#mcq([$f: RR^(10^6) -> RR$ (a loss). #h(0.4em) $g: RR -> RR^(10^6)$ (one input, a million outputs). Which mode computes all required derivatives cheapest?],
   [forward for both],
   [reverse for $f$, forward for $g$],
   [forward for $f$, reverse for $g$],
@@ -720,7 +720,7 @@ print(x.grad, y.grad)    # tensor(33.)  tensor(9.)
 #pause
 #result[Hand · calculus · Typst engine · micrograd · PyTorch: *five* routes, one gradient $(33, 9)$.]
 
-== What the industrial engine adds
+== What PyTorch adds to the scalar implementation
 
 Same algorithm as your 35 lines. Different engineering:
 
@@ -780,7 +780,7 @@ $ o = tanh(w_1 x_1 + w_2 x_2 + b) $
 #pause
 This unit is an (artificial) *neuron* — the atom of every network. To the engine it is nothing special: five leaves, two $times$, one $+$, one $tanh$. Backprop needs no new ideas.
 
-== The neuron, through the engine
+== Differentiate one neuron with the same engine
 
 #codebox(size: 14pt)[```python
 x1, x2 = torch.tensor(2.0), torch.tensor(0.0)

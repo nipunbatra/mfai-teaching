@@ -25,7 +25,7 @@
   (p, (p.at(0) + s * g.at(0), p.at(1) + s * g.at(1)))
 }
 
-// ── the hook's tiny model: fit y = w·x + b to {(1,2), (2,4)} by least squares ──
+// ── running model: fit y = w·x + b to {(1,2), (2,4)} by least squares ──
 #let sse = ad.expr("(2 - w - b)^2 + (4 - 2*w - b)^2", ("w", "b"))
 #let sse-path = gd(ad.grad-fn(sse), (-0.5, 2.5), lr: 0.13, steps: 150)
 #let sse-losses = sse-path.enumerate().map(((i, p)) => (i, ad.value(sse, p)))
@@ -64,7 +64,7 @@
 
 #title-slide()
 
-= The hook: the picture behind the training curve
+= The gradient of a two-parameter loss
 
 == Every training run hides a landscape #V
 
@@ -246,7 +246,7 @@ Contours are not just a plotting trick — they are how ML *draws decisions*:
 
 = Partial derivatives: freeze one variable
 
-== Two knobs, but one dial at a time
+== A partial derivative varies one coordinate at a time
 
 L7's derivative answers: nudge *the* input, how hard does the output move? Now there are *two* inputs to nudge — and they can move together, or alone.
 
@@ -398,7 +398,7 @@ Every arrow is $nabla f$ planted at its base point — three regularities hide h
 + Arrows are *long where lines crowd* (steep!), and shrink to $nabla f = bold(0)$ at the flat bottom — the resting places of gradient descent (L16–L18's obsession).
 
 #pause
-#result[Perpendicular to contours, magnitude = steepness. Claim 2 looks like magic — it gets a proof in the next section.]
+#result[The gradient is perpendicular to the contour through the point, and its norm is the maximum directional derivative.]
 
 == The field in code
 
@@ -531,7 +531,7 @@ Slope at $(2, 1)$ vs the angle $theta$ (in degrees) between your step and $nabla
   size: (108mm, 48mm), x-label: $theta$, y-label: [slope]))
 
 #pause
-Every hiker question is on this dial: max at $theta = 0$ (with $nabla f$), zero at $plus.minus 90 degree$ (contour directions), minimum dead against it.
+The directional derivative is maximal along $nabla f$, zero along contour directions, and minimal along $-nabla f$.
 
 == Checkpoint: the level walk #Q
 
@@ -545,7 +545,7 @@ Every hiker question is on this dial: max at $theta = 0$ (with $nabla f$), zero 
 == Answer: the level walk #A
 
 #mcq-answer([B], [$0$ — you walked along the contour],
-  [$D_bold(u) f = nabla f dot bold(u) = (3 dot 4 + 4 dot (-3)) slash 5 = 0$: this $bold(u)$ is perpendicular to $nabla f$, i.e. a level direction. A ($5 = norm(nabla f)$) is the rate along $nabla f slash norm(nabla f)$; C is the rate dead against it; D adds components — a units crime from L7's answer keys.])
+  [$D_bold(u) f = nabla f dot bold(u) = (3 dot 4 + 4 dot (-3)) slash 5 = 0$: this $bold(u)$ is perpendicular to $nabla f$, so it is a level direction. A is the rate along $nabla f slash norm(nabla f)$; C is the rate along the negative-gradient direction; D incorrectly adds components.])
 
 = The chain rule grows branches
 
@@ -585,7 +585,7 @@ $ (dif f) / (dif t) = 2 dot 1 + 6 dot 2 = 14 $
 #pause
 #result[Multiply along routes, add the routes — at industrial scale, with every route shared. Doing that bookkeeping without waste is *backpropagation*: L10–L11.]
 
-= The hook, resolved
+= Apply the gradient to the opening loss
 
 == Training is gradient descent on the landscape
 
@@ -596,7 +596,7 @@ $ bold(theta)_(t+1) = bold(theta)_t - eta thin nabla cal(L)(bold(theta)_t) $
 #pause
 - Cross contour lines perpendicularly, downhill, at speed $prop$ steepness.
 #pause
-- $eta$ (the *learning rate*) scales the step — L1's diverging-vs-crawling mystery lives here, and L16–L18 derive all of it properly (from L7's Taylor, as promised).
+- $eta$ (the *learning rate*) scales the step; L16–L18 derive its stable range and connect it to curvature.
 
 #pause
 Watch it run on the loss *you built by hand* — next slide.
@@ -616,10 +616,10 @@ Gradient descent on $cal(L)(w, b)$ from the two-point fit, starting at $(w, b) =
 #pause
 Fast drop, then a long crawl *along the valley floor* toward $(2, 0)$ — the plateau in every real training curve is usually this: a valley, walked lengthwise.
 
-== Interactive: walkers on landscapes #I
+== Interactive: gradient-descent trajectories #I
 
 #interbox(link-to: IA + "optimizer-race")[
-  Race gradient descent (and fancier walkers — L17's cast) across 2-D loss landscapes. You can now read *everything* on that screen: the contour map, the perpendicular downhill steps, the crowded-line cliffs, the valley crawls.
+  Compare gradient descent and other optimizers on 2-D losses. Relate the contour spacing, gradient direction, and trajectory to local curvature.
 ]
 
 #pause
@@ -651,7 +651,7 @@ Try the ill-conditioned valley: watch steps zigzag *across* the valley precisely
 - *Directional derivative* ⭐: $D_bold(u) f = nabla f dot bold(u)$ — one vector, every slope.
 - *Geometry* ⭐: $nabla f perp$ contours (level walk $arrow.r.double$ dot $= 0$); steepest ascent $nabla f$ at rate $norm(nabla f)$, steepest descent $-nabla f$ — Cauchy–Schwarz, from L3.
 - *Chain rule with branches*: multiply along routes, *add* the routes — backprop's skeleton.
-- *Payoff*: training = downhill walk; the training curve is its altimeter.
+- *Training*: each update follows a local descent direction, and the training curve records the objective value along that trajectory.
 
 #pause
 #notebox[*Read before L9:* MML §5.2–§5.3 (partial differentiation & gradients). *T4* this week: `meshgrid`, contours, quivers, and your own two-parameter descent loop in NumPy.]
@@ -682,7 +682,7 @@ $f(x, y) = abs(x) + abs(y)$ — the L1 norm from L3, as terrain:
     At a corner the left and right slices disagree on the slope: *no single tangent, no gradient*. Our smooth-zoom story needs a patch.
 
     #pause
-    #notebox[The patch is the *subgradient* — any arrow between the two one-sided slopes. It's why L1-regularized models (and ReLU networks) still train fine. Boyd §6; a cameo in L16.]
+    #notebox[At a nondifferentiable corner, a *subgradient* replaces the derivative. This is used for $L_1$ regularization and ReLU networks; L16 revisits the convex case.]
   ],
 )
 

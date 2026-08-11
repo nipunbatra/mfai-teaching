@@ -13,18 +13,18 @@
 
 #title-slide()
 
-= Mystery 3: arithmetic on meaning
+= Word embeddings as vectors
 
-== The mystery we still owe you #V
+== The word-embedding example from Lecture 1 #V
 
-Mystery 1 (the NaN loss) died in L2. Mystery 2 (the moody learning rate) waits for L17. Which leaves the strangest one on the board:
+Lecture 2 explained the `nan` loss. The learning-rate example returns in L17. We now study the vector relation:
 
 $ "king" - "man" + "woman" approx "queen" $
 
 #fig("/lecture1/figures/embedding_arithmetic.svg", w: 38%)
 
 #pause
-Subtracting *lists of numbers* somehow captures _gender_. By the end of today this is not magic — it is geometry you can check with a calculator.
+The relation is a statement about vector displacement and direction; we will verify both numerically.
 
 == Exhibit B · "people like you"
 
@@ -73,7 +73,7 @@ By the end of this lecture you will be able to:
 + Measure size with *L1 / L2 norms* — and draw each norm's "unit ball".
 + Compute the *dot product* three ways: multiply–add, lengths × cos θ, shadow.
 + Derive $cos theta = bold(x)^top bold(y) \/ (norm(bold(x)) norm(bold(y)))$ from the school law of cosines (⭐).
-+ Rank *real word embeddings* by cosine similarity — and dissolve Mystery 3.
++ Rank *real word embeddings* by cosine similarity and evaluate the opening analogy.
 + *Project* one vector onto another and verify the leftover is orthogonal.
 + Say when vectors *span* a line vs the plane, and what an (orthonormal) *basis* buys.
 
@@ -279,7 +279,7 @@ Read it as: "how much of $bold(x)$ points the $bold(y)$ way."
   columns: (auto, auto, auto, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*Angle*], [$cos theta$], [$bold(x)^top bold(y)$], [*Verdict*]),
+  table.header([*Angle*], [$cos theta$], [$bold(x)^top bold(y)$], [*Interpretation*]),
   [acute ($theta < 90 degree$)], [$+$], [$+$], [the vectors agree],
   [right ($theta = 90 degree$)], [$0$], [$0$], [*orthogonal* — $bold(x) perp bold(y)$, nothing shared],
   [obtuse ($theta > 90 degree$)], [$-$], [$-$], [they oppose],
@@ -389,7 +389,7 @@ This is legal and safe: Cauchy–Schwarz keeps it inside $[-1, 1]$, and any two 
 #pause
 #result[Cosine is scale-invariant: $"cos_sim"(10bold(x), bold(y)) = "cos_sim"(bold(x), bold(y))$. Lengths cancel — only *directions* are compared.]
 
-== The similarity dial, three stops #V
+== Cosine similarity at three angles #V
 
 #fig("/lecture3/figures/angle_gallery.svg", w: 96%)
 
@@ -427,7 +427,7 @@ cos_sim(glove["king"], glove["queen"])       # 0.784  →  θ ≈ 38.4°
 #pause
 Coordinate 17 of "king" means… nothing anyone can name. Individually the 50 float32s (L2!) are gibberish — *the geometry between words carries the meaning*.
 
-== Real words on the dial #V
+== Cosine similarity for real word embeddings #V
 
 #align(center, lines(
   fn: x => calc.cos(x * calc.pi / 180),
@@ -452,7 +452,7 @@ More readings: uncle · aunt lands at $40.3 degree$, king · cricket at $65.1 de
 #pause
 Blocks are the point: a royal cluster (king–prince $0.82$, queen–princess $0.85$), a tight man–woman pair ($0.89$) — and python cold to all, even *opposed* to prince ($-0.08$).
 
-== Mystery 3 · closed
+== Evaluate the word analogy
 
 The bet behind the arithmetic:
 
@@ -633,7 +633,7 @@ Try on paper; verify in NumPy.
 - *Norms measure size*: L2 flight, L1 streets, L∞ worst case — unit balls: circle, diamond, square.
 - *One dot product, three readings*: $sum_i x_i y_i = norm(bold(x)) norm(bold(y)) cos theta$ = shadow × length.
 - ⭐ The *law of cosines* turns multiply–add into an angle meter — and *defines* angles in $RR^300$.
-- *Cosine similarity* ranks words, films, people; king − man + woman ≈ queen is parallel displacement arrows, not magic.
+- *Cosine similarity* ranks words, films, and people; `king − man + woman ≈ queen` compares approximately parallel displacement vectors.
 - *Projection* = closest point on a line; the residual is orthogonal — the germ of least squares and PCA.
 - *Span* is where your moves reach; a *basis* is the grid you narrate coordinates in; orthonormal grids read coordinates by dot products.
 

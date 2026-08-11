@@ -74,8 +74,8 @@
 
 #title-slide()
 
-// ═══════════════════ 1 · the hook ═══════════════════
-= The hook: a derivative with a million inputs
+// ═══════════════════ 1 · motivating example ═══════════════════
+= Derivatives of vector-valued functions and large losses
 
 == The function AI actually trains #V
 
@@ -90,7 +90,7 @@ For real models $d approx 10^6$ to $10^12$. Training (L17) needs this function's
 #pause
 *But what single object is "the derivative" of $RR^(10^6) -> RR$?* And between the layers sit maps $RR^n -> RR^m$ — vectors in, *vectors out*. L7's one number cannot be the answer.
 
-== Today's promise — and today's safety rail
+== Scope and notation for this lecture
 
 The derivative grows up in two steps:
 
@@ -195,9 +195,9 @@ True image of a tiny square (ink) vs the parallelogram $J$ makes of it (orange) 
 #pause
 #result[$ Phi(bold(a) + bold(delta)) approx Phi(bold(a)) + J(bold(a)) thin bold(delta) $ The Jacobian is the linear map that impersonates $Phi$ near $bold(a)$.]
 
-== $det J$: the area dial
+== $abs(det J)$ is the local area-scaling factor
 
-L4: a determinant is *the area-scaling factor of a linear map* — so $abs(det J)$ is $Phi$'s local area dial:
+L4: a determinant is the area-scaling factor of a linear map, so $abs(det J)$ is the local area-scaling factor of $Phi$:
 
 #fig("/lecture9/figures/polar_grid.svg", w: 58%)
 
@@ -221,10 +221,10 @@ torch.det(J)          # tensor(2.0000)  = r  ✓
 ```]
 
 #pause
-Our four hand-measured ratios, to four decimals — and the area dial reads $r = 2$, as derived.
+The four measured ratios agree to four decimals with the derived factor $r = 2$.
 
 #pause
-#notebox[*Planted for L12:* when probability densities change variables, they must pay exactly this $abs(det J)$ area toll. Same dial, new customer.]
+#notebox[L12 uses this factor in change of variables: probability density is divided by the local volume-scaling factor $abs(det J)$.]
 
 == The general case: same picture, more rows
 
@@ -276,7 +276,7 @@ One row left. It needs a different question: not "vector out?" but *"what happen
 == Answer: shapes first, always #A
 
 #mcq-answer("B", [$J$ is $2 times 3$, and $det J$ does not exist],
-  [One row per *output* (2), one column per *input* (3): $J = mat(2x, 2y, 0; 0, 1, -1)$, a $2 times 3$ crate. Determinants belong to *square* matrices only — a map $RR^3 -> RR^2$ flattens 3-D volumes onto a plane, and "how much did the volume scale?" stops being a fair question. The area dial needs $n = m$.])
+  [One row per output (2), one column per input (3): $J = mat(2x, 2y, 0; 0, 1, -1)$ is $2 times 3$. Determinants apply only to square matrices; a map $RR^3 -> RR^2$ reduces dimension, so a 3-D volume-scaling factor is not defined.])
 
 // ═══════════════════ 3 · the Hessian ═══════════════════
 = Curvature becomes a matrix: the Hessian
@@ -325,7 +325,7 @@ $ H(bold(x)) = J_(nabla f)(bold(x)), quad quad H_(i j) = (partial^2 f)/(partial 
 - Off-diagonal $H_(i j)$: the *twist* — walk north, does the *eastward* slope change?
 
 #pause
-And a gift: for any twice-continuously-differentiable $f$, mixed partials agree — $H_(i j) = H_(j i)$ (Schwarz's theorem, stated with a straight face like L5's spectral theorem).
+For any twice-continuously-differentiable $f$, mixed partials agree: $H_(i j) = H_(j i)$ (Schwarz's theorem).
 
 #pause
 #result[The Hessian is *symmetric* — so the spectral theorem applies: real eigenvalues, perpendicular eigenvectors. L5's whole toolkit just walked in the door.]
@@ -451,7 +451,7 @@ The vocabulary every ML paper uses for "which shape is it":
 )
 
 #pause
-Why the two columns agree: in eigen-coordinates $bold(x)^top A bold(x) = sum_i lambda_i t_i^2$ — a sum of parabolas can only be always-positive if every dial $lambda_i$ is.
+In eigen-coordinates $bold(x)^top A bold(x) = sum_i lambda_i t_i^2$; the form is nonnegative for every $bold(x)$ exactly when every $lambda_i >= 0$.
 
 #pause
 #result[*Positive definite = the surface is a bowl.* That one sentence decodes half the theorems you will ever meet about optimization and covariance.]
@@ -464,7 +464,7 @@ L5's sanity checks were $"tr" A = sum lambda_i$ and $det A = product lambda_i$. 
   columns: (auto, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*test*], [*verdict*]),
+  table.header([*test*], [*classification*]),
   [$det A < 0$], [$lambda$'s have opposite signs — *saddle*, done (a negative det always betrays a flip: L4, L5)],
   [$det A > 0$], [same signs — read $"tr" A$: positive $arrow.r$ *bowl*, negative $arrow.r$ *dome*],
   [$det A = 0$], [some $lambda = 0$ — *semi-definite*: trough (or flat)],
@@ -486,7 +486,7 @@ For $n times n$, the computer's test is eigenvalues; the classical hand test is 
   columns: (auto, auto, auto, 1fr, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*$A$*], [*tr*], [*det*], [*verdict by hand*], [*$lambda$ (live)*]),
+  table.header([*$A$*], [*tr*], [*det*], [*classification by hand*], [*$lambda$ (live)*]),
   [$mat(2, 1; 1, 2)$], [$4$], [$3$], [det $> 0$, tr $> 0$ — *bowl* (PD)], [#lam-of(A1)],
   [$mat(1, 2; 2, 1)$], [$2$], [$-3$], [det $< 0$ — *saddle* (indefinite)], [#lam-of(((1.0, 2.0), (2.0, 1.0)))],
   [$mat(1, 1; 1, 1)$], [$2$], [$0$], [det $= 0$, tr $> 0$ — *trough* (PSD)], [#lam-of(((1.0, 1.0), (1.0, 1.0)))],
@@ -694,7 +694,7 @@ Five lines you will reuse in T5, and conceptually in every optimizer of Module 4
   inset: 8pt,
   table.header([*lecture*], [*what it does with today's expansion*]),
   [L16], [*convexity*: $H$ PSD everywhere — the surface is one global bowl, no bad valleys],
-  [L17], [*gradient descent*: trust the tilt, step downhill; the learning rate is literally "how far you trust the linear term" — and $H$'s eigenvalues decide its fate (L5's warning)],
+  [L17], [*gradient descent*: use the local linear term for a finite step; $H$'s eigenvalues determine the stable learning-rate range],
   [L18], [*Newton's method*: trust the bowl — minimize the quadratic model, jump $bold(delta)^* = -H^(-1) nabla f$],
 )
 
@@ -736,7 +736,7 @@ If a derivation produces a shape mismatch, it is wrong — no further reading re
 #pause
 #notebox[*References for life:* the #link("https://www.math.uwaterloo.ca/~hwolkowi/matrixcookbook.pdf")[Matrix Cookbook] (look identities up — nobody re-derives them), #link("https://explained.ai/matrix-calculus/")[Parr & Howard, _The Matrix Calculus You Need for Deep Learning_] (the gentle full story), MML §5.4–5.7 (our text, same conventions).]
 
-== The hook, resolved
+== Apply both derivatives to the opening model
 
 A neural network is a chain $cal(L) = f_L compose dots.c compose f_1 (theta)$. What is its derivative? Now we can *name every piece*:
 
@@ -749,7 +749,7 @@ A neural network is a chain $cal(L) = f_L compose dots.c compose f_1 (theta)$. W
 + the loss's curvature is a *Hessian* — but at $d = 10^6$ it has $10^12$ entries ($approx 4$ TB in float32): real optimizers never store it, they respect it (L17–L18).
 
 #pause
-#result[Promise kept: the Jacobian is a parallelogram, the Hessian is a bowl — and L10–L11 build the machine that multiplies those Jacobians for you.]
+#result[The Jacobian is the local linear map for vector outputs; the Hessian is the local curvature matrix for a scalar output. L10–L11 compute and compose these derivatives.]
 
 == The zoo, complete #V
 
@@ -760,7 +760,7 @@ One idea, four containers: *the derivative is the best local linear (then quadra
 
 == Lecture 9 — summary
 
-- *Jacobian*: $m times n$ crate of partials; the local linear map — $Phi(bold(a) + bold(delta)) approx Phi(bold(a)) + J bold(delta)$; little squares $arrow.r$ parallelograms; $abs(det J)$ = the area dial (polar: $det J = r$).
+- *Jacobian*: $m times n$ array of partial derivatives; the local linear map $Phi(bold(a) + bold(delta)) approx Phi(bold(a)) + J bold(delta)$; $abs(det J)$ gives local area scaling for square maps (polar: $det J = r$).
 - *Chain rule* = matrix multiplication of Jacobians; shapes must click ($(k times m)(m times n)$).
 - *Hessian* = Jacobian of the gradient; symmetric; entry $(i, j)$ = "how slope $i$ feels nudge $j$"; $bold(u)^top H bold(u)$ = curvature along $bold(u)$, extremes at eigenvectors.
 - *Quadratic forms* $1/2 bold(x)^top A bold(x)$: bowls (all $lambda > 0$), saddles (mixed), troughs (a zero $lambda$); 2×2 hand test via det and trace; ⭐ $nabla(bold(x)^top A bold(x)) = (A + A^top) bold(x)$.

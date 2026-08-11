@@ -23,7 +23,7 @@
 // exponential CDF (chalkdust dist carries pdfs; the cdf is one line)
 #let exp-cdf(rate) = x => if x < 0 { 0.0 } else { 1 - calc.exp(-rate * x) }
 
-// ── the hook pipeline: noise → learned transform → sample ──
+// ── motivating pipeline: noise → learned transform → sample ──
 #let genpipe = align(center, diagram(spacing: (16mm, 8mm), {
   let N(p, top, bottom, c, bg) = node(p,
     align(center)[#text(size: 15pt, weight: 700, fill: INK)[#top] \ #text(size: 12.5pt, fill: MUTED)[#bottom]],
@@ -37,7 +37,7 @@
 
 #title-slide()
 
-= The hook: machines that draw from noise
+= Generating samples by transforming noise
 
 == Where does a brand-new face come from?
 
@@ -162,7 +162,7 @@ Uncomfortable but true: the dart *does* land somewhere, yet every exact landing 
 #pause
 #notebox[This is the door to measure theory — which we will keep respectfully closed. MML §6.1 does the same; the pictures-and-areas view is all this course (and most of ML) needs.]
 
-== The first trap: a density of 2 #V
+== A probability density can exceed one #V
 
 $X tilde cal(U)(0, 1\/2)$ — all mass spread evenly on an interval of width $1\/2$:
 
@@ -180,7 +180,7 @@ The height is $p(x) = 2$ — *bigger than 1* — yet nothing is wrong: area $= 2
 #pause
 #result[Densities are not probabilities. $p(x) > 1$ is legal, common, and means only: *mass is concentrated*.]
 
-== The trap, sprung twice
+== Density values and interval probabilities
 
 A second offender: $cal(N)(0, sigma = 0.1)$, a Gaussian squeezed tight —
 
@@ -321,7 +321,7 @@ Numbers: $F(1.2) = 1 - e^(-1.2) = 1 - 0.301 = 0.699$ — the 0.70 read off the p
 
 == Direction 2: differentiate the CDF → density
 
-Module 2's fundamental theorem, cashing a cameo: the derivative of accumulated area is the height being added —
+By the fundamental theorem of calculus, the derivative of accumulated probability is the density:
 
 $ F'(x) = p(x) $
 
@@ -387,7 +387,7 @@ Same picture as ever: $EE[X]$ is the *balance point* of the density cutout:
 ))
 
 #pause
-Trap dodged: the balance point is *not* the peak (mode, at 0) — the long right tail drags it out to 1.
+The mean is not the mode: the mode is at $0$, while the long right tail moves the mean to $1$.
 
 == Worked: the uniform's balance point
 
@@ -570,7 +570,7 @@ Flat box, falling slide, bell, and the shape-shifter on $[0,1]$. From these four
 
 = The Jacobian toll: change of variables
 
-== The hook returns: transform the noise
+== Transform a standard noise variable
 
 The generative recipe was: $z tilde$ simple noise, $x = f(z)$. For the recipe to be *mathematics* rather than vibes, we must answer:
 
@@ -603,7 +603,7 @@ $Y$ lives on $[0, 2]$ — twice the room. Total probability is still 1 — same 
 
 == Numbers: follow one interval through the stretch
 
-Track the fate of $[0.2, 0.3]$ under $y = 2x$:
+Track the interval $[0.2, 0.3]$ under $y = 2x$:
 
 #pause
 - Its probability under $X$: width $0.1$, height 1 → $P = 0.1$.
@@ -645,7 +645,7 @@ $ F_Y (y) = P(X <= (y - b)/a) = F_X ((y - b)/a) $
 #pause
 No approximation, no density yet — just the event $\{Y <= y\}$ renamed as an event about $X$. This "CDF first, then differentiate" move is *the* standard tool for transformed variables.
 
-== ⭐ Step 2: differentiate — the chain rule cashes in #D
+== ⭐ Step 2: differentiate with the chain rule #D
 
 Density = derivative of the CDF (Direction 2, minutes old):
 
@@ -679,11 +679,11 @@ $ p_Y (y) = p_X (g^(-1)(y)) dot abs((dif x)/(dif y)) quad quad "where " x = g^(-
 Read it aloud: *old density at the source point, times how much the axis was locally stretched.* For linear $g$, the stretch $abs(dif x\/dif y) = 1\/abs(a)$ everywhere; for curved $g$ it varies point by point.
 
 #pause
-#notebox[Worked cameo you already met in ES 114's notebook: $X = e^Z$ with $Z$ Gaussian gives the *log-normal*, whose density carries a $1\/x$ — that $1\/x$ is exactly $abs(dif z \/ dif x)$. What looked like a mysterious extra factor is the toll.]
+#notebox[If $X=e^Z$ and $Z$ is Gaussian, then $X$ is log-normal. Its density contains $1\/x$, which is exactly the inverse derivative $abs(dif z \/ dif x)$.]
 
-== L9's toll booth: you are the customer
+== Multivariate change of variables uses $abs(det J)$
 
-L9 ended with a promise — "densities that change variables must pay the $abs(det J)$ area toll. Same dial, new customer."
+L9 showed that $abs(det J)$ is the local volume-scaling factor of a square map.
 
 #pause
 #table(
@@ -700,7 +700,7 @@ L9 ended with a promise — "densities that change variables must pay the $abs(d
 #pause
 In $d$ dimensions the rule is verbatim $p_Y (bold(y)) = p_X (bold(x)) abs(det J)^(-1)$ — the factor every normalizing-flow and diffusion paper carries in its log-likelihood. You have now derived its 1-D soul.
 
-== Payoff: build any Gaussian from the standard one
+== Build a Gaussian from a standard normal vector
 
 Let $Z tilde cal(N)(0, 1)$ — density $phi(z) = e^(-z^2\/2) \/ sqrt(2 pi)$ — and stretch-and-slide: $X = mu + sigma Z$. The toll rule with $a = sigma$, $b = mu$:
 
@@ -716,7 +716,7 @@ x = mu + sigma * z           # N(mu, sigma²) — transformation does the rest
 ```]
 
 #pause
-This exact two-liner is the *reparameterization trick* inside every VAE — hook, meet mathematics.
+This two-line transformation is the reparameterization used in variational autoencoders.
 
 == Checkpoint: pay the toll #Q
 
@@ -819,7 +819,7 @@ The right panel of the darts figure *is* this code's histogram against $lambda e
 #pause
 Works verbatim for any distribution whose $F^(-1)$ you can write: uniform, exponential, Laplace, Cauchy, logistic…
 
-== The hook, resolved (at cartoon level)
+== The transformation view of a generative model
 
 #genpipe
 

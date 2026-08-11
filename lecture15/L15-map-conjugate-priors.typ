@@ -40,12 +40,12 @@
 
 #title-slide()
 
-// ═══════════════════════════ 1 · the hook ═══════════════════════════
+// ═══════════════════════════ 1 · motivating example ═══════════════════════════
 = Three heads in three flips
 
 == Where Lecture 14 left us
 
-L14's one move: fix the data, vary the parameter, climb the likelihood.
+L14 fixed the data, varied the parameter, and maximized the likelihood.
 
 $ hat(theta)_"MLE" = amax_theta P(D | theta) $
 
@@ -195,7 +195,7 @@ The denominator $P(D) = sum_h P(D | h) thin P(h)$ adds over *hypotheses* — no 
 $ #text(fill: ACC)[$P(theta | D)$] prop #text(fill: GREEN)[$P(D | theta)$] dot #text(fill: TEAL)[$P(theta)$] $
 
 #pause
-#result[*Posterior $prop$ likelihood $times$ prior.* Shapes multiply; the evidence only pays the normalization bill.]
+#result[*Posterior $prop$ likelihood $times$ prior.* The evidence is the normalization constant that makes the posterior integrate to one.]
 
 #pause
 That $prop$ sign is about to do a lot of honest work — hold on to it.
@@ -321,7 +321,7 @@ th[flat.argmax()], th[hill.argmax()]     # -> (1.0, 0.8)
   [A flat prior adds $log 1 = 0$ to the log-posterior — the argmax cannot move, so MAP $=$ MLE $= 9\/10$. Answer C ($approx 0.83$) is what the _hill_ prior Beta$(2,2)$ would give — right instinct, wrong prior; A forgets the data entirely; D isn't a thing MAP does.])
 
 // ═══════════════════════════ 4 · the Beta family ═══════════════════════════
-= The Beta family: a dial for beliefs
+= The Beta family as a prior over probabilities
 
 == The hill has a family name
 
@@ -330,7 +330,7 @@ Tilt the exponents and the hill becomes a whole family of beliefs on $[0,1]$:
 $ "Beta"(theta; alpha, beta) = (theta^(alpha - 1) (1 - theta)^(beta - 1)) / (B(alpha, beta)), quad quad B(alpha, beta) = (Gamma(alpha) Gamma(beta)) / (Gamma(alpha + beta)) $
 
 #pause
-- $Gamma(k) = (k - 1)!$ for whole numbers — the factorial with its dial unstuck, so $alpha, beta$ needn't be integers.
+- $Gamma(k) = (k - 1)!$ for positive integers, and the gamma function extends this definition so $alpha$ and $beta$ need not be integers.
 #pause
 - Our hill $prop theta(1 - theta)$ is $"Beta"(2, 2)$; the flat prior is $"Beta"(1, 1)$. (L12's zoo listed Beta as "the star of L15" — here it is.)
 
@@ -588,7 +588,7 @@ $ theta_"MAP" = (n_H + alpha - 1) / (n + alpha + beta - 2) arrow.r n_H / n = the
 #pause
 #result[Priors are training wheels that *remove themselves* — at a $1\/n$ rate you can compute.]
 
-== The hook, resolved
+== Posterior inference for the opening coin example
 
 Three heads in three flips, Beta$(2,2)$ prior → posterior Beta$(5,2)$:
 
@@ -599,7 +599,7 @@ Three heads in three flips, Beta$(2,2)$ prior → posterior Beta$(5,2)$:
   vlines: ((0.8, text(size: 12pt)[$theta_"MAP" = 0.8$], ACC),)))
 
 #pause
-- Verdict: lean heads ($theta_"MAP" = 0.8$) — but the shaded tail still holds $approx 11%$ belief that the coin *leans tails*.
+- The MAP estimate is $theta_"MAP" = 0.8$, while the posterior still assigns about $11%$ probability to $theta < 0.5$.
 #pause
 - Three flips buy you suspicion, never certainty — and never, ever "tails is impossible". The absurd bet is off.
 
@@ -734,7 +734,7 @@ $-log$ turns a belief into a penalty — every prior shape mints a regularizer:
 )
 
 #pause
-Gaussian bell → quadratic bowl → *L2 / ridge*. Laplace tent → sharp-cornered $abs(w)$ → *L1 / lasso*, whose corner at $0$ is why it switches weights fully off (one-line teaser; the ML course cashes it).
+Gaussian prior → quadratic penalty → *L2 / ridge*. Laplace prior → $abs(w)$ penalty → *L1 / lasso*; the corner at zero allows exact zero-valued coefficients.
 
 == The regularization dictionary
 

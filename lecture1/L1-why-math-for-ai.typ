@@ -13,9 +13,9 @@
 
 #title-slide()
 
-= The hook: three mysteries
+= Three motivating examples
 
-== Mystery 1 · the loss that became NaN #V
+== Example 1: a softmax loss becomes `nan` #V
 
 You train a model. The loss falls beautifully for 617 steps. Then —
 
@@ -24,7 +24,7 @@ You train a model. The loss falls beautifully for 617 steps. Then —
 #pause
 No error message. No crash. Just `nan`, forever. *What happened?*
 
-== Mystery 1 · a three-line crime scene
+== Reproduce the numerical failure in three lines
 
 The model's last layer computes a *softmax* — it turns scores into probabilities:
 
@@ -41,7 +41,7 @@ $e^1000$ is larger than *any number this machine can store* — so it gives up.
 #pause
 #notebox[Real numbers and machine numbers are *not the same thing*. The gap between them is *Lecture 2* — the very next class.]
 
-== Mystery 2 · one learning rate, two personalities #V
+== Example 2: one learning rate, two outcomes #V
 
 Gradient descent is the workhorse of all machine learning. Same code, same learning rate $eta = 0.8$ — on two different problems:
 
@@ -50,7 +50,7 @@ Gradient descent is the workhorse of all machine learning. Same code, same learn
 #pause
 It crawls on one and explodes on the other. *Why?* Resolved in *L17* (conditioning).
 
-== Mystery 3 · arithmetic on meaning #V
+== Example 3: arithmetic with word embeddings #V
 
 Modern AI stores every word as a list of \~300 numbers (an *embedding*). And then this works:
 
@@ -68,7 +68,7 @@ How can *subtracting lists of numbers* capture _gender_? Resolved in *L3* (vecto
   columns: (1fr, auto, auto),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 9pt,
-  table.header([*Mystery*], [*The math that explains it*], [*Where*]),
+  table.header([*Example*], [*The mathematics used to explain it*], [*Lecture*]),
   [the loss goes `nan`], [floating-point numbers], [*L2* — next class!],
   [the same $eta$ crawls _and_ explodes], [conditioning, curvature], [*L17*],
   [king − man + woman ≈ queen], [vector geometry], [*L3*],
@@ -251,7 +251,7 @@ $ A bold(v) = lambda bold(v) $
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
   table.header([*What*], [*How much*], [*Notes*]),
-  [Lectures], [26 × 80 min], [intuition first, an AI hook every time],
+  [Lectures], [26 × 80 min], [intuition first, with an AI example in every lecture],
   [Tutorials], [13 × 80 min], [*hybrid*: \~40 min worksheet + \~40 min notebook],
   [Credit], [3–1–0–4], [tutorials are formative — effort counts, not marks],
   [Assessment], [quizzes + midsem + endsem], [a quiz after (nearly) every module],
@@ -351,5 +351,5 @@ No marks — just checking that the prerequisites are alive:
   Every AI system is a stack of math — by L26 you'll have built one from scratch.
   #v(12pt)
   #set text(size: 22pt)
-  Next: *floating point* — Mystery 1 gets solved: how machines actually store numbers, and why $e^1000$ broke ours.
+  Next: *floating point* — how machines store numbers, why $e^1000$ overflows, and how stable softmax avoids it.
 ]
