@@ -124,9 +124,10 @@ At $x = 1$ on $f(x) = x^2$, the derivative defines the local linear approximatio
 #align(center, lines(fn: (ftr, elltr), domain: (-1.5, 1.9), samples: 90,
   colors: (INK, ACC), dashes: ("solid", "dashed"), markers: false,
   labels: ([$f$], [the line]),
-  points: ((1, 1, [start]), (0.6, 0.36, [small step]), (-1.2, 1.44, [big step])),
+  points: ((1, 1), (0.6, 0.36), (-1.2, 1.44)),
   size: (96mm, 46mm), x-label: $x$,
 ))
+#align(center, text(size: 16pt, fill: MUTED)[dots: start at $x = 1$ · a small step to $x = 0.6$ · a big step to $x = -1.2$])
 
 #pause
 A small step decreases the true function. A large step can increase it even though the linear approximation continues downward. The approximation is local.
@@ -223,7 +224,7 @@ $ x_1 = 2 - 0.25 dot (2 dot 2) = 1, quad x_2 = 1 - 0.25 dot 2 = 0.5, quad x_3 = 
 #pause
 #notebox[The next section derives this per-step factor exactly.]
 
-== On a round bowl, GD is unstoppable #V
+== On a round bowl, GD heads straight to the minimum #V
 
 $f(x, y) = x^2 + y^2$ — same curvature in every direction:
 
@@ -298,7 +299,7 @@ On a bowl of curvature $a$, the step from $x$ has length $eta a |x|$ — against
 #pause
 - $eta a < 1$: land *short* of the minimum — same side, monotone approach.
 #pause
-- $1 < eta a < 2$: land *past* the minimum but *closer* than you started — the overshooting dance.
+- $1 < eta a < 2$: land *past* the minimum but *closer* than you started — a damped oscillation.
 #pause
 - $eta a > 2$: land past it and *farther out* — each step amplifies the error. Divergence.
 
@@ -316,10 +317,9 @@ In $10^6$ dimensions you can't watch $x_t$ — only the *loss*. Same four runs, 
   (gd-loss(1.0, 0.05, 2.4, 12), gd-loss(1.0, 0.8, 2.4, 12),
    gd-loss(1.0, 1.7, 2.4, 12), gd-loss(1.0, 2.15, 2.4, 12)),
   colors: (TEAL, GREEN, ACC, RED), log-y: true, markers: true,
-  labels: ([crawl], [fast], [oscillating], [diverging]),
-  legend: "bl",
   x-label: [step], y-label: [loss], size: (98mm, 46mm),
 ))
+#align(center, text(size: 15pt, fill: MUTED)[#text(fill: TEAL)[crawl] · #text(fill: GREEN)[fast] · #text(fill: ACC)[oscillating] · #text(fill: RED)[diverging]])
 
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[geometric decay = *straight line* on a log axis; the slope is the per-step factor — divergence slopes *up*])
@@ -330,7 +330,7 @@ You will diagnose learning rates from curves like these for the rest of your car
 == Interactive: vary the learning rate #I
 
 #interbox(link-to: IA + "optimizer-race")[
-  Drop a start point on a 2-D loss surface and sweep the learning rate live: watch the same four personalities — crawl, converge, overshoot, explode — appear as you cross the $2\/a$ wall.
+  Drop a start point on a 2-D loss surface and sweep the learning rate live: watch the same four behaviours — crawl, converge, overshoot, explode — appear as you cross the $2\/a$ wall.
 ]
 
 #pause
@@ -352,7 +352,7 @@ Find the wall experimentally on the bowl, then check it against the curvature re
   [The update is $x arrow.l x - 2(x - 3) = 6 - x$: each step *reflects* through the minimum. $eta = 1$ is exactly the wall $2\/a = 1$ — the error factor is $-1$: never shrinks, never grows.])
 
 #pause
-$ x: quad 0 arrow.r 6 arrow.r 0 arrow.r 6 arrow.r dots.c quad #text(fill: MUTED)[— a perpetual, loss-preserving dance around $x^* = 3$] $
+$ x: quad 0 arrow.r 6 arrow.r 0 arrow.r 6 arrow.r dots.c quad #text(fill: MUTED)[— a perpetual, loss-preserving cycle around $x^* = 3$] $
 
 = Exact analysis on quadratics
 
@@ -415,14 +415,14 @@ $|1 - eta a|$ against $eta$ (drawn for $a = 1$):
 
 #align(center, lines(fn: e => calc.abs(1 - e), domain: (0, 2.5), samples: 120,
   colors: (INK,), markers: false,
-  hlines: ((1, [above this line: divergence], RED),),
+  hlines: ((1, none, RED),),
   vlines: ((1.0, [$eta^* = 1\/a$], GREEN), (2.0, [the wall $2\/a$], RED)),
-  annotations: ((0.48, 0.62, [monotone]), (1.52, 0.62, [oscillating]), (2.28, 1.38, [diverges])),
+  annotations: ((0.5, 0.14, [monotone]), (1.5, 0.14, [oscillating]), (0.5, 1.28, text(fill: RED)[divergence])),
   x-label: $eta$, y-label: [$|1 - eta a|$], size: (96mm, 46mm),
 ))
 
 #pause
-#align(center, text(size: 16pt, fill: MUTED)[a V with its tip at $eta = 1\/a$: undershoot on the left branch, overshoot on the right, cross $|c| = 1$ and you burn])
+#align(center, text(size: 16pt, fill: MUTED)[a V with its tip at $eta = 1\/a$: undershoot on the left branch, overshoot on the right, cross $|c| = 1$ and the iterates diverge])
 
 == Apply the contraction factor to both objectives #D
 
@@ -435,14 +435,14 @@ The opening two objectives were $f(x) = a/2 x^2$ with different curvatures and t
   table.header([], [*problem A* · $a = 0.02$], [*problem B* · $a = 3.2$]),
   [factor $c = 1 - 0.8 a$], [$0.984$], [#text(fill: RED)[$-1.56$]],
   [$|c|$ vs $1$], [just below — barely contracts], [above — *expands*],
-  [after 30 steps], [$0.984^30 = 0.62$ of the error left #h(2pt) ⟹ #h(2pt) loss $times 0.38$], [error $times 1.56^30$; loss $times 2.43$ per step $approx 10^11$],
+  [after 30 steps], [$0.984^30 = 0.62$ of the error left #h(2pt) ⟹ #h(2pt) loss $times 0.38$], [error $times 1.56^30$; loss $times 2.43^30 approx 4 times 10^11$],
 )
 
 #pause
 - L1's figure annotated problem A with "still 38% of the starting loss" — that number is $0.984^60$. *Predicted by one line of algebra.*
 
 #pause
-- For problem B, $eta = 0.8$ sits beyond its wall $2\/3.2 = 0.625$. It never had a chance.
+- For problem B, $eta = 0.8$ sits beyond its wall $2\/3.2 = 0.625$, so divergence was guaranteed.
 
 == Compute both trajectories #V
 
@@ -480,7 +480,7 @@ $ x_t = (1 - eta a)^t x_0, quad quad y_t = (1 - eta b)^t y_0 $
 - Speed is hostage to the *flat* axis: its factor $1 - eta a$ then sits near $1$.
 
 #pause
-#notebox[General bowls? L5 callback: eigenvectors of the Hessian rotate any bowl into this diagonal form — $a$ and $b$ are just its extreme eigenvalues. The diagonal case *is* the general case.]
+#notebox[L5 callback: Hessian eigenvectors rotate any bowl into this diagonal form — $a$ and $b$ are its extreme eigenvalues, so the diagonal case is general.]
 
 == Watch both factors at once #V
 
@@ -539,7 +539,7 @@ $ |c| = (kappa - 1) / (kappa + 1) approx 1 - 2/kappa $
 
 = The ill-conditioned bowl
 
-== Both personalities in one problem #V
+== Both curvatures in one problem #V
 
 Put the opening example's two curvatures into one objective: $f(x, y) = 1/2 (0.02 x^2 + 3.2 y^2)$, $kappa = 160$, and run GD with a safe $eta = 0.55$:
 
@@ -640,7 +640,7 @@ Roll a heavy marble down the ravine instead of teleporting a point:
 - Along the valley the force always agrees — the pushes *add up*, and the marble accelerates.
 
 #pause
-#result[Same information ($nabla f$), one new state variable (velocity) — and the ravine's two personalities get *opposite* treatment. This is the *heavy-ball method*.]
+#result[Same information ($nabla f$), one new state variable (velocity) — and the ravine's two axes get *opposite* treatment. This is the *heavy-ball method*.]
 
 == The update rule: two lines now
 
@@ -723,7 +723,7 @@ Same bowl ($kappa = 160$), same start, same 36 steps:
 ))
 
 #pause
-#align(center, text(size: 16pt, fill: MUTED)[the cross-valley wobble is filtered out; the along-valley coordinate — GD's crawl — actually *arrives*])
+#align(center, text(size: 16pt, fill: MUTED)[momentum rings across the valley at first, but the along-valley coordinate — GD's crawl — actually *arrives*])
 
 #pause
 #result[Momentum doesn't shrink $kappa$ — it changes how much $kappa$ *hurts*.]
@@ -757,11 +757,11 @@ Same bowl ($kappa = 160$), same start, same 36 steps:
 
 == Lecture 17 — summary
 
-- *GD derived* ⭐: use L7's local line for one step — $theta_(t+1) = theta_t - eta nabla f$, with first-order decrease $eta norm(nabla f)^2$ (direction: L8's Cauchy–Schwarz).
-- *Learning-rate regimes*: slow convergence / fast convergence / oscillation / divergence; the boundary is $eta = 2\/a$.
+- *GD derived* ⭐: one step on L7's local line — $theta_(t+1) = theta_t - eta nabla f$; direction from L8.
+- *Learning-rate regimes*: crawl / converge / oscillate / diverge; the wall is $eta = 2\/a$.
 - *Quadratic local model* ⭐: iterates are $(1 - eta a)^t x_0$; per-axis factors on positive-definite bowls; best 1-D rate at $eta = 1\/a$.
-- *Conditioning*: $kappa = a_"max"\/a_"min"$; the best contraction factor is $(kappa - 1)\/(kappa + 1)$, so the required steps scale with $kappa$.
-- *Preconditioning*: feature scale enters the Hessian quadratically; standardizing removes scale imbalance but not feature correlation.
+- *Conditioning*: $kappa = a_"max"\/a_"min"$; best factor $(kappa - 1)\/(kappa + 1)$; steps scale with $kappa$.
+- *Preconditioning*: feature scale enters the Hessian squared; standardizing fixes scale only.
 - *Momentum*: $v = beta v + g$; consistent directions $times 1\/(1 - beta)$, flip-flops damped — ravines tamed, not cured.
 
 #pause
@@ -771,12 +771,12 @@ Same bowl ($kappa = 160$), same start, same 36 steps:
 
 Try on paper; verify in the T8 notebook.
 
-+ For $f(x) = 2x^2$ with $eta = 0.4$: compute the contraction factor and the first three iterates from $x_0 = 1$. Converging?
-+ On $f(x) = 5/2 x^2$: find every $eta$ that converges, the $eta$ that lands in one step, and what happens at exactly $eta = 0.4$.
-+ On $f(x, y) = 1/2 (x^2 + 16 y^2)$ with the best single $eta$: per-axis factors, and how many steps to shrink the slow-axis error $1000 times$?
-+ Two uncorrelated features have standard deviations $1$ and $50$ (means $0$). Estimate $kappa$ before and after standardization. What changes if they are nearly collinear?
++ For $f(x) = 2x^2$ with $eta = 0.4$: the contraction factor and first three iterates from $x_0 = 1$. Converging?
++ On $f(x) = 5/2 x^2$: which $eta$ converge, which lands in one step, and what happens at exactly $eta = 0.4$?
++ On $f(x, y) = 1/2 (x^2 + 16 y^2)$ with the best single $eta$: per-axis factors, and the steps to shrink the slow-axis error $1000 times$.
++ Uncorrelated features with standard deviations $1$ and $50$ (means $0$): estimate $kappa$ before and after standardization. What if they are nearly collinear?
 + Momentum with $beta = 0.95$: the effective memory length, and the limiting $|v|$ under alternating gradients $plus.minus g$.
-+ Reproduce the opening pair in NumPy ($a = 0.02, 3.2$, $eta = 0.8$, 30 steps). Find the largest $eta$ that converges on both and the steps the flatter problem needs for a $100 times$ error reduction.
++ Reproduce the opening pair in NumPy ($a = 0.02, 3.2$, $eta = 0.8$, 30 steps); find the largest $eta$ that converges on both.
 
 == ⭐⭐⭐ SGD exists #OPT
 
@@ -793,7 +793,7 @@ A finite-sum loss is $cal(L)(theta) = 1/n sum_i ell_i(theta)$. If index $i$ is s
 #notebox[Minibatches, learning-rate schedules, and the adaptive per-coordinate rates of RMSProp and Adam belong to ES 335 and ES 667. The contraction-factor analysis here is their quadratic baseline.]
 
 #focus-slide[
-  The learning rate sets the step length used with a local linear approximation.
+  The learning rate is how far you trust a linear approximation.
   #v(12pt)
   #set text(size: 22pt)
   Next: *Newton & Gauss–Newton* — what if you trusted a *quadratic* model instead?
