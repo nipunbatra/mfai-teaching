@@ -15,14 +15,14 @@
 
 = Three motivating examples
 
-== Example 1: a softmax loss becomes `nan` #V
+== Example 1: a training loss becomes `nan` #V
 
-You train a model. The loss falls beautifully for 617 steps. Then —
+*Training* a model means adjusting its parameters, step by step, to fit data. The *loss* scores how badly it still misses — training pushes it down:
 
-#fig("/lecture1/figures/nan_loss.svg", w: 72%)
+#fig("/lecture1/figures/nan_loss.svg", w: 58%)
 
 #pause
-No error message. No crash. Just `nan`, forever. *What happened?*
+It does, for 600 steps. Then, with no error and no crash: `nan` — _not a number_ — forever. *What happened?*
 
 == Reproduce the numerical failure in three lines
 
@@ -36,16 +36,16 @@ array([nan, nan, nan])
 ```]
 
 #pause
-$e^1000$ is larger than *any number this machine can store* — so it gives up.
+$e^1000$ is larger than *any number this machine can store*: `np.exp` overflows to `inf`, and `inf / inf` evaluates to `nan`.
 
 #pause
 #notebox[Real numbers and machine numbers are *not the same thing*. The gap between them is *Lecture 2* — the very next class.]
 
 == Example 2: one learning rate, two outcomes #V
 
-Gradient-based methods train many machine-learning models. Same update rule, same learning rate $eta = 0.8$ — on two different problems:
+Most models are trained by *gradient descent*: compute the slope of the loss, take a small downhill step, repeat. The *learning rate* $eta$ is the step size. Same rule, same $eta = 0.8$, two problems:
 
-#fig("/lecture1/figures/lr_two_problems.svg", w: 80%)
+#fig("/lecture1/figures/lr_two_problems.svg", w: 76%)
 
 #pause
 It crawls on one and explodes on the other. *Why?* Resolved in *L17* (conditioning).
@@ -57,7 +57,7 @@ A word-embedding model stores each vocabulary item as a vector of learned number
 $ "king" - "man" + "woman" approx "queen" $
 
 #pause
-#fig("/lecture1/figures/embedding_arithmetic.svg", w: 52%)
+#fig("/lecture1/figures/embedding_arithmetic.svg", w: 46%)
 
 #pause
 How can *subtracting lists of numbers* capture _gender_? Resolved in *L3* (vectors).
@@ -69,7 +69,7 @@ How can *subtracting lists of numbers* capture _gender_? Resolved in *L3* (vecto
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 9pt,
   table.header([*Example*], [*The mathematics used to explain it*], [*Lecture*]),
-  [the loss goes `nan`], [floating-point numbers], [*L2* — next class!],
+  [the loss goes `nan`], [floating-point numbers], [*L2* — next class],
   [the same $eta$ crawls _and_ explodes], [conditioning, curvature], [*L17*],
   [king − man + woman ≈ queen], [vector geometry], [*L3*],
 )
@@ -98,7 +98,7 @@ How can *subtracting lists of numbers* capture _gender_? Resolved in *L3* (vecto
 )
 
 #pause
-#result[This table *is* the course: five stages, six modules, one destination.]
+#result[Each stage runs on mathematics this course builds — the table doubles as a course map.]
 
 = The destination
 
@@ -116,7 +116,7 @@ I shall be my lord the king of hearth.
 ```]
 
 #pause
-This is much smaller than GPT. What the two share is precise: both assign probabilities to text, fit parameters from data, use a cross-entropy objective, and train with gradient-based computation in floating point.
+This is much smaller than GPT, but what the two share is precise: both assign probabilities to text, both fit their parameters to data, both score the fit with the same loss (*cross-entropy*, built in L22–L24), and both compute in floating point.
 
 == What each module contributes
 
@@ -127,10 +127,10 @@ What that little language model needs from each module:
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
   table.header([*Module*], [*What the language model needs from it*]),
-  [*0 · Machine numbers*], [probabilities underflow → log-space, log-sum-exp],
+  [*0 · Machine numbers*], [tiny probabilities underflow → work in log-space],
   [*1 · Linear algebra*], [transition matrices, stationary distributions],
-  [*2 · Calculus + autodiff*], [gradients of the loss, backprop],
-  [*3 · Probability + MLE*], [the model _is_ a distribution; fitting = MLE],
+  [*2 · Calculus + autodiff*], [gradients of the loss, computed automatically (backprop)],
+  [*3 · Probability + MLE*], [the model _is_ a distribution; fitting it = maximum likelihood (MLE)],
   [*4 · Optimization*], [gradient descent actually finds the parameters],
   [*5 · Information theory*], [cross-entropy loss, perplexity],
   [*6 · Markov chains*], [the model class itself],
@@ -172,7 +172,7 @@ What that little language model needs from each module:
 #alertbox[If you ever meet a formula in this course and think "where did that come from?" — that is a bug in the course. Report it.]
 
 #pause
-Let's demo the contract right now, on a concept from *L5*: _eigenvectors_.
+We now run the contract once, end to end, on a concept from *L5*: _eigenvectors_.
 
 == Step 1 · picture: the directions that don't turn #V
 
@@ -197,19 +197,19 @@ $ A bold(v) = mat(2 dot 1 + 1 dot 1; 1 dot 1 + 2 dot 1) = mat(3; 3) = 3 bold(v) 
 
 $ A bold(u) = mat(2; 1) quad #text(fill: MUTED)[knocked off its line — turned] $
 
-== Step 3 · code: three lines of NumPy
+== Step 3 · code: the same check in NumPy
 
 #codebox[```python
 >>> A = np.array([[2., 1.], [1., 2.]])
->>> vals, vecs = np.linalg.eig(A)
+>>> vals, vecs = np.linalg.eigh(A)   # eigh: eig for symmetric matrices
 >>> vals
-array([3., 1.])
->>> vecs[:, 0]                    # the (1,1) direction, normalized
+array([1., 3.])
+>>> vecs[:, 1]                       # pairs with eigenvalue 3
 array([0.70710678, 0.70710678])
 ```]
 
 #pause
-The machine found both special directions — and how much each one stretches.
+The machine found both special directions — and $0.70710678 approx 1\/sqrt(2)$, so this column is the $(1, 1)$ direction scaled to length 1.
 
 == Step 4 · symbols: only now, the definition
 
@@ -220,7 +220,7 @@ $ A bold(v) = lambda bold(v) $
 — applying $A$ only _scales_ $bold(v)$; it never turns it.
 
 #pause
-#result[You just previewed *L5* — and seen how *every* concept will arrive. \ Picture first. Symbols last. Always.]
+#result[That was a preview of *L5* — and of how *every* concept will arrive: \ picture first, symbols last.]
 
 = The fine print
 
@@ -274,7 +274,7 @@ Worksheets build pen-and-paper fluency (exam style); notebooks rebuild the _same
 )
 
 #pause
-#notebox[All four are *legally free PDFs* from the authors: #link("https://mml-book.github.io")[mml-book.github.io] · #link("https://web.stanford.edu/~boyd/cvxbook/")[stanford.edu/\~boyd/cvxbook] · #link("http://www.inference.org.uk/itila/")[inference.org.uk/itila] · Solomon's _Numerical Algorithms_. Reading pointers close every lecture.]
+#notebox[All four are *legally free PDFs* from the authors: #link("https://mml-book.github.io")[mml-book.github.io] · #link("https://web.stanford.edu/~boyd/cvxbook/")[stanford.edu/\~boyd/cvxbook] · #link("http://www.inference.org.uk/itila/")[inference.org.uk/itila] · #link("https://people.csail.mit.edu/jsolomon/share/book/numerical_book.pdf")[people.csail.mit.edu/jsolomon]. Reading pointers close every lecture.]
 
 == The course site · everything in one place
 
@@ -310,17 +310,17 @@ Worksheets build pen-and-paper fluency (exam style); notebooks rebuild the _same
 )
 
 #pause
-#result[In *L14*, negative log-likelihood explains an important family of losses, including cross-entropy. Other objectives, such as hinge loss and explicit regularizers, have different origins.]
+#result[The arcs build in order: each module supplies the tools the next one assumes.]
 
 == Checkpoint: calibrate yourself #Q
 
 No marks — just checking that the prerequisites are alive:
 
-#mcq([Three warm-ups. Commit to answers for all three before the next slide.],
+#mcq([Four warm-ups, one per prerequisite. Commit to answers before the next slide.],
   [You flip a fair coin twice. P(two heads)?],
   [What does `np.dot([1, 2], [3, 4])` return?],
   [What is the slope of $f(x) = x^2$ at $x = 3$?],
-  [(no fourth question — breathe)],
+  [What is the mean of ${2, 4, 9}$?],
 )
 
 == Answers: calibrate yourself #A
@@ -334,7 +334,10 @@ No marks — just checking that the prerequisites are alive:
 *C.* $f'(x) = 2x$, so $6$ — school calculus. In L7 the derivative becomes _the best local linear model_.
 
 #pause
-#notebox[If all three felt easy, you are fully prepared. If one wobbled, skim your ES 113/114 notes this week — these are the only prerequisites we lean on.]
+*D.* $(2 + 4 + 9)\/3 = 5$ — descriptive statistics. In L12 the mean becomes an _expectation_.
+
+#pause
+#notebox[If all four felt easy, you are fully prepared. If one wobbled, skim your ES 113/114 notes this week — these are the only prerequisites we lean on.]
 
 == Lecture 1 — summary
 
@@ -348,7 +351,7 @@ No marks — just checking that the prerequisites are alive:
 #notebox[*Read before L2* — nothing required. If curious: Goldberg, _What Every Computer Scientist Should Know About Floating-Point Arithmetic_ (1991), §1.]
 
 #focus-slide[
-  An AI system combines several mathematical components — by L26 you'll have built a small one from scratch.
+  Every AI system is a stack of math — by L26 you'll have built one from scratch.
   #v(12pt)
   #set text(size: 22pt)
   Next: *floating point* — how machines store numbers, why $e^1000$ overflows, and how stable softmax avoids it.
