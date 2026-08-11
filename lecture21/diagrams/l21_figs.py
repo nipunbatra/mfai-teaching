@@ -67,6 +67,8 @@ def lp_vertices():
             ax.text(x[idx], y[idx], f"{value}", color=ACC, fontsize=9)
     values = 3 * VERTS[:, 0] + 2 * VERTS[:, 1]
     for (vx, vy), value in zip(VERTS, values):
+        if (vx, vy) == (2, 2):
+            continue  # the red annotation already reports value 10
         ax.text(vx + 0.06, vy + 0.07, f"{value:g}", fontsize=9, color=MUTED)
     ax.scatter([2], [2], s=85, color=RED, zorder=6)
     ax.annotate(
@@ -78,7 +80,6 @@ def lp_vertices():
         fontsize=10,
     )
     ax.text(0.3, 1.55, "feasible polytope", color=TEAL)
-    ax.set_title(r"maximize $3x_1+2x_2$")
     save(fig, "lp_vertices")
 
 
@@ -102,7 +103,6 @@ def qp_solution():
         color=RED,
         fontsize=10,
     )
-    ax.set_title(r"minimize $\frac{1}{2}\|x-z\|_2^2$ over the same polytope")
     save(fig, "qp_solution")
 
 

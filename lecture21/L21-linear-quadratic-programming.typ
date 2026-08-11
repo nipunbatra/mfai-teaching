@@ -41,7 +41,7 @@ Reliable solvers already exist for:
 + network flows, cone programs, and related structured classes.
 
 #pause
-Our job is to decide:
+Boyd and Vandenberghe call least squares, LP, and QP a _technology_: reliable, mature, ready to use. Our job is to decide:
 
 1. what the variables mean,
 2. what quantity should be optimized,
@@ -87,6 +87,9 @@ The feasible set is still described by linear constraints. The objective now has
   [hard-margin SVM], [squared norm], [QP],
 )
 
+#pause
+#notebox[The support vector machine you will meet in ML is "just" the last row: its training problem is a convex QP, and the solver for it already exists.]
+
 == Learning outcomes
 
 By the end of this lecture you will be able to:
@@ -118,12 +121,15 @@ $ (0,0), (2,0), (2,2), (1,3), (0,3). $
 
 == Move a linear contour #V
 
-#fig("/lecture21/figures/lp_vertices.svg", w: 62%)
+#two(r: (56%, 44%),
+  fig("/lecture21/figures/lp_vertices.svg", w: 88%),
+  [Contours of $3x_1+2x_2$ are parallel lines.
 
-#pause
-Contours of $3x_1+2x_2$ are parallel lines. Moving the line toward larger values makes final contact at $(2,2)$.
+  #pause
+  Moving the line toward larger values makes final contact at $(2,2)$.],
+)
 
-== Check every vertex
+== Check every vertex #D
 
 #table(
   columns: (1fr, 1fr),
@@ -140,7 +146,7 @@ Contours of $3x_1+2x_2$ are parallel lines. Moving the line toward larger values
 #pause
 For this bounded LP, a vertex attains the optimum.
 
-== Why a vertex is enough
+== Why a vertex is enough #D
 
 Every point in a bounded polytope is a convex combination of its vertices:
 
@@ -258,7 +264,7 @@ Candidate intersections on the lower boundary:
 
 + $y=0$ gives $x=4$, cost $8$;
 + $x=0$ gives $y=4$, cost $12$;
-+ intersect $x+2y=4$ and $4x+3y=12$.
++ intersect $5x+10y=20$ — i.e. $x+2y=4$ — with $4x+3y=12$.
 
 #pause
 The intersection is
@@ -402,10 +408,10 @@ The final term is constant, so this is a QP with $P=I$ and $bold(q)=-bold(z)$.
 
 == A QP optimum need not be a vertex #V
 
-#fig("/lecture21/figures/qp_solution.svg", w: 62%)
-
-#pause
-For $bold(z)=(3,1.4)$, the projection is $(2,1.4)$—inside an edge, not at a vertex.
+#two(r: (52%, 48%),
+  fig("/lecture21/figures/qp_solution.svg", w: 80%),
+  [For $bold(z)=(3,1.4)$, the projection is $(2,1.4)$ — inside an edge, not at a vertex.],
+)
 
 == LP and QP geometry
 
@@ -604,10 +610,38 @@ Useful steps:
 + use solver tolerances appropriate to the application,
 + and verify the unscaled answer afterward.
 
+== Question: classify the problem #Q
+
+#mcq(
+  [Minimize $norm(A bold(x)-bold(b))_2^2$ subject to $bold(x)>=bold(0)$. What class is it?],
+  [LP],
+  [convex QP],
+  [non-convex QP always],
+  [unconstrained problem],
+)
+
+== Answer #A
+
+#mcq-answer("B", [convex QP], [The squared least-squares objective has positive-semidefinite Hessian $2A^top A$, and non-negativity is a linear constraint.])
+
 // ═══════════════════ 8 · algorithms ═══════════════════
 = What the solver does
 
-== Two paths through an LP #V
+== Choosing a solver
+
+Choice depends on:
+
++ LP or QP structure,
++ dense versus sparse matrices,
++ problem size,
++ desired accuracy,
++ warm starts and repeated solves,
++ available commercial or open-source software.
+
+#pause
+Modeling systems can select a compatible solver; production work should record the solver and settings.
+
+== Two paths through an LP #OPT
 
 #fig("/lecture21/figures/solver_paths.svg", w: 76%)
 
@@ -637,34 +671,6 @@ It solves a sequence of smooth problems while reducing $mu$.
 
 #pause
 The iterates move through the interior and approach the optimal boundary as the barrier weakens.
-
-== Do not choose a solver by folklore
-
-Choice depends on:
-
-+ LP or QP structure,
-+ dense versus sparse matrices,
-+ problem size,
-+ desired accuracy,
-+ warm starts and repeated solves,
-+ available commercial or open-source software.
-
-#pause
-Modeling systems can select a compatible solver; production work should record the solver and settings.
-
-== Question: classify the problem #Q
-
-#mcq(
-  [Minimize $norm(A bold(x)-bold(b))_2^2$ subject to $bold(x)>=bold(0)$. What class is it?],
-  [LP],
-  [convex QP],
-  [non-convex QP always],
-  [unconstrained problem],
-)
-
-== Answer #A
-
-#mcq-answer("B", [convex QP], [The squared least-squares objective has positive-semidefinite Hessian $2A^top A$, and non-negativity is a linear constraint.])
 
 // ═══════════════════ 9 · close ═══════════════════
 = Model, solve, check
@@ -740,4 +746,6 @@ $ H(bold(p))=-sum_i p_i log p_i. $
 #pause
 Next lecture: surprise, bits, and entropy.
 
-#focus-slide[Recognize the problem class; model it carefully; verify the numerical answer.]
+#notebox[*Reading:* Boyd & Vandenberghe, _Convex Optimization_ §4.3–4.4 (LP and QP) · the CVXPY example library at cvxpy.org.]
+
+#focus-slide[Don't solve optimization problems — recognize them.]
