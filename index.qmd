@@ -51,10 +51,10 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
-| 3 | Vectors: the Geometry of Data | MML 2.1–2.4, 3.1–3.3 | *soon* | |
-| 4 | Matrices as Linear Maps | MML 2.5–2.8 | *soon* | |
-| 5 | Eigendecomposition | MML 4.1–4.2 | *soon* | |
-| 6 | SVD & PCA | MML 4.4–4.5, Ch 10 | *soon* | |
+| 3 | Vectors: the Geometry of Data | MML 2.1–2.4, 3.1–3.3 | [PDF](slides-pdf/L3.pdf) | |
+| 4 | Matrices as Linear Maps | MML 2.5–2.8 | [PDF](slides-pdf/L4.pdf) | |
+| 5 | Eigendecomposition | MML 4.1–4.2 | [PDF](slides-pdf/L5.pdf) | |
+| 6 | SVD & PCA | MML 4.4–4.5, Ch 10 | [PDF](slides-pdf/L6.pdf) | |
 
 > **Quiz 1** · Modules 0–1
 
@@ -62,7 +62,7 @@ The course follows **Deisenroth, Faisal & Ong · *Mathematics for Machine Learni
 
 | # | Topic | Reading | Slides | Notebook |
 |:---:|------|:-------:|:------:|:--------:|
-| 7 | Univariate Calculus & Taylor Series | MML 5.1 | *soon* | |
+| 7 | Univariate Calculus & Taylor Series | MML 5.1 | [PDF](slides-pdf/L7.pdf) | |
 | 8 | Gradients & the Geometry of Surfaces | MML 5.2–5.3 | *soon* | |
 | 9 | Jacobian, Hessian & Multivariate Taylor | MML 5.4–5.7 | *soon* | |
 | 10 | Differentiation on a Computer I: Finite Differences → Forward Mode | MML 5.6 | *soon* | |

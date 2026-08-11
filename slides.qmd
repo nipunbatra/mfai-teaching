@@ -15,16 +15,16 @@ One PDF per lecture, one page per slide (handout build). The full schedule with 
 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
-| 3 | Vectors: the Geometry of Data | *soon* |
-| 4 | Matrices as Linear Maps | *soon* |
-| 5 | Eigendecomposition | *soon* |
-| 6 | SVD & PCA | *soon* |
+| 3 | Vectors: the Geometry of Data | [PDF](slides-pdf/L3.pdf) |
+| 4 | Matrices as Linear Maps | [PDF](slides-pdf/L4.pdf) |
+| 5 | Eigendecomposition | [PDF](slides-pdf/L5.pdf) |
+| 6 | SVD & PCA | [PDF](slides-pdf/L6.pdf) |
 
 ## Module 2 · Multivariate Calculus & Autodiff
 
 | # | Lecture | Slides |
 |:---:|---------|:----:|
-| 7 | Univariate Calculus & Taylor Series | *soon* |
+| 7 | Univariate Calculus & Taylor Series | [PDF](slides-pdf/L7.pdf) |
 | 8 | Gradients & the Geometry of Surfaces | *soon* |
 | 9 | Jacobian, Hessian & Multivariate Taylor | *soon* |
 | 10 | Differentiation on a Computer I: Finite Differences → Forward Mode | *soon* |
