@@ -80,10 +80,10 @@ By the end of this lecture you will be able to:
 
 == L5 gave us eigenvectors — and left a gap
 
-L5: eigenvectors are the directions a matrix _can't turn_ — and symmetric matrices got the dream: $S = Q Lambda Q^top$, real stretches along perpendicular axes.
+L5: eigenvectors are the directions a matrix _can't turn_ — and symmetric matrices factor completely: $S = Q Lambda Q^top$, real stretches along perpendicular axes.
 
 #pause
-But the dream has fine print:
+Two gaps remain:
 
 - A plain square matrix may have *complex* eigenvalues (a rotation turns _every_ direction)
 #pause
@@ -99,7 +99,7 @@ Feed every unit vector through $A = mat(5, 3; 0, 4)$ and watch:
 #fig("/lecture6/figures/svd_action.svg", w: 100%)
 
 #pause
-A circle in, an *ellipse* out — always. The three arrows between the panels are the three machines hiding inside $A$.
+A circle in, an *ellipse* out — always. The three arrows between the panels are the three factors of $A$ at work.
 
 == Step 1 · $V^top$ rotates the input into position #V
 
@@ -153,7 +153,7 @@ $ underbrace(A, m times n) = underbrace(U, m times r) space underbrace(Sigma, r 
 - $Sigma$ stretches $r$ surviving directions and drops the rest
 
 #pause
-#notebox[The "full" SVD pads $U$ to $m times m$ and $V$ to $n times n$ with basis vectors for the leftover space. ML code wants the thin one: `np.linalg.svd(A, full_matrices=False)`.]
+#notebox[The "full" SVD pads $U$ to $m times m$ and $V$ to $n times n$ with basis vectors for the leftover space. ML code wants the thin one: `np.linalg.svd(A, full_matrices=False)` — it keeps $min(m, n)$ components, with zero $sigma$'s marking the inactive ones.]
 
 == Reading $Sigma$: semi-axes, importance, rank
 
@@ -214,7 +214,7 @@ $ bold(u)_2 = (A bold(v)_2) / sigma_2 = 1/sqrt(10) dot 1/sqrt(2) vec(-2, 4) = 1/
 
 == Multiply back — it really is $A$
 
-Assemble the three machines. First the stretch applied to the rotated frame:
+Assemble the three factors. First the stretch applied to the rotated frame:
 
 $ Sigma V^top = mat(2 sqrt(10), 0; 0, sqrt(10)) dot 1/sqrt(2) mat(1, 1; -1, 1) = sqrt(5) mat(2, 2; -1, 1) $
 
@@ -240,14 +240,14 @@ $ 5^2 + 3^2 + 0^2 + 4^2 = 50 = 40 + 10 = sigma_1^2 + sigma_2^2 space checkmark $
 #pause
 Both are theorems, not luck: $|det A| = product_i sigma_i$, and $norm(A)_F^2 = sum_i sigma_i^2$ — rotations change neither areas nor lengths, so only $Sigma$ can.
 
-== The machine agrees
+== NumPy agrees
 
 #codebox[```python
 >>> A = np.array([[5., 3.], [0., 4.]])
 >>> U, S, Vt = np.linalg.svd(A)
->>> S
+>>> S.round(4)
 array([6.3246, 3.1623])            # 2*sqrt(10), sqrt(10)
->>> U
+>>> U.round(4)
 array([[ 0.8944, -0.4472],         # (2,1)/sqrt(5) in column 1
        [ 0.4472,  0.8944]])
 >>> np.allclose(U @ np.diag(S) @ Vt, A)
@@ -285,7 +285,7 @@ Our worked matrix, split into its two layers:
 $ mat(5, 3; 0, 4) = underbrace(mat(4, 4; 2, 2), sigma_1 bold(u)_1 bold(v)_1^top) + underbrace(mat(1, -1; -2, 2), sigma_2 bold(u)_2 bold(v)_2^top) $
 
 #pause
-#result[The SVD ships every matrix *pre-sliced into layers, sorted by importance*. Now: what if we keep only the top of the stack?]
+#result[The SVD writes every matrix as rank-1 layers *already sorted by* $sigma_i$. Next: how much do we lose by keeping only the top $k$?]
 
 == "Importance" made precise: energy
 
@@ -326,7 +326,7 @@ But is blunt truncation a _good_ approximation — or just a cheap one?
 
 == Which direction does $A$ amplify most? #D
 
-Let's earn the $k = 1$ case. Start by finding the unit direction that $A$ amplifies most:
+We prove the $k = 1$ case. Start by finding the unit direction that $A$ amplifies most:
 
 $ max_(norm(bold(v)) = 1) norm(A bold(v)) quad = quad ? $
 
@@ -400,7 +400,7 @@ $k = 1$ is literally one column times one row — yet the sky gradient is alread
 #pause
 - Left: $sigma_i$ on a log scale — *structured* images spend their energy in few layers
 #pause
-- Right: measured error (dots) lands _exactly_ on the Eckart–Young tail $sqrt(sum_(i > k) sigma_i^2)$ (line) — the theorem, photographed
+- Right: measured error (dots) lands _exactly_ on the Eckart–Young tail $sqrt(sum_(i > k) sigma_i^2)$ (line)
 
 == LoRA uses a low-rank parameter update
 
@@ -601,7 +601,7 @@ Both routes are correct mathematics. Numerically they are not equals:
 #pause
 - *Memory*: for $d = 10^5$ features, $C$ is $10^5 times 10^5$ — $10^10$ entries you never needed; SVD works on $X$ directly
 #pause
-- *Precision*: forming $A^top A$ squares the singular values — $sigma_i = 10^(-8)$ becomes $lambda_i = 10^(-16)$, close to float64 $epsilon$. The numerical example reports a tail eigenvalue of $-0.0$, a rounding artifact rather than negative variance
+- *Precision*: forming $A^top A$ squares the singular values — $sigma_i = 10^(-8)$ becomes $lambda_i = 10^(-16)$, close to float64 $epsilon$. The digits covariance route even returns a tiny _negative_ tail eigenvalue ($approx -6 dot 10^(-16)$) — a rounding artifact, not negative variance
 #pause
 - direct and randomized-SVD PCA solvers work on $X_c$ without forming $C$; some libraries also offer a covariance-eigensolver when that shape is favourable
 
@@ -647,7 +647,7 @@ Exact SVD costs $O(m n min(m, n))$ — hopeless for a $10^6 times 10^5$ matrix. 
 #notebox[*Read before L7* — MML Ch 4.4–4.5 (SVD) and Ch 10 (PCA); Solomon Ch 7. *Tutorial 3* this week: SVD compression on your own photo + PCA on digits. *Quiz 1* covers Module 1 (L1–L6) — the worked 2×2 here is exam-shaped.]
 
 #focus-slide[
-  Every matrix has orthonormal input and output directions connected by singular-value scaling.
+  Every matrix is a rotation, a stretch, and a rotation.
   #v(12pt)
   #set text(size: 22pt)
   Module 2 begins. Next: *Univariate Calculus & Taylor Series* — we stop rearranging space and start measuring change.

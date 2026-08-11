@@ -261,8 +261,8 @@ for d in range(10):
     sel = yd == d
     ax.scatter(Zd[sel, 0], Zd[sel, 1], s=11, color=cmap(d), alpha=0.75,
                label=str(d), linewidths=0)
-ax.set_xlabel(f'PC 1  ({100*var[0]:.0f}% of variance)')
-ax.set_ylabel(f'PC 2  ({100*var[1]:.0f}% of variance)')
+ax.set_xlabel(f'PC 1  ({100*var[0]:.1f}% of variance)')
+ax.set_ylabel(f'PC 2  ({100*var[1]:.1f}% of variance)')
 leg = ax.legend(title='digit', ncol=2, fontsize=10.5, title_fontsize=11,
                 frameon=False, loc='center left', bbox_to_anchor=(1.01, 0.5),
                 handletextpad=0.2, columnspacing=0.7, markerscale=1.9)
