@@ -79,7 +79,7 @@ You will stare at thousands of the left plot. It is an *altimeter log*: height v
 #pause
 - The core local mechanisms — slopes, contours, and steepest directions — are already visible with *two* weights.
 #pause
-- So today is deliberately flat-footed: $f(x, y)$, drawn every way we can.
+- So today stays in two dimensions: $f(x, y)$, drawn every way we can.
 
 #pause
 #result[Training = walking downhill on a loss surface. The training curve is only the altimeter — today we learn to read the *terrain*.]
@@ -232,17 +232,17 @@ plt.gca().set_aspect("equal")
   ],
 )
 
-== Level sets you have already met
+== Level sets also draw decision boundaries
 
-Contours are not just a plotting trick — they are how ML *draws decisions*:
-
-#pause
-- With the usual binary threshold $0.5$, a classifier's *decision boundary* is the level set $p(x, y) = 0.5$. Different costs or thresholds move that boundary.
-#pause
-- Every "decision boundary" plot in ES 335 is `plt.contour(X, Y, P, levels=[0.5])` — the same five lines of code as before.
+Contours are not just a plotting trick. A *classifier* is a model whose output $p(x, y)$ is its predicted probability that the point $(x, y)$ belongs to class 1:
 
 #pause
-#notebox[Same object, two costumes: in *parameter space*, level sets of the loss (today); in *input space*, level sets of the model's output (your next ML course).]
+- Predict class 1 wherever $p > 0.5$: the *decision boundary* between the two predictions is the level set $p(x, y) = 0.5$. Different costs or thresholds move that boundary.
+#pause
+- Decision-boundary plots in your ML course (ES 335) are `plt.contour(X, Y, P, levels=[0.5])` — the same five lines of code as before.
+
+#pause
+#notebox[Same object, two spaces: in *parameter space*, level sets of the loss (today); in *input space*, level sets of the model's output (your next ML course).]
 
 = Partial derivatives: freeze one variable
 
@@ -283,7 +283,7 @@ Each cut is a parabola with a *tangent line* at the base point — exactly L7's 
 
 == The nudge table, twice
 
-Base point $(2, 1)$, $f = 7$. Nudge *one* coordinate, hold the other — L7's ritual:
+Base point $(2, 1)$, $f = 7$. Nudge *one* coordinate, hold the other, exactly as in L7:
 
 #table(
   columns: (1fr, auto, auto, auto),
@@ -328,7 +328,7 @@ x0, y0 = torch.tensor(2.0), torch.tensor(1.0)
 df_dx = torch.func.grad(f, argnums=0)(x0, y0)   # nudge arg 0 only
 df_dy = torch.func.grad(f, argnums=1)(x0, y0)   # nudge arg 1 only
 print(df_dx, df_dy)
-# tensor(4.)  tensor(6.)
+# tensor(4.) tensor(6.)
 ```]
 
 #pause
@@ -395,7 +395,7 @@ Every arrow is $nabla f$ planted at its base point — three regularities hide h
 #pause
 + Wherever $nabla f eq.not bold(0)$ and the level set is smooth, the gradient crosses its contour at a right angle.
 #pause
-+ Arrows are *long where lines crowd* (steep!), and shrink to $nabla f = bold(0)$ at the flat bottom — the resting places of gradient descent (L16–L18's obsession).
++ Arrows are *long where lines crowd* (steep!), and shrink to $nabla f = bold(0)$ at the flat bottom — the resting places of gradient descent (L16–L18).
 
 #pause
 #result[At a regular point ($nabla f eq.not bold(0)$), the gradient is perpendicular to the contour through the point, and its norm is the maximum directional derivative.]
@@ -431,7 +431,7 @@ One dot product will answer all three. First, make question 1 precise — with n
 
 == Walking in a chosen direction
 
-Pick a *unit* direction $bold(u)$, walk along $(2, 1) + t thin bold(u)$, and log altitude: $phi(t) = f((2,1) + t bold(u))$. The slope $phi'(0)$ is the *directional derivative* $D_bold(u) f$. Measure it, nudge-style:
+Pick a *unit* direction $bold(u)$, walk along $(2, 1) + t thin bold(u)$, and log altitude: $phi(t) = f((2,1) + t bold(u))$. The slope $phi'(0)$ is the *directional derivative* $D_bold(u) f$. Measure it as before — shrink the nudge, read the stabilized ratio:
 
 #table(
   columns: (auto, auto, 1fr),
@@ -479,8 +479,9 @@ Check against the measured table: $bold(u) = (0.6, 0.8)$: $(4)(0.6) + (6)(0.8) =
 
 Zoom onto $(2, 1)$: the exact $nabla f$ (green pin) vs the level curve $f = 7$ and its direction (teal chord):
 
-#align(center, contour(ad.fn2(fbowl), xlim: (0.6, 3.6), ylim: (-0.1, 2.5),
-  samples: 56, levels: (1, 3, 5, 7, 10, 14, 19, 25), size: (92mm, 68mm), color: TEAL,
+// equal mm-per-unit on both axes (x: 3.6/94, y: 2.6/68) — the right angle must LOOK right
+#align(center, contour(ad.fn2(fbowl), xlim: (0.2, 3.8), ylim: (-0.1, 2.5),
+  samples: 56, levels: (1, 3, 5, 7, 10, 14, 19, 25), size: (94mm, 68mm), color: TEAL,
   paths: (pin((2, 1), s: 0.16), ((1.25, 1.5), (2.75, 0.5))),
   marks: ((2 + 0.16 * GRADP.at(0), 1 + 0.16 * GRADP.at(1), [$nabla f$], GREEN),
           (2.75, 0.5, [level], TEAL), (2, 1, none, RED)),
@@ -510,14 +511,14 @@ Among all unit $bold(u)$, which maximizes $D_bold(u) f$? L3's second reading of 
 $ D_bold(u) f = nabla f dot bold(u) = norm(nabla f) thin underbrace(norm(bold(u)), = 1) cos theta = norm(nabla f) cos theta $
 
 #pause
-$cos theta <= 1$, with equality only at $theta = 0$ — this is L3's Cauchy–Schwarz, "bought for nothing":
+$cos theta <= 1$, with equality only at $theta = 0$ — the Cauchy–Schwarz inequality, L3's "free corollary", now doing real work:
 
 - *Steepest ascent*: $bold(u) = nabla f slash norm(nabla f)$, slope $norm(nabla f) = sqrt(4^2 + 6^2) = sqrt(52) approx 7.21$
 #pause
 - *Steepest descent*: $-nabla f$, slope $-7.21$ — the direction training will take (L17)
 
 #pause
-#notebox[Our hand-picked $(0.6, 0.8)$ scored $7.2$ of a possible $7.21$ — it sits just $3degree$ off the true champion $(4, 6) slash sqrt(52) approx (0.55, 0.83)$. Close only counts because $cos theta$ is flat near $theta = 0$.]
+#notebox[Our hand-picked $(0.6, 0.8)$ scored $7.2$ of a possible $7.21$: it sits about $3 degree$ off the steepest direction $(4, 6) slash sqrt(52) approx (0.55, 0.83)$, and $cos theta$ is flat near $theta = 0$, so a few degrees cost almost nothing.]
 
 == The slope compass #V
 
@@ -614,7 +615,7 @@ Gradient descent on $cal(L)(w, b)$ from the two-point fit, starting at $(w, b) =
 )
 
 #pause
-For this quadratic loss, the fast drop is followed by a long crawl *along the valley floor* toward $(2, 0)$. Real training curves can flatten for several other reasons, so the curve alone does not diagnose a valley.
+For this quadratic loss, a zigzagging fast drop is followed by a long crawl *along the valley floor* toward $(2, 0)$. Real training curves can flatten for several other reasons, so the curve alone does not diagnose a valley.
 
 == Interactive: gradient-descent trajectories #I
 
