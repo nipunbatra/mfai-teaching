@@ -46,10 +46,10 @@
 #let gcheck = ad.grad(qf1, (1.0, 1.0))                     // should equal 2·A₁·(1,1) = (6, 6)
 #let gclosed = la.scale(la.matvec(A1, (1.0, 1.0)), 2.0)
 
-// ── the derivative zoo — one orienting table, revisited through the deck ──
+// ── the derivative table — one orienting table, revisited through the deck ──
 // stage 1: everything above today greyed-in, today's rows still "?"
 // stage 2: the Jacobian row lands   ·   stage 3: the Hessian row lands too
-#let zoo(stage) = {
+#let dtable(stage) = {
   let J-row = if stage >= 2 {
     ([$f: RR^n -> RR^m$], text(fill: ACC, weight: 600)[$J(bold(x))$], [matrix, $m times n$], [the local linear map (*today*)])
   } else {
@@ -99,16 +99,16 @@ The derivative grows up in two steps:
 - *curvature* of a surface $arrow.r$ also a matrix: the *Hessian* — and its eigenvalue signs (L5!) say whether you're in a bowl, on a saddle, or in a trough.
 
 #pause
-#notebox[Fair warning: this is the *heaviest-notation lecture of the course* — so we run it with a safety valve. Every idea happens on $RR^2 -> RR^2$, small enough to check by hand. The general case is always the *same picture, more rows*.]
+#notebox[This is the *heaviest-notation lecture of the course*, so we fix one working rule: every idea is developed on $RR^2 -> RR^2$ first — small enough to check by hand. The general case is always the *same picture, more rows*.]
 
 #pause
 By the end, "Jacobian" and "Hessian" will be *pictures*, not notation: a parallelogram, and a bowl.
 
-== The derivative zoo — today's map #V
+== The derivative table — today's map #V
 
 One table to navigate the whole lecture. Two rows you own; two we fill today:
 
-#zoo(1)
+#dtable(1)
 
 #pause
 Same idea every row: the derivative supplies the coefficients of the best local linear approximation; its container changes with the function's input and output shapes.
@@ -150,7 +150,7 @@ $ F(bold(x)) = A bold(x) = mat(2, 1; 3, -2) bold(x) quad arrow.r.double quad F(b
 Nudge the input by $bold(delta)$ — the output moves by $A bold(delta)$. *The matrix $A$ is the derivative*, at every point.
 
 #pause
-#result[Target for today: for a curvy $Phi$, find the matrix that plays the role of $A$ *near one point*.]
+*Today's target:* for a curvy $Phi$, find the matrix that plays the role of $A$ *near one point*.
 
 == Numbers: nudge the polar map, watch both outputs
 
@@ -159,7 +159,7 @@ Take the most useful curvy $RR^2 -> RR^2$ map there is — polar coordinates —
 $ Phi(r, theta) = (underbrace(r cos theta, x), thin underbrace(r sin theta, y)), quad quad Phi(2, pi/3) = (1.000, thin 1.732) $
 
 #pause
-Nudge each input by $0.01$, one at a time (L7's nudge machine, run twice per output):
+Nudge each input by $0.01$, one at a time (L7's nudge table, run twice per output):
 
 #table(
   columns: (auto, auto, auto),
@@ -194,7 +194,7 @@ True image of a tiny square (ink) vs the parallelogram $J$ makes of it (orange) 
 #fig("/lecture9/figures/jacobian_zoom.svg", w: 64%)
 
 #pause
-#result[$ Phi(bold(a) + bold(delta)) approx Phi(bold(a)) + J(bold(a)) thin bold(delta) $ The Jacobian is the linear map that impersonates $Phi$ near $bold(a)$.]
+#result[$ Phi(bold(a) + bold(delta)) approx Phi(bold(a)) + J(bold(a)) thin bold(delta) $ The Jacobian is the linear map that matches $Phi$ to first order near $bold(a)$.]
 
 == $abs(det J)$ is the local area-scaling factor
 
@@ -203,7 +203,7 @@ L4: a determinant is the area-scaling factor of a linear map, so $abs(det J)$ is
 #fig("/lecture9/figures/polar_grid.svg", w: 58%)
 
 #pause
-For polar: $det J = r cos^2 theta + r sin^2 theta = r$ — the orange cell ($r = 1.5$) gets $tilde 3 times$ the teal cell's area ($r = 0.5$). At $r = 0$: $det J = 0$, the whole $theta$-axis is *crushed to a point* (L4's null space, gone local).
+For polar: $det J = r cos^2 theta + r sin^2 theta = r$ — equal input cells land with areas $0.061$ and $0.160$: a $2.6 times$ ratio, *exactly the ratio of their centre radii*. At $r = 0$: $det J = 0$, the whole $theta$-axis is *crushed to a point* (L4's null space, gone local).
 
 == Code: PyTorch measures the same matrix
 
@@ -234,14 +234,14 @@ For $f: RR^n -> RR^m$ — nothing new, just a bigger crate ($m$ outputs stacked,
 $ J(bold(x)) = mat((partial f_1)/(partial x_1), dots.c, (partial f_1)/(partial x_n); dots.v, dots.down, dots.v; (partial f_m)/(partial x_1), dots.c, (partial f_m)/(partial x_n)) in RR^(m times n), quad quad J_(i j) = "how output" i "feels input" j $
 
 #pause
-The zoo collapses out of this one object:
+The whole derivative table collapses out of this one object:
 
 - $m = 1$: a single row — the gradient lying on its side, $J = nabla f^top$ (L8).
 #pause
 - $m = n = 1$: a $1 times 1$ matrix — L7's lone number $f'(x)$.
 
 #pause
-#result[There is only *one* derivative idea. The Jacobian is its general form; slope and gradient are its small print.]
+#result[There is only *one* derivative idea. The Jacobian is its general form; slope and gradient are its $m = n = 1$ and $m = 1$ special cases.]
 
 == Chain rule: composition becomes multiplication
 
@@ -258,9 +258,9 @@ And the shapes *must click*: $(k times m)(m times n) = (k times n)$ — your fre
 #pause
 #notebox[*Planted for L10–L11:* a network is $f_L compose dots.c compose f_1$, so its derivative is a *product of Jacobians*. Backprop will be nothing but a clever order for multiplying them out.]
 
-== The zoo, second visit #V
+== The derivative table, second visit #V
 
-#zoo(2)
+#dtable(2)
 
 #pause
 One row left. It needs a different question: not "vector out?" but *"what happened to curvature?"*
@@ -284,7 +284,7 @@ One row left. It needs a different question: not "vector out?" but *"what happen
 
 == In one dimension, curvature was one number
 
-L7's second act: at a flat point, a *nonzero* $f''$ settles the local classification — positive gives a minimum, negative a maximum. When $f''=0$, higher-order terms decide.
+L7's second-derivative test: at a flat point, a *nonzero* $f''$ settles the local classification — positive gives a minimum, negative a maximum. When $f''=0$, higher-order terms decide.
 
 #pause
 Now stand on a 2-D surface $f: RR^2 -> RR$ and walk in different directions:
@@ -297,7 +297,7 @@ Now stand on a 2-D surface $f: RR^2 -> RR$ and walk in different directions:
 One number per direction, infinitely many directions. Sounds hopeless — but so did "one slope per direction" before L8 packed every directional slope into *one vector* $nabla f$.
 
 #pause
-Same trick again, one storey up.
+Same move again, one storey up.
 
 == Numbers: the gradient is itself a map we know
 
@@ -314,7 +314,7 @@ Take the Jacobian *of the gradient*:
 $ J_(nabla f) = mat((partial)/(partial x)(2x + y), (partial)/(partial y)(2x + y); (partial)/(partial x)(x + 2y), (partial)/(partial y)(x + 2y)) = mat(2, 1; 1, 2) $
 
 #pause
-That matrix has a name — and for this $f$, it is *L5's favorite matrix*. Not a coincidence we'll waste.
+That matrix has a name — and for this $f$, it is *L5's running matrix* $mat(2, 1; 1, 2)$. The quadratic-form section makes the connection exact.
 
 == The Hessian, defined
 
@@ -329,9 +329,9 @@ $ H(bold(x)) = J_(nabla f)(bold(x)), quad quad H_(i j) = (partial^2 f)/(partial 
 For any twice-continuously-differentiable $f$, mixed partials agree: $H_(i j) = H_(j i)$ (Schwarz's theorem).
 
 #pause
-#result[If the second partial derivatives are continuous, the Hessian is *symmetric* (Clairaut's theorem). The spectral theorem then gives real eigenvalues and an orthonormal eigenbasis.]
+#result[If the second partial derivatives are continuous, the Hessian is *symmetric* (Schwarz's theorem). The spectral theorem then gives real eigenvalues and an orthonormal eigenbasis.]
 
-== Test drive: the curvature you feel along a street
+== The curvature along one direction
 
 Walking from $bold(a)$ in unit direction $bold(u)$, the ground under you is the 1-D function $g(t) = f(bold(a) + t bold(u))$, and (chain rule, twice):
 
@@ -463,7 +463,7 @@ The vocabulary every ML paper uses for "which shape is it":
 In eigen-coordinates $bold(x)^top A bold(x) = sum_i lambda_i t_i^2$; the form is nonnegative for every $bold(x)$ exactly when every $lambda_i >= 0$.
 
 #pause
-#result[*Positive definite = the surface is a bowl.* That one sentence decodes half the theorems you will ever meet about optimization and covariance.]
+#result[*Positive definite = the surface is a bowl.* This is the reading used throughout optimization (L16–L18) and covariance (L13).]
 
 == Hand tests for 2×2 — ten-second shape reading
 
@@ -480,7 +480,7 @@ L5's sanity checks were $"tr" A = sum lambda_i$ and $det A = product lambda_i$. 
 )
 
 #pause
-For $n times n$, the computer's test is eigenvalues; the classical hand test is *Sylvester's criterion* (all leading principal minors $> 0$ $arrow.l.r.double$ PD — stated for your shelf, not proved).
+For $n times n$, the computer's test is eigenvalues; the classical hand test is *Sylvester's criterion* (all leading principal minors $> 0$ $arrow.l.r.double$ PD — stated, not proved).
 
 #pause
 #alertbox[Positive *entries* do not make a matrix positive *definite*: $mat(1, 2; 2, 1)$ is all-positive yet $det = -3 < 0$ — a saddle. Definiteness lives in the eigenvalues, not the ink.]
@@ -502,7 +502,7 @@ For $n times n$, the computer's test is eigenvalues; the classical hand test is 
 )
 
 #pause
-The $lambda$ column is computed by the in-slide eigensolver at compile time — trace and det agree with $sum lambda_i$ and $product lambda_i$ on every row (L5's exam armor, still working).
+The $lambda$ column is computed by the in-slide eigensolver at compile time — trace and det agree with $sum lambda_i$ and $product lambda_i$ on every row (L5's two sanity checks, still working).
 
 == Code: three lines settle any matrix
 
@@ -548,7 +548,7 @@ $bold(x)^top A bold(x)$ is the most-differentiated expression in machine learnin
 - every second-order Taylor model (ten minutes from now) ends in one.
 
 #pause
-So we earn its gradient honestly — today's ⭐, the difficulty valve fully open:
+So we earn its gradient honestly — today's ⭐:
 
 #notebox[*Plan:* brute-force the 2×2 case symbol by symbol (no matrix calculus allowed), *then* watch the general answer repack itself. One derivation, everything else today is plausibility.]
 
@@ -605,7 +605,7 @@ Two rules you now own for free, by choosing $A$:
   inset: 8pt,
   table.header([*expression*], [*gradient*], [*why*]),
   [$norm(bold(x))^2 = bold(x)^top I bold(x)$], [$2 bold(x)$], [$A = I$ is symmetric],
-  [$bold(b)^top bold(x)$ (linear)], [$bold(b)$], [the warm-up act: no square, constant slope],
+  [$bold(b)^top bold(x)$ (linear)], [$bold(b)$], [no square term — the slope is constant],
 )
 
 #pause
@@ -621,7 +621,7 @@ L7 replaced a function near $x_0$ by polynomials, one degree at a time:
 $ f(x_0 + h) approx f(x_0) + f'(x_0) thin h + 1/2 f''(x_0) thin h^2 $
 
 #pause
-Every ingredient just grew up. Upgrade each term with today's zoo:
+Every ingredient just grew up. Upgrade each term with today's table:
 
 #table(
   columns: (auto, auto, auto),
@@ -765,9 +765,9 @@ The scalar loss also has a curvature matrix, the *Hessian*. At $d = 10^6$ parame
 #pause
 Large-model optimizers therefore use approximations or Hessian-vector products rather than store the matrix explicitly. L17–L18 develop those uses.
 
-== The zoo, complete #V
+== The derivative table, complete #V
 
-#zoo(3)
+#dtable(3)
 
 #pause
 One idea, four containers: derivatives parameterize local linear approximations, and the Hessian supplies the quadratic term for a scalar output. The array shape follows the function's input and output shapes.
@@ -778,7 +778,7 @@ One idea, four containers: derivatives parameterize local linear approximations,
 - *Chain rule* = matrix multiplication of Jacobians; shapes must click ($(k times m)(m times n)$).
 - *Hessian* = Jacobian of the gradient; symmetric when second partials are continuous; entry $(i, j)$ = "how slope $i$ feels nudge $j$"; $bold(u)^top H bold(u)$ = curvature along $bold(u)$, extremes at eigenvectors.
 - *Quadratic forms* $1/2 bold(x)^top A bold(x)$: bowls (all $lambda > 0$), saddles (mixed), troughs (a zero $lambda$); 2×2 hand test via det and trace; ⭐ $nabla(bold(x)^top A bold(x)) = (A + A^top) bold(x)$.
-- *Taylor, order 2*: $f + nabla f^top bold(delta) + 1/2 bold(delta)^top H bold(delta)$ — height, tilt, bend; the optimizer's home.
+- *Taylor, order 2*: $f + nabla f^top bold(delta) + 1/2 bold(delta)^top H bold(delta)$ — height, tilt, bend; the local model L17–L18 optimize.
 
 == Before L10
 
@@ -795,7 +795,7 @@ Try on paper; verify with `torch.autograd.functional` as in today's code slides.
 + $f(x, y) = x^3 + y^3 - 3x y$: find both critical points, compute $H$ at each, and classify (one saddle, one bowl).
 + $f(x, y) = x y$ has *no* squared term anywhere. Compute $H$, its eigenvalues, and the shape at $(0,0)$.
 + Apply the ⭐ rule to the non-symmetric $A = mat(1, 4; 0, 1)$: write $nabla(bold(x)^top A bold(x))$, then verify by expanding $bold(x)^top A bold(x)$ by hand.
-+ Second-order Taylor of $f(x, y) = e^x sin y$ at $(0, pi/2)$: show $nabla f = (1, 0)$, $H = mat(1, 0; 0, -1)$, predict $f(0.1, pi/2 + 0.1)$, and compare with the true value $1.0997$.
++ Second-order Taylor of $f(x, y) = e^x sin y$ at $(0, pi/2)$: show $nabla f = (1, 0)$, $H = mat(1, 0; 0, -1)$, predict $f(0.1, pi/2 + 0.1)$, and compare with the true value $1.0996$.
 
 == ⭐⭐⭐ Beyond order two: derivatives become tensors #OPT
 
@@ -821,5 +821,5 @@ Storage explodes by $d$ per order, so large-scale ML usually uses first derivati
   Curvature is a matrix, and its sign is the shape of the bowl.
   #v(12pt)
   #set text(size: 22pt)
-  Next: *Differentiation on a Computer* — the computer takes over differentiation: finite differences pick a fight with floating point (L2 returns), and forward mode wins it.
+  Next: *Differentiation on a Computer* — the computer takes over differentiation: finite differences fight floating point (L2 returns), and forward mode wins.
 ]
