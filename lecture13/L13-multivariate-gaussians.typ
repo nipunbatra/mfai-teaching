@@ -105,7 +105,7 @@ Last lecture: densities for *one* continuous quantity — $p(x)$, area = probabi
 But since L3, our data has been *vectors*: (height, weight) · a 784-pixel image · an embedding · a parameter vector $bold(theta)$.
 
 #pause
-- Height and weight are not two separate stories: tall people tend to be heavier. A model of each alone *misses the relationship*.
+- Height and weight are not unrelated: tall people tend to be heavier. A model of each alone *misses the relationship*.
 #pause
 - We need one density over $RR^d$ — a *joint* — that knows how coordinates co-vary.
 
@@ -121,7 +121,7 @@ By the end of this lecture you will be able to:
 + Compute a 2×2 covariance *by hand* from raw data.
 + *Marginalize* (project) and *condition* (slice) a Gaussian — with formulas.
 + Score outliers with *Mahalanobis distance* — "how many σ's, direction-aware".
-+ Prove the ⭐ fact: *contours are ellipses along the eigenvectors of $Sigma$* (L5, cashed in).
++ Prove the ⭐ fact: *contours are ellipses along the eigenvectors of $Sigma$* (stated in L5, proved today).
 + Explain why Gaussians are everywhere: *CLT, max entropy, closure*.
 
 // ═══════════════════════════ 2 · from one bump to two ═══════════════════════════
@@ -202,7 +202,7 @@ $ (x - mu_1)^2 / sigma_1^2 + (y - mu_2)^2 / sigma_2^2 = bold(d)^top mat(1\/sigma
 where $Sigma = mat(delim: "(", sigma_1^2, 0; 0, sigma_2^2)$ collects the two variances — our first covariance matrix, and $Sigma^(-1)$ simply divides each squared deviation by its own variance.
 
 #pause
-#notebox[L9 planted exactly this: _"the Gaussian's exponent IS a quadratic form, with $A = Sigma^(-1)$."_ The IOU starts being paid right here.]
+#notebox[L9 named the Gaussian's exponent as its headline example of a quadratic form. Here it is, with $A = Sigma^(-1)$.]
 
 == Repackage the constant: a determinant appears
 
@@ -232,7 +232,7 @@ This formula is the independent case rewritten in matrix notation, then extended
 $ p(bold(x)) = underbrace(1/((2 pi)^(d\/2) thin det(Sigma)^(1\/2)), "volume bookkeeping") thin exp(-1/2 thin underbrace((bold(x) - bold(mu))^top Sigma^(-1) (bold(x) - bold(mu)), "a quadratic form in " bold(x) - bold(mu))) $
 
 #pause
-- The *exponent* is L9's quadratic form $bold(d)^top A bold(d)$ with $A = Sigma^(-1)$ — L9 planted exactly this: _"the bowl's ellipse contours are a Gaussian's, with $A = Sigma^(-1)$"_. Today that IOU is paid.
+- The *exponent* is L9's quadratic form $bold(d)^top A bold(d)$ with $A = Sigma^(-1)$. $Sigma^(-1)$ is positive definite, so this is L9's *bowl* — its elliptical contours are about to become the Gaussian's contours.
 #pause
 - The *normalizer* only rescales height so total volume is 1 — $det(Sigma)^(1\/2)$ is the bump's footprint volume (L4: determinants measure volume). It never affects the shape.
 #pause
@@ -250,7 +250,7 @@ $ Sigma_(i j) = EE[(X_i - mu_i)(X_j - mu_j)] $
 #pause
 - *Off-diagonal* ($i != j$): do $X_i$ and $X_j$ move *together*? Positive: above-average together. Negative: one up, the other down. Zero: no linear relationship.
 #pause
-- Swap $i$ and $j$: same product, same expectation. So $Sigma_(i j) = Sigma_(j i)$ — *every covariance matrix is symmetric*, automatically. (You know what that buys us: L5's spectral theorem. Hold that thought.)
+- Swap $i$ and $j$: same product, same expectation. So $Sigma_(i j) = Sigma_(j i)$ — *every covariance matrix is symmetric*, automatically. Symmetric means L5's spectral theorem applies; the ⭐ derivation uses it.
 
 == Numbers: four data points, by hand
 
@@ -289,7 +289,7 @@ For any direction $bold(a)$, the variance of the projection $bold(a)^top bold(x)
 $ "Var"(bold(a)^top bold(x)) = bold(a)^top Sigma thin bold(a) quad #text(fill: MUTED)[— a quadratic form again, and variances can't be negative…] $
 
 #pause
-#result[$bold(a)^top Sigma thin bold(a) >= 0$ for every $bold(a)$: covariance matrices are exactly L9's *positive semi-definite* club. $Sigma$ is a machine that turns directions into variances.]
+#result[$bold(a)^top Sigma thin bold(a) >= 0$ for every $bold(a)$: covariance matrices are exactly L9's *positive semi-definite* matrices. $Sigma$ is a machine that turns directions into variances.]
 
 == Correlation: the unit-free reading
 
@@ -437,7 +437,7 @@ $ mu_(x|7) = 3 + 1/2 (7 - 5) = 4 quad quad sigma_(x|y)^2 = 2 - 1/2 = 1.5 quad #t
 #pause
 - The mean *shifts linearly* with $y_0$ — the dashed line through the slice means is a preview of *regression* (L14's linear regression lives inside this picture).
 #pause
-- The variance *shrank* ($1.5 < 2$) and doesn't depend on $y_0$ at all — knowing $y$ helps by the same amount everywhere. A distinctly Gaussian privilege.
+- The variance *shrank* ($1.5 < 2$) and doesn't depend on $y_0$ at all — knowing $y$ helps by the same amount everywhere. That constancy is specific to the Gaussian.
 
 == Closure: every answer stayed in the family
 
@@ -478,12 +478,12 @@ The filtered histogram is the renormalized slice; simulation agrees with the con
 // ═══════════════════════════ 5 · Mahalanobis ═══════════════════════════
 = Mahalanobis distance: direction-aware $sigma$'s
 
-== Two points, same distance, different stories #V
+== Two points, equal Euclidean distance #V
 
 #fig("/lecture13/figures/mahalanobis_scene.svg", w: 68%)
 
 #pause
-$A = (1, 1)$ and $B = (1, -1)$ sit at *identical* Euclidean distance $sqrt(2)$ from the mean — yet the cloud disagrees violently: $A$ is in the thick of it, $B$ is out in the cold.
+$A = (1, 1)$ and $B = (1, -1)$ sit at *identical* Euclidean distance $sqrt(2)$ from the mean — yet $A$ lies in a dense part of the cloud while $B$ lies well outside it.
 
 #pause
 Euclidean distance is *shape-blind*. We need a ruler that has seen $Sigma$.
@@ -528,14 +528,14 @@ $ d_M^2 (bold(x)) = (bold(x) - bold(mu))^top Sigma^(-1) (bold(x) - bold(mu)) $
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[same four level values on both plots, $Sigma = mat(delim: "(", 2, 1; 1, 2)$ — the Mahalanobis unit ball is the covariance ellipse itself])
 
-== Compute the conditional distribution
+== Compute both Mahalanobis distances
 
-The slide inverts $Sigma$ live (chalkdust `la.inv`):
+First invert the running covariance (this slide computes it live):
 
 $ Sigma^(-1) = #m2(SIGI, d: 4) = 1/3 mat(2, -1; -1, 2) $
 
 #pause
-Score both suspects — hand-checkable in two lines each:
+Score both points — hand-checkable in two lines each:
 
 $ d_M^2 (A) = (1, 1) thin Sigma^(-1) vec(1, 1) = #fmt(mah2((1.0, 1.0)), d: 4) quad arrow.r.double quad d_M (A) = #fmt(calc.sqrt(mah2((1.0, 1.0))), d: 2) " ‘standard deviations’" $
 
@@ -563,7 +563,7 @@ Fix a density value $c$ and take $log$ of both sides of $p(bold(x)) = c$ — the
 $ p(bold(x)) = c quad arrow.l.r.double quad (bold(x) - bold(mu))^top Sigma^(-1) (bold(x) - bold(mu)) = r^2 quad #text(fill: MUTED)[(some constant $r^2 >= 0$)] $
 
 #pause
-($exp$ is strictly monotone, so no information is lost taking the $log$ — L2's log-space move, working geometry duty.)
+($exp$ is strictly monotone, so no information is lost taking the $log$ — L2's log-space move, now used for geometry.)
 
 #pause
 #result[Contours of the Gaussian = level sets of the quadratic form $bold(d)^top A thin bold(d)$ with $A = Sigma^(-1)$ — precisely L9's bowl. What remains: *which* ellipses, pointed *where*?]
@@ -592,7 +592,7 @@ So the contour $= r^2$ reads, in eigen-coordinates:
 $ t_1^2/(r^2 lambda_1) + t_2^2/(r^2 lambda_2) = 1 quad #text(fill: MUTED)[— the standard ellipse equation, semi-axes $r sqrt(lambda_1)$ and $r sqrt(lambda_2)$] $
 
 #pause
-#result[Contours of $cal(N)(bold(mu), Sigma)$: ellipses centered at $bold(mu)$, axes along the eigenvectors $bold(q)_i$ of $Sigma$, semi-axes $prop sqrt(lambda_i)$. $qed$ \ #text(size: 17pt)[L5 planted it, L9 armed it, L13 proved it.]]
+#result[Contours of $cal(N)(bold(mu), Sigma)$: ellipses centered at $bold(mu)$, axes along the eigenvectors $bold(q)_i$ of $Sigma$, semi-axes $prop sqrt(lambda_i)$. $qed$ \ #text(size: 17pt)[L5 stated it for data clouds; L9 built the quadratic-form tools; L13 proved it.]]
 
 == The theorem, checked live #V
 
@@ -623,9 +623,9 @@ $ t_1^2/(r^2 lambda_1) + t_2^2/(r^2 lambda_2) = 1 quad #text(fill: MUTED)[— th
 #pause
 #align(center, text(size: 16pt, fill: MUTED)[contours sampled from the density; axis segments drawn from `eig-sym`'s output, lengths $prop sqrt(lambda_i)$ — computed, not sketched])
 
-== Where this one fact keeps cashing out
+== Where this fact is used again
 
-- *PCA (L6), demystified*: PCA's principal directions are the eigenvectors of the data covariance — i.e., *the axes of this ellipse*. L6 found them by SVD; today you know what they mean probabilistically.
+- *PCA (L6), interpreted*: PCA's principal directions are the eigenvectors of the data covariance — i.e., *the axes of this ellipse*. L6 found them by SVD; today you know what they mean probabilistically.
 #pause
 - *Whitening*: rotate by $Q^top$, divide by $sqrt(lambda_i)$ — any Gaussian becomes $cal(N)(0, I)$. Data preprocessing = ellipse → circle.
 #pause
@@ -682,7 +682,7 @@ $ (X_1 + dots.c + X_n - n mu) / (sigma sqrt(n)) arrow.r quad cal(N)(0, 1) quad "
 #pause
 - If a modeling principle retains only $bold(mu)$ and $Sigma$ and otherwise maximizes entropy, it selects $cal(N)(bold(mu), Sigma)$. This does not make every dataset Gaussian; it states the optimization criterion used to choose the model.
 #pause
-- "Entropy" — a number measuring non-commitment? Defining it properly is the whole business of *Module 5* (L22). This fact is planted today and *proved there*.
+- "Entropy" — a number measuring non-commitment? Defining it properly is the whole business of *Module 5* (L22). This fact is stated today and *proved there*.
 
 #pause
 #result[The CLT motivates Gaussian approximations for standardized sums; the maximum-entropy theorem selects a Gaussian when only mean and covariance are constrained.]
@@ -712,11 +712,11 @@ GPT-2's initialization, diffusion noise, VAE latents, and Kalman filters use dif
 
 == Lecture 13 — summary
 
-- *The MVN*: a bump on $RR^d$ with density $prop exp(-1/2 (bold(x) - bold(mu))^top Sigma^(-1) (bold(x) - bold(mu)))$ — the exponent is L9's quadratic form, $A = Sigma^(-1)$.
+- *The MVN*: density $prop exp(-1/2 bold(d)^top Sigma^(-1) bold(d))$, $bold(d) = bold(x) - bold(mu)$ — L9's quadratic form, $A = Sigma^(-1)$.
 - *Reading $Sigma$*: diagonal = variances, off-diagonal = co-movement ($rho = Sigma_(12)\/sigma_1 sigma_2$); PSD because $bold(a)^top Sigma bold(a) = "Var"(bold(a)^top bold(x)) >= 0$.
-- *Marginal = project, conditional = slice* — both stay Gaussian; conditional mean moves linearly, variance shrinks by a constant.
-- *Mahalanobis* $d_M^2 = (bold(x) - bold(mu))^top Sigma^(-1) (bold(x) - bold(mu))$: "how many σ's, direction-aware"; equal density ⇔ equal $d_M$.
-- *⭐ The ellipse*: contour axes = eigenvectors of $Sigma$, semi-axes $prop sqrt(lambda_i)$ (L5, paid).
+- *Marginal = project, conditional = slice* — both stay Gaussian, in closed form.
+- *Mahalanobis* $d_M^2 = bold(d)^top Sigma^(-1) bold(d)$: direction-aware σ's; equal density ⇔ equal $d_M$.
+- *⭐ The ellipse*: axes = eigenvectors of $Sigma$, semi-axes $prop sqrt(lambda_i)$ (L5's claim, proved).
 - *Why everywhere*: CLT + max entropy (→ L22) + closure.
 
 #pause
