@@ -1,0 +1,46 @@
+---
+title: "Tutorial 6 · Densities & Gaussians"
+subtitle: "After L13 · 80 minutes"
+---
+
+Connect density, area, sampling, transformations, and covariance geometry.
+
+## Part A · Worksheet (~40 min, pen and paper)
+
+### Problem 1 — Density versus probability
+
+For $X \sim Uniform(0,0.2)$, find the density and $P(0.05<X<0.08)$. Why may the density exceed one?
+
+### Problem 2 — Exponential waiting
+
+For rate $\lambda=2$, find $P(X>1)$ and $E[X]$.
+
+### Problem 3 — Linear transformation
+
+If $X \sim N(2,9)$ and $Y=3X-1$, find the mean and variance of $Y$.
+
+### Problem 4 — Covariance ellipse
+
+For $\Sigma=\begin{bmatrix}4 & 3 \\ 3 & 4\end{bmatrix}$, find ellipse axes and standard deviations.
+
+### Problem 5 — Mahalanobis
+
+Compare squared Mahalanobis distances of $(1,1)$ and $(1,-1)$ under that covariance.
+
+::: {.callout-note collapse="true"}
+## Solutions — open only after attempting everything
+
+**1.** Density is $5$; probability is rectangle area $5(0.03)=0.15$. Density is probability per unit, not probability.
+
+**2.** $P(X>1)=e^{-2}$ and $E[X]=1/2$.
+
+**3.** $E[Y]=5$ and $\operatorname{Var}(Y)=9Var(X)=81$.
+
+**4.** Eigenvectors are diagonal/anti-diagonal with eigenvalues $7,1$, so standard deviations are $\sqrt{7},1$.
+
+**5.** They are $2/7$ and $2$ respectively; the low-variance direction makes deviations more unusual.
+:::
+
+## Part B · Notebook (~40 min, laptop)
+
+Open [`../notebooks/tut06-densities-gaussians.ipynb`](../notebooks/tut06-densities-gaussians.ipynb). Predict each result, run the cell, and explain any disagreement.

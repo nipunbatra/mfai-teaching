@@ -3,23 +3,23 @@ title: "Tutorials"
 subtitle: "13 sessions · 80 minutes · worksheet + notebook"
 ---
 
-Every tutorial is **hybrid**: roughly 40 minutes of pen-and-paper worksheet (the fluency you need in quizzes and exams) followed by 40 minutes of Jupyter notebook (the same idea, computationally). Bring a laptop. Tutorials are formative — effort, not marks.
+Each tutorial has about 40 minutes of pen-and-paper work followed by 40 minutes in a Jupyter notebook. Do the calculation first; then use the notebook to check it and vary the example. Bring a laptop.
 
 | # | After | Topic | Worksheet | Notebook |
 |:---:|:---:|-------|:---------:|:--------:|
 | T1 | L2 | Floating Point & Machine Numbers | [worksheet](tut01-floating-point.qmd) | [notebook](../notebooks/tut01-floating-point.ipynb) |
-| T2 | L4 | Vectors & Matrices | *soon* | *soon* |
-| T3 | L6 | Eigen, SVD & PCA | *soon* | *soon* |
-| T4 | L8 | Derivatives, Gradients & Contours | *soon* | *soon* |
-| T5 | L11 | Backprop by Hand + micrograd | *soon* | *soon* |
-| T6 | L13 | Densities & Gaussians | *soon* | *soon* |
-| T7 | L15 | MLE, MAP & Bayesian Updating | *soon* | *soon* |
-| T8 | L17 | Gradient Descent & Conditioning | *soon* | *soon* |
-| T9 | L18 | Newton & Curve Fitting | *soon* | *soon* |
-| T10 | L20 | Lagrange & KKT | *soon* | *soon* |
-| T11 | L21 | LP/QP with CVXPY | *soon* | *soon* |
-| T12 | L24 | Entropy, Huffman & KL | *soon* | *soon* |
-| T13 | L26 | Markov Chains & the n-gram LM | *soon* | *soon* |
+| T2 | L4 | Vectors & Matrices | [worksheet](tut02-vectors-matrices.qmd) | [notebook](../notebooks/tut02-vectors-matrices.ipynb) |
+| T3 | L6 | Eigen, SVD & PCA | [worksheet](tut03-eigen-svd-pca.qmd) | [notebook](../notebooks/tut03-eigen-svd-pca.ipynb) |
+| T4 | L8 | Derivatives, Gradients & Contours | [worksheet](tut04-gradients-contours.qmd) | [notebook](../notebooks/tut04-gradients-contours.ipynb) |
+| T5 | L11 | Backprop by Hand + micrograd | [worksheet](tut05-backprop-micrograd.qmd) | [notebook](../notebooks/tut05-backprop-micrograd.ipynb) |
+| T6 | L13 | Densities & Gaussians | [worksheet](tut06-densities-gaussians.qmd) | [notebook](../notebooks/tut06-densities-gaussians.ipynb) |
+| T7 | L15 | MLE, MAP & Bayesian Updating | [worksheet](tut07-mle-map-bayes.qmd) | [notebook](../notebooks/tut07-mle-map-bayes.ipynb) |
+| T8 | L17 | Gradient Descent & Conditioning | [worksheet](tut08-gradient-descent-conditioning.qmd) | [notebook](../notebooks/tut08-gradient-descent-conditioning.ipynb) |
+| T9 | L18 | Newton & Curve Fitting | [worksheet](tut09-newton-curve-fitting.qmd) | [notebook](../notebooks/tut09-newton-curve-fitting.ipynb) |
+| T10 | L20 | Lagrange & KKT | [worksheet](tut10-lagrange-kkt.qmd) | [notebook](../notebooks/tut10-lagrange-kkt.ipynb) |
+| T11 | L21 | LP/QP with CVXPY | [worksheet](tut11-lp-qp-cvxpy.qmd) | [notebook](../notebooks/tut11-lp-qp-cvxpy.ipynb) |
+| T12 | L24 | Entropy, Huffman & KL | [worksheet](tut12-entropy-huffman-kl.qmd) | [notebook](../notebooks/tut12-entropy-huffman-kl.ipynb) |
+| T13 | L26 | Markov Chains & the n-gram LM | [worksheet](tut13-markov-ngram.qmd) | [notebook](../notebooks/tut13-markov-ngram.ipynb) |
 
 ## Assignments
 

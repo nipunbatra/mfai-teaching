@@ -117,7 +117,7 @@ ES 114's dataset of *25,000 measured heights*. Pick a person at random; let $H$ 
 Easy question: $P(66 <= H <= 70)$? Count the rows, divide by 25,000. Fine.
 
 #pause
-Treacherous question: what is
+Different question: what is
 
 $ P(H = italic("exactly") 68 "inches") = P(H = 68.000000000 dots) = thin ? $
 
@@ -632,7 +632,7 @@ The fix must multiply by exactly the factor that repairs the area. Let's derive 
 
 == ⭐ The derivation, step 1: route through the CDF #D
 
-Densities are treacherous; *CDFs are genuine probabilities* — safe to push around. So compute $F_Y$ first. Take $Y = a X + b$ with $a > 0$:
+For transformations, *CDFs are genuine probabilities* and are easier to work with. So compute $F_Y$ first. Take $Y = a X + b$ with $a > 0$:
 
 #pause
 $ F_Y (y) = P(Y <= y) = P(a X + b <= y) $

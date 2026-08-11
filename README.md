@@ -2,7 +2,7 @@
 
 Course site: https://nipunbatra.github.io/mfai-teaching · Prof. Nipun Batra
 
-26 lectures + 13 hybrid tutorials (80 min each). Floating point → linear algebra → multivariate calculus & autodiff → probability & estimation → optimization → information theory → Markov chains. The finale trains a character-level n-gram language model that uses every module.
+26 lectures + 13 hybrid tutorials (80 min each). Floating point → linear algebra → multivariate calculus & autodiff → probability & estimation → optimization → information theory → Markov chains. The final lecture fits and evaluates a character-level n-gram language model.
 
 ## Repo layout
 
@@ -32,6 +32,15 @@ make slides            # every deck → slides-pdf/  (= ./build-slides-pdf.sh)
 make audit             # visual-quality gate over the committed PDFs
 quarto render          # the site → _site/ (gitignored)
 quarto preview         # local preview
+```
+
+T2–T13 worksheets and notebooks are generated from their tutorial-specific definitions, then the notebooks are executed from the repository root:
+
+```bash
+python3 scripts/build_remaining_tutorials.py
+uv run --no-project --with nbformat --with nbclient --with ipykernel \
+  --with numpy --with matplotlib --with scipy --with cvxpy \
+  python3 scripts/execute_tutorial_notebooks.py
 ```
 
 Deployment: GitHub Actions (`.github/workflows/quarto-publish.yml`) renders the Quarto site and deploys `_site/` to GitHub Pages on push to master. Slide PDFs are compiled locally and committed — CI runs neither Typst nor Python.

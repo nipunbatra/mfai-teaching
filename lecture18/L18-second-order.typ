@@ -163,7 +163,7 @@ $ f(bold(x) + bold(delta)) approx f(bold(x)) + nabla f(bold(x))^top bold(delta) 
 #pause
 - The learning rate $eta$ = how far you trust a line that is only true at a point.
 #pause
-- On a bowl with condition number $kappa$: the safe $eta$ is set by the *steepest* wall, so the *flattest* direction crawls — the step budget grows like $kappa$. That was L17's punchline.
+- On a bowl with condition number $kappa$: the safe $eta$ is set by the *steepest* wall, so the *flattest* direction crawls — the step budget grows like $kappa$. That was the main result from L17.
 
 #pause
 #notebox[A line has no bottom. However far you trust it, it only ever says "downhill is that way" — never "stop *here*".]

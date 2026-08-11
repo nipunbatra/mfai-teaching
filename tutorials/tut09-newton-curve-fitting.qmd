@@ -1,0 +1,46 @@
+---
+title: "Tutorial 9 · Newton & Curve Fitting"
+subtitle: "After L18 · 80 minutes"
+---
+
+Compare gradient and Newton steps, then fit a nonlinear decay model with Gauss–Newton structure.
+
+## Part A · Worksheet (~40 min, pen and paper)
+
+### Problem 1 — Newton step
+
+For $f(x)=x-ln x$, derive Newton's update and take two steps from $x_0=0.5$.
+
+### Problem 2 — Quadratic
+
+Show that Newton reaches the minimizer of $f(x)=a x^2/2+b x+c$ in one step when $a>0$.
+
+### Problem 3 — Least-squares Jacobian
+
+For residual $r_i(a,b)=a \exp(-bt_i)-y_i$, compute both Jacobian columns.
+
+### Problem 4 — Gauss–Newton
+
+Write the normal equation for the parameter step and state when $J^TJ$ may be singular.
+
+### Problem 5 — Damping
+
+Explain how $(J^TJ+\lambda I)\delta=-J^Tr$ interpolates between Gauss–Newton and a small gradient-like step.
+
+::: {.callout-note collapse="true"}
+## Solutions — open only after attempting everything
+
+**1.** $x^+=x-f'/f''=2x-x^2$; $0.5 \to 0.75 \to 0.9375$.
+
+**2.** $f'=ax+b$, $f''=a$, so $x^+=x-(ax+b)/a=-b/a$.
+
+**3.** $\partial_a r_i=e^{-bt_i}$ and $\partial_b r_i=-a t_i e^{-bt_i}$.
+
+**4.** $(J^TJ)\delta=-J^Tr$; singularity occurs when columns are dependent or parameters are locally unidentifiable.
+
+**5.** Large $\lambda$ gives $\delta \approx-(1/\lambda)J^Tr$; zero damping recovers Gauss–Newton.
+:::
+
+## Part B · Notebook (~40 min, laptop)
+
+Open [`../notebooks/tut09-newton-curve-fitting.ipynb`](../notebooks/tut09-newton-curve-fitting.ipynb). Predict each result, run the cell, and explain any disagreement.

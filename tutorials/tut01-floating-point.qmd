@@ -105,7 +105,7 @@ Check: $8 + 4 + 1 + \tfrac14 + \tfrac18 = 13.375$. ✓
 
 **(b)** Multiply-by-2 algorithm on $0.1$: the integer bits produced are $0, 0, 0, 1, 1$, and then the state returns to $0.2$ — so the block $0011$ repeats forever:
 $$0.1_{10} = 0.0\overline{0011}_2 = 0.000110011001100\ldots_2$$
-Since the expansion is infinite, **no** binary format with finitely many mantissa bits can store $0.1$ exactly — float64's `0.1` is already a rounded impostor before you do any arithmetic with it.
+Since the expansion is infinite, **no** binary format with finitely many mantissa bits can store $0.1$ exactly — float64 starts with a rounded approximation before any arithmetic is done.
 
 ### Problem 2
 

@@ -1,0 +1,46 @@
+---
+title: "Tutorial 7 · MLE, MAP & Bayesian Updating"
+subtitle: "After L15 · 80 minutes"
+---
+
+Estimate a coin bias, update a Beta prior, and see regularization as prior information.
+
+## Part A · Worksheet (~40 min, pen and paper)
+
+### Problem 1 — Bernoulli MLE
+
+For 3 heads and 1 tail, write the likelihood/log-likelihood and derive the MLE.
+
+### Problem 2 — Beta posterior
+
+With prior Beta$(2,2)$, find the posterior after those flips and its mean.
+
+### Problem 3 — MAP
+
+Find the interior MAP of Beta$(5,3)$ and compare it with the mean.
+
+### Problem 4 — Sequential update
+
+Show that updating after batches (2H,1T) then (1H,0T) matches one update with all data.
+
+### Problem 5 — Prior as counts
+
+Interpret Beta$(10,2)$ using pseudo-counts, and explain when data will dominate it.
+
+::: {.callout-note collapse="true"}
+## Solutions — open only after attempting everything
+
+**1.** $L(\theta)=\theta^3(1-\theta)$; derivative of log likelihood gives $\hat{\theta}=3/4$.
+
+**2.** Posterior Beta$(5,3)$ with mean $5/8$.
+
+**3.** MAP $(5-1)/(5+3-2)=2/3$; mean is $5/8$.
+
+**4.** Both yield Beta$(5,3)$ because sufficient statistics add.
+
+**5.** The prior contributes 9 head-like and 1 tail-like MAP pseudo-count; enough observations overwhelm fixed prior counts.
+:::
+
+## Part B · Notebook (~40 min, laptop)
+
+Open [`../notebooks/tut07-mle-map-bayes.ipynb`](../notebooks/tut07-mle-map-bayes.ipynb). Predict each result, run the cell, and explain any disagreement.

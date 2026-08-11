@@ -7,10 +7,22 @@ Companion notebooks are linked from the schedule on the [Home page](index.qmd) a
 - `notebooks/lecNN-*.ipynb` — lecture companions (run the lecture's numbers yourself)
 - `notebooks/tutNN-*.ipynb` — the coding half of each tutorial
 
-Available so far:
+Tutorial notebooks:
 
 | Notebook | Goes with |
 |----------|-----------|
 | [tut01-floating-point](notebooks/tut01-floating-point.ipynb) | T1 · L2 (floating point) |
+| [tut02-vectors-matrices](notebooks/tut02-vectors-matrices.ipynb) | T2 · L4 (vectors and matrices) |
+| [tut03-eigen-svd-pca](notebooks/tut03-eigen-svd-pca.ipynb) | T3 · L6 (eigenvectors, SVD and PCA) |
+| [tut04-gradients-contours](notebooks/tut04-gradients-contours.ipynb) | T4 · L8 (gradients and contours) |
+| [tut05-backprop-micrograd](notebooks/tut05-backprop-micrograd.ipynb) | T5 · L11 (reverse mode and backprop) |
+| [tut06-densities-gaussians](notebooks/tut06-densities-gaussians.ipynb) | T6 · L13 (densities and Gaussians) |
+| [tut07-mle-map-bayes](notebooks/tut07-mle-map-bayes.ipynb) | T7 · L15 (MLE, MAP and updating) |
+| [tut08-gradient-descent-conditioning](notebooks/tut08-gradient-descent-conditioning.ipynb) | T8 · L17 (gradient descent) |
+| [tut09-newton-curve-fitting](notebooks/tut09-newton-curve-fitting.ipynb) | T9 · L18 (Newton and curve fitting) |
+| [tut10-lagrange-kkt](notebooks/tut10-lagrange-kkt.ipynb) | T10 · L20 (Lagrange multipliers and KKT) |
+| [tut11-lp-qp-cvxpy](notebooks/tut11-lp-qp-cvxpy.ipynb) | T11 · L21 (LP and QP) |
+| [tut12-entropy-huffman-kl](notebooks/tut12-entropy-huffman-kl.ipynb) | T12 · L24 (entropy, coding and KL) |
+| [tut13-markov-ngram](notebooks/tut13-markov-ngram.ipynb) | T13 · L26 (Markov chains and n-grams) |
 
-All notebooks are NumPy/Matplotlib first; PyTorch appears from the autodiff module onward. Each runs top-to-bottom in a fresh kernel.
+The notebooks use NumPy and Matplotlib; a few also use SciPy or CVXPY. Each has been run top-to-bottom in a fresh kernel.

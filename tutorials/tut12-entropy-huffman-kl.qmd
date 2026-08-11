@@ -1,0 +1,46 @@
+---
+title: "Tutorial 12 · Entropy, Huffman & KL"
+subtitle: "After L24 · 80 minutes"
+---
+
+Compute surprise and entropy, build a Huffman code, and measure the excess cost of a wrong model.
+
+## Part A · Worksheet (~40 min, pen and paper)
+
+### Problem 1 — Entropy
+
+Compute entropy of $(.4,.2,.15,.15,.1)$ in bits.
+
+### Problem 2 — Kraft
+
+Check whether lengths $(1,3,3,3,3)$ form a complete binary prefix tree.
+
+### Problem 3 — Huffman
+
+Run the merge weights for probabilities proportional to $(40,20,15,15,10)$.
+
+### Problem 4 — Cross-entropy
+
+For $p=(.75,.2,.05)$ and $q=(.45,.35,.2)$, compute $H(p)$, $H(p,q)$, and KL.
+
+### Problem 5 — Perplexity
+
+Convert 2.5 bits/symbol and 2.5 nats/symbol to their matching perplexities.
+
+::: {.callout-note collapse="true"}
+## Solutions — open only after attempting everything
+
+**1.** $H \approx 2.146$ bits.
+
+**2.** $1/2+4/8=1$, so it exactly fills a binary tree.
+
+**3.** Merge $10+15$, $15+20$, $25+35$, then $40+60$ (ties may change codewords, not expected length).
+
+**4.** $H(p)\approx.992$, $H(p,q)\approx 1.283$, KL $\approx.291$ bits.
+
+**5.** $2^{2.5}\approx 5.657$ and $e^{2.5}\approx 12.182$.
+:::
+
+## Part B · Notebook (~40 min, laptop)
+
+Open [`../notebooks/tut12-entropy-huffman-kl.ipynb`](../notebooks/tut12-entropy-huffman-kl.ipynb). Predict each result, run the cell, and explain any disagreement.

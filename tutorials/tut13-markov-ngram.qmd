@@ -1,0 +1,46 @@
+---
+title: "Tutorial 13 · Markov Chains & the n-gram LM"
+subtitle: "After L26 · 80 minutes"
+---
+
+Compute a stationary distribution, fit smoothed character transitions, score held-out text, and generate a sample.
+
+## Part A · Worksheet (~40 min, pen and paper)
+
+### Problem 1 — Stationary distribution
+
+For $P=\begin{bmatrix}.8 & .2 \\ .4 & .6\end{bmatrix}$, solve $\pi=\pi P$ and normalize.
+
+### Problem 2 — Path probability
+
+With initial $(.6,.4)$, find $P(S,R,R,S)$.
+
+### Problem 3 — Transition MLE
+
+Derive the MLE row from counts $n_{ij}$ under the row-sum constraint.
+
+### Problem 4 — Smoothing
+
+Apply add-one prediction to counts $(8,2,0,0)$.
+
+### Problem 5 — BPC
+
+If test transitions receive probabilities $(1/2,1/4,1/8)$, compute total bits, BPC, and perplexity.
+
+::: {.callout-note collapse="true"}
+## Solutions — open only after attempting everything
+
+**1.** $\pi=(2/3,1/3)$.
+
+**2.** $0.6(.2)(.6)(.4)=.0288$.
+
+**3.** $\hat{P}_{ij}=n_{ij}/\sum_j n_{ij}$.
+
+**4.** $(9/14,3/14,1/14,1/14)$.
+
+**5.** Total 6 bits, BPC 2, perplexity 4.
+:::
+
+## Part B · Notebook (~40 min, laptop)
+
+Open [`../notebooks/tut13-markov-ngram.ipynb`](../notebooks/tut13-markov-ngram.ipynb). Predict each result, run the cell, and explain any disagreement.

@@ -1,0 +1,46 @@
+---
+title: "Tutorial 4 · Derivatives, Gradients & Contours"
+subtitle: "After L8 · 80 minutes"
+---
+
+Move between formulas, contour geometry, directional derivatives, and numerical gradient checks.
+
+## Part A · Worksheet (~40 min, pen and paper)
+
+### Problem 1 — Gradient
+
+For $f=x^2+xy+2y^2$, compute $\nabla f$ and evaluate it at $(1,-1)$.
+
+### Problem 2 — Directional derivative
+
+At $(1,-1)$, compute the derivative in unit direction $(3,4)/5$.
+
+### Problem 3 — Contour tangent
+
+Find a direction tangent to the contour through $(1,-1)$ and verify its dot product with the gradient is zero.
+
+### Problem 4 — Chain rule
+
+For $z=\sin(x^2+3y)$, compute both partial derivatives.
+
+### Problem 5 — Finite difference
+
+Derive the $O(h^2)$ central-difference formula and explain why very small $h$ eventually fails in floating point.
+
+::: {.callout-note collapse="true"}
+## Solutions — open only after attempting everything
+
+**1.** $\nabla f=(2x+y,x+4y)$, hence $(1,-3)$.
+
+**2.** $(1,-3)^T(3,4)/5=-9/5$.
+
+**3.** One tangent is $(3,1)$ because $(1,-3)^T(3,1)=0$.
+
+**4.** $\partial_x z=2x \cos(x^2+3y)$ and $\partial_y z=3\cos(x^2+3y)$.
+
+**5.** Taylor expansions cancel even powers; rounding/cancellation dominates when $h$ is too small.
+:::
+
+## Part B · Notebook (~40 min, laptop)
+
+Open [`../notebooks/tut04-gradients-contours.ipynb`](../notebooks/tut04-gradients-contours.ipynb). Predict each result, run the cell, and explain any disagreement.

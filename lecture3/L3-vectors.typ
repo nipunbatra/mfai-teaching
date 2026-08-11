@@ -55,9 +55,9 @@ The route, tool by tool:
   columns: (auto, auto, 1fr),
   stroke: 0.5pt + MUTED.lighten(40%),
   inset: 8pt,
-  table.header([*Step*], [*Tool*], [*What it unlocks*]),
+  table.header([*Step*], [*Tool*], [*Use*]),
   [length], [norms $norm(bold(x))$], [how big, how far apart],
-  [angle], [dot product, cosine], [both mysteries above],
+  [angle], [dot product, cosine], [both questions above],
   [shadow], [projection], [the germ of least squares & PCA],
   [grid], [span, basis], [what coordinates even mean],
 )
